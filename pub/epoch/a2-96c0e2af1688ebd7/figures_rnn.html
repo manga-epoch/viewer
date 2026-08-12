@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RNN/LSTM — EPOCH Arc 2 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+</script>
+<style>
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.9;margin:0;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+.fig-crumb{max-width:860px;margin:18px auto 0;padding:0 20px;font-size:12.5px;color:var(--ink-muted)}
+.fig-crumb a{color:var(--link);text-decoration:underline}
+.fig-crumb a:hover{color:var(--ink)}
+.intro{max-width:760px;margin:40px auto 8px;padding:0 20px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub);margin-bottom:12px}
+.intro h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:0 0 12px}
+.intro p{color:var(--ink-sub);font-size:15.5px;line-height:1.9}
+.intro strong{color:var(--ink)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;max-width:880px;margin:26px auto;padding:24px 22px}
+.fig-stage h2{font-size:1.15rem;font-weight:700;margin:6px 0 4px;letter-spacing:-.01em}
+.fig-stage h2::before{content:"";display:inline-block;width:22px;height:3px;background:var(--arc);border-radius:2px;margin-right:10px;vertical-align:middle}
+.fig-stage .lead{color:var(--ink-sub);font-size:14px;margin:2px 0 18px;line-height:1.8}
+.fig-stage h3{font-size:1.0rem;font-weight:700;margin:26px 0 8px}
+.fig-stage p{font-size:14.5px;color:#2c2924}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrl{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-sub);min-width:120px}
+.ctrl label{font-weight:700;color:var(--ink);font-size:12.5px}
+.ctrl .val{font-variant-numeric:tabular-nums;color:var(--link);font-weight:700}
+input[type=range]{accent-color:var(--arc);width:100%}
+.btn{background:var(--ink);color:var(--bg);border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.btn.ghost.on{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1px solid var(--border);background:#fff;border-radius:18px;padding:6px 14px;font-size:12.5px;color:var(--ink-sub);cursor:pointer}
+.chip.on{border-color:var(--arc);background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+.grid-wrap{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;justify-content:center;margin:10px 0}
+.gcap{text-align:center;font-size:12px;color:var(--ink-muted);margin-top:8px}
+.formula{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:15px;text-align:center}
+.note{font-size:13px;color:var(--ink-sub);line-height:1.8}
+.readout{font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0;white-space:pre-wrap}
+.kv{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-sub)}
+.kv b{color:var(--ink)}
+table.mini{border-collapse:collapse;font-size:13.5px;margin:6px auto}
+table.mini th,table.mini td{border:1px solid var(--border);padding:7px 13px;text-align:center}
+table.mini th{background:var(--surface);font-weight:700}
+table.mini td.hl{background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+svg text{font-family:"Inter","Noto Sans JP",sans-serif}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-sub);justify-content:center;margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.back-link{max-width:820px;margin:36px auto 0;padding:0 20px;text-align:center}
+.back-link a{color:var(--ink);text-decoration:none;padding:11px 22px;background:#fff;border:1px solid #CFCBBE;border-radius:6px;display:inline-block;font-weight:600;font-size:14px}
+.back-link a:hover{background:var(--surface)}
+.fig-topnav{max-width:820px;margin:14px auto 0;padding:0 20px}
+.fig-pager{display:flex;flex-wrap:wrap;gap:8px 10px;justify-content:center;align-items:center}
+.fig-pager a{text-decoration:none;font-size:13px;font-weight:600;padding:9px 15px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--ink);line-height:1.3}
+.fig-pager a:hover{background:var(--surface)}
+.fig-pager .fp-comm{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.fig-pager .fp-idx{color:var(--ink-sub)}
+.fig-grid{max-width:840px;margin:28px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fig-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s,box-shadow .15s}
+.fig-card:hover{transform:translateY(-2px);border-color:var(--arc);box-shadow:0 8px 24px rgba(26,26,26,.08)}
+.fig-card a{display:block;padding:20px 22px;text-decoration:none;color:inherit}
+.fig-card h3{font-size:16px;font-weight:700;margin:0 0 6px}
+.fig-card h3 small{color:var(--ink-muted);font-size:11px;font-weight:400;margin-left:6px}
+.fig-card p{font-size:13px;line-height:1.7;color:var(--ink-sub);margin:0 0 8px}
+.fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style><meta name="robots" content="noindex,nofollow"></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; RNN/LSTM</div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_resnet.html">← 残差接続・ResNet</a><a class="fp-comm" href="commentary.html#scene6">解説 Scene 6「言葉と時間」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_alphago.html">AlphaGo・MCTS →</a></nav></div>
+<div class="intro">
+<div class="eyebrow">EPOCH Arc 2 ・ Scene 6「言葉と時間」</div>
+<h1>RNN と LSTM — 順序を読み、長く憶える機械</h1>
+<p>画像は一度に全体を見られるが、言葉は<strong>順序</strong>でできている。
+RNN (再帰型ニューラルネット) は、前の時刻の <strong>隠れ状態 $h$</strong> を次の時刻へ渡しながら 1 語ずつ処理する ―― 「記憶を持つ NN」。
+しかし長い系列では、誤差逆伝播のたびに勾配が掛け算され、遠い過去の情報が消えてしまう (勾配消失)。
+1997 年 Hochreiter &amp; Schmidhuber の <strong>LSTM</strong> は、情報をほぼそのまま運ぶ <strong>セル状態 (記憶のハイウェイ)</strong> と、
+出入りを制御する <strong>3 つのゲート</strong>を導入してこれを解いた。下で時間展開とゲートの働きを見よう。</p>
+</div>
+
+<div class="fig-stage">
+<h2>RNN を時間方向に展開する</h2>
+<div class="lead">同じセルが時刻ごとにコピーされ、隠れ状態 $h$ が左から右へ受け継がれていく。「1 ステップ進める」で系列を読み進める。</div>
+<svg id="unrollSvg" width="100%" viewBox="0 0 800 180" style="max-width:800px;display:block;margin:6px auto"></svg>
+<div class="ctrls">
+  <button class="btn" id="stepBtn">▶ 1 ステップ進める</button>
+  <button class="btn ghost" id="resetBtn">最初へ</button>
+</div>
+<div class="formula">
+$h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
+<div class="note" style="margin-top:8px">$h_t$ は「これまで読んだ文の要約」。$h_{t-1}$ を繰り返し掛けるため、長い系列では勾配が $W^t$ で消失/爆発しやすい。</div>
+</div>
+
+<h2 style="margin-top:34px">LSTM の 3 つのゲート</h2>
+<div class="lead">セル状態 $C$ (上の太い線 = 記憶のハイウェイ) に、ゲートが情報を出し入れする。各スライダーを動かすと、ゲートの開き具合で記憶がどう更新されるかが変わる。</div>
+<div class="ctrls">
+  <div class="ctrl"><label>忘却ゲート $f$ <span class="val" id="fV">0.9</span></label><input type="range" id="fg" min="0" max="100" value="90"></div>
+  <div class="ctrl"><label>入力ゲート $i$ <span class="val" id="iV">0.6</span></label><input type="range" id="ig" min="0" max="100" value="60"></div>
+  <div class="ctrl"><label>出力ゲート $o$ <span class="val" id="oV">0.7</span></label><input type="range" id="og" min="0" max="100" value="70"></div>
+</div>
+<svg id="lstmSvg" width="100%" viewBox="0 0 800 240" style="max-width:800px;display:block;margin:6px auto"></svg>
+<div class="readout" id="lout"></div>
+<table class="mini" style="margin-top:14px">
+<tr><th>ゲート</th><th>式</th><th>役割</th></tr>
+<tr><td>忘却 $f$</td><td>$\sigma(W_f[h_{t-1},x_t])$</td><td>古い記憶を<strong>どれだけ残す</strong>か</td></tr>
+<tr><td>入力 $i$</td><td>$\sigma(W_i[h_{t-1},x_t])$</td><td>新情報を<strong>どれだけ書き込む</strong>か</td></tr>
+<tr><td>出力 $o$</td><td>$\sigma(W_o[h_{t-1},x_t])$</td><td>記憶から<strong>何を出力</strong>するか</td></tr>
+</table>
+<p class="note">セル状態の更新: $C_t = f\odot C_{t-1} + i\odot \tilde{C}_t$。$f$ が掛け算でなく「ほぼ 1」を選べるため、記憶が長く保たれ勾配も消えにくい。2014-2016 年の機械翻訳 (seq2seq) はこの LSTM が主役だった。</p>
+</div>
+
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_resnet.html">← 残差接続・ResNet</a><a class="fp-comm" href="commentary.html#scene6">解説 Scene 6「言葉と時間」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_alphago.html">AlphaGo・MCTS →</a></nav></div>
+
+<script>
+(function(){
+  var ARC="#6E7BA8";var SVGNS="http://www.w3.org/2000/svg";
+  function el(p,t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e;}
+  // --- RNN unroll ---
+  var SEQ=["私","は","本","を","読む"],step=0;
+  function drawUnroll(){
+    var svg=document.getElementById('unrollSvg');svg.innerHTML='';
+    var n=SEQ.length,W=800,cw=W/n;
+    for(var t=0;t<n;t++){
+      var on=t<step,cx=t*cw+cw/2;
+      el(svg,'rect',{x:t*cw+18,y:60,width:cw-36,height:54,rx:8,fill:on?'rgba(110,123,168,.12)':'#fff',stroke:on?ARC:'#E4E1D8','stroke-width':on?2:1});
+      el(svg,'text',{x:cx,y:92,'text-anchor':'middle','font-size':13,fill:'#1A1A1A','font-weight':600},'RNNセル');
+      // input below
+      el(svg,'text',{x:cx,y:150,'text-anchor':'middle','font-size':16,fill:on?ARC:'#9A9488','font-weight':on?700:400},SEQ[t]);
+      el(svg,'text',{x:cx,y:168,'text-anchor':'middle','font-size':10,fill:'#9A9488'},'x'+(t+1));
+      el(svg,'line',{x1:cx,y1:134,x2:cx,y2:114,stroke:on?ARC:'#CFCBBE','stroke-width':1.5,'marker-end':'url(#ar)'});
+      // h arrow to next
+      if(t<n-1){el(svg,'line',{x1:t*cw+cw-18,y1:87,x2:(t+1)*cw+18,y2:87,stroke:on&&t+1<=step?ARC:'#CFCBBE','stroke-width':1.5,'marker-end':'url(#ar)'});
+        el(svg,'text',{x:t*cw+cw,y:80,'text-anchor':'middle','font-size':10,fill:'#9A9488'},'h'+(t+1));}
+    }
+    var defs=el(svg,'defs',{});var m=el(defs,'marker',{id:'ar',markerWidth:8,markerHeight:8,refX:6,refY:3,orient:'auto'});
+    el(m,'path',{d:'M0,0 L6,3 L0,6',fill:'#9A9488'});
+  }
+  document.getElementById('stepBtn').addEventListener('click',function(){if(step<SEQ.length)step++;drawUnroll();});
+  document.getElementById('resetBtn').addEventListener('click',function(){step=0;drawUnroll();});
+  drawUnroll();
+  // --- LSTM gates ---
+  var f=0.9,ig=0.6,o=0.7,C=0.0;
+  function drawLstm(){
+    var svg=document.getElementById('lstmSvg');svg.innerHTML='';
+    // highway line for C
+    el(svg,'line',{x1:30,y1:50,x2:770,y2:50,stroke:ARC,'stroke-width':5,opacity:.5});
+    el(svg,'text',{x:30,y:38,'font-size':12,fill:'#565248'},'セル状態 C (記憶のハイウェイ)');
+    var Cnew=f*C + ig*0.8; // tilde C ~0.8 new candidate
+    var h=o*Math.tanh(Cnew);
+    // gate boxes
+    var gates=[['忘却 f',f,180],['入力 i',ig,400],['出力 o',o,620]];
+    gates.forEach(function(g){
+      var x=g[2],val=g[1];
+      el(svg,'rect',{x:x-46,y:120,width:92,height:54,rx:9,fill:'#fff',stroke:ARC,'stroke-width':1.5});
+      el(svg,'text',{x:x,y:142,'text-anchor':'middle','font-size':13,fill:'#1A1A1A','font-weight':700},g[0]);
+      // fill bar
+      el(svg,'rect',{x:x-36,y:152,width:72,height:10,rx:5,fill:'#F4F2EC',stroke:'#E4E1D8'});
+      el(svg,'rect',{x:x-36,y:152,width:72*val,height:10,rx:5,fill:ARC});
+      el(svg,'text',{x:x,y:194,'text-anchor':'middle','font-size':12,fill:'#565248'},val.toFixed(2));
+      // connect to highway
+      el(svg,'line',{x1:x,y1:120,x2:x,y2:55,stroke:'#CFCBBE','stroke-width':1.4,'stroke-dasharray':'3 3'});
+    });
+    el(svg,'text',{x:770,y:38,'text-anchor':'end','font-size':12,fill:ARC,'font-weight':700},'C_t = '+Cnew.toFixed(2));
+    document.getElementById('lout').textContent=
+      '更新: C_t = f·C_{t-1} + i·C̃  =  '+f.toFixed(2)+'×'+C.toFixed(2)+' + '+ig.toFixed(2)+'×0.80  =  '+Cnew.toFixed(2)+
+      '   出力 h_t = o·tanh(C_t) = '+h.toFixed(2)+
+      (f>0.8?'   ← 忘却ゲートが開き、古い記憶をよく保持している。':(f<0.3?'   ← 忘却ゲートが閉じ、記憶をリセット気味。':''));
+    C=Cnew;
+  }
+  function bind(id,vid,set){document.getElementById(id).addEventListener('input',function(e){var v=+e.target.value/100;set(v);document.getElementById(vid).textContent=v.toFixed(1);C=0;drawLstm();});}
+  bind('fg','fV',function(v){f=v;});bind('ig','iV',function(v){ig=v;});bind('og','oV',function(v){o=v;});
+  drawLstm();
+})();
+</script>
+
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>

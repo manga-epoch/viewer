@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>残差接続と勾配消失 — EPOCH Arc 2 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+</script>
+<style>
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.9;margin:0;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+.fig-crumb{max-width:860px;margin:18px auto 0;padding:0 20px;font-size:12.5px;color:var(--ink-muted)}
+.fig-crumb a{color:var(--link);text-decoration:underline}
+.fig-crumb a:hover{color:var(--ink)}
+.intro{max-width:760px;margin:40px auto 8px;padding:0 20px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub);margin-bottom:12px}
+.intro h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:0 0 12px}
+.intro p{color:var(--ink-sub);font-size:15.5px;line-height:1.9}
+.intro strong{color:var(--ink)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;max-width:880px;margin:26px auto;padding:24px 22px}
+.fig-stage h2{font-size:1.15rem;font-weight:700;margin:6px 0 4px;letter-spacing:-.01em}
+.fig-stage h2::before{content:"";display:inline-block;width:22px;height:3px;background:var(--arc);border-radius:2px;margin-right:10px;vertical-align:middle}
+.fig-stage .lead{color:var(--ink-sub);font-size:14px;margin:2px 0 18px;line-height:1.8}
+.fig-stage h3{font-size:1.0rem;font-weight:700;margin:26px 0 8px}
+.fig-stage p{font-size:14.5px;color:#2c2924}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrl{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-sub);min-width:120px}
+.ctrl label{font-weight:700;color:var(--ink);font-size:12.5px}
+.ctrl .val{font-variant-numeric:tabular-nums;color:var(--link);font-weight:700}
+input[type=range]{accent-color:var(--arc);width:100%}
+.btn{background:var(--ink);color:var(--bg);border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.btn.ghost.on{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1px solid var(--border);background:#fff;border-radius:18px;padding:6px 14px;font-size:12.5px;color:var(--ink-sub);cursor:pointer}
+.chip.on{border-color:var(--arc);background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+.grid-wrap{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;justify-content:center;margin:10px 0}
+.gcap{text-align:center;font-size:12px;color:var(--ink-muted);margin-top:8px}
+.formula{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:15px;text-align:center}
+.note{font-size:13px;color:var(--ink-sub);line-height:1.8}
+.readout{font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0;white-space:pre-wrap}
+.kv{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-sub)}
+.kv b{color:var(--ink)}
+table.mini{border-collapse:collapse;font-size:13.5px;margin:6px auto}
+table.mini th,table.mini td{border:1px solid var(--border);padding:7px 13px;text-align:center}
+table.mini th{background:var(--surface);font-weight:700}
+table.mini td.hl{background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+svg text{font-family:"Inter","Noto Sans JP",sans-serif}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-sub);justify-content:center;margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.back-link{max-width:820px;margin:36px auto 0;padding:0 20px;text-align:center}
+.back-link a{color:var(--ink);text-decoration:none;padding:11px 22px;background:#fff;border:1px solid #CFCBBE;border-radius:6px;display:inline-block;font-weight:600;font-size:14px}
+.back-link a:hover{background:var(--surface)}
+.fig-topnav{max-width:820px;margin:14px auto 0;padding:0 20px}
+.fig-pager{display:flex;flex-wrap:wrap;gap:8px 10px;justify-content:center;align-items:center}
+.fig-pager a{text-decoration:none;font-size:13px;font-weight:600;padding:9px 15px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--ink);line-height:1.3}
+.fig-pager a:hover{background:var(--surface)}
+.fig-pager .fp-comm{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.fig-pager .fp-idx{color:var(--ink-sub)}
+.fig-grid{max-width:840px;margin:28px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fig-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s,box-shadow .15s}
+.fig-card:hover{transform:translateY(-2px);border-color:var(--arc);box-shadow:0 8px 24px rgba(26,26,26,.08)}
+.fig-card a{display:block;padding:20px 22px;text-decoration:none;color:inherit}
+.fig-card h3{font-size:16px;font-weight:700;margin:0 0 6px}
+.fig-card h3 small{color:var(--ink-muted);font-size:11px;font-weight:400;margin-left:6px}
+.fig-card p{font-size:13px;line-height:1.7;color:var(--ink-sub);margin:0 0 8px}
+.fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style><meta name="robots" content="noindex,nofollow"></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 残差接続と勾配消失</div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_imagenet.html">← ImageNet 誤り率</a><a class="fp-comm" href="commentary.html#scene5">解説 Scene 5「より深く」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_rnn.html">RNN/LSTM →</a></nav></div>
+<div class="intro">
+<div class="eyebrow">EPOCH Arc 2 ・ Scene 5「より深く」</div>
+<h1>残差接続と勾配消失 — 「より深く」を可能にした一手</h1>
+<p>層を深くすれば表現力は上がる ―― はずだった。ところが 20 層を超えると、誤差逆伝播で<strong>勾配が入力側へ届く前に指数的に小さくなり</strong> (勾配消失)、浅い層がほとんど学習しなくなる。
+2015 年 He らの <strong>ResNet</strong> は、各ブロックに「入力をそのまま足す」<strong>残差接続 (skip connection)</strong> を入れた。
+勾配が skip を通って<strong>素通り</strong>できるため、152 層でも学習が進み、ImageNet で人間 (top-5 誤り 5.1%) を初めて下回った (3.57%)。
+下のスライダーで層を深くし、skip のオン/オフで勾配がどう変わるかを見よう。</p>
+</div>
+
+<div class="fig-stage">
+<h2>深さと勾配の関係を見る</h2>
+<div class="lead">層数を増やすと、出力側 (右) から入力側 (左) へ伝わる勾配の大きさが各層でどう変化するかを棒で表す。skip 接続を切ると勾配は左へ行くほど消えていく。入れると素通りして生き残る。</div>
+
+<div class="ctrls">
+  <div class="ctrl" style="flex:1;min-width:200px">
+    <label>層数 <span class="val" id="depthV">28</span> 層</label>
+    <input type="range" id="depth" min="4" max="100" step="2" value="28">
+  </div>
+  <div class="ctrl" style="flex:1;min-width:200px">
+    <label>各層の勾配係数 <span class="val" id="gainV">0.80</span></label>
+    <input type="range" id="gain" min="50" max="105" step="1" value="80">
+  </div>
+  <button class="btn ghost on" id="skipBtn">skip 接続: ON</button>
+</div>
+
+<svg id="gradSvg" width="100%" viewBox="0 0 840 240" style="max-width:840px;display:block;margin:6px auto"></svg>
+<div class="legend">
+  <span><i style="background:__ARC__"></i>skip あり (残差接続)</span>
+  <span><i style="background:#b4493f"></i>skip なし (勾配消失)</span>
+</div>
+<div class="readout" id="rout"></div>
+
+<div class="formula">
+残差ブロック: $\quad \mathbf{y} = \mathcal{F}(\mathbf{x}, W) + \mathbf{x}$
+<div class="note" style="margin-top:8px">勾配は $\dfrac{\partial \mathbf{y}}{\partial \mathbf{x}} = \mathcal{F}'(\cdot) + 1$。
+この <strong>+1</strong> が、何層重ねても勾配を 1 の周辺に保ち、消失を防ぐ ―― 「足し算」一つが革命だった。</div>
+</div>
+
+<h3>深さの系譜 (ILSVRC)</h3>
+<table class="mini">
+<tr><th>モデル</th><th>年</th><th>層数</th><th>top-5 誤り</th></tr>
+<tr><td>AlexNet</td><td>2012</td><td>8</td><td>15.3%</td></tr>
+<tr><td>VGG-16</td><td>2014</td><td>16</td><td>7.3%</td></tr>
+<tr><td>GoogLeNet</td><td>2014</td><td>22</td><td>6.7%</td></tr>
+<tr><td>ResNet-152</td><td>2015</td><td class="hl">152</td><td class="hl">3.57%</td></tr>
+</table>
+</div>
+
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_imagenet.html">← ImageNet 誤り率</a><a class="fp-comm" href="commentary.html#scene5">解説 Scene 5「より深く」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_rnn.html">RNN/LSTM →</a></nav></div>
+
+<script>
+(function(){
+  var ARC="#6E7BA8";
+  var depth=28, gain=0.80, skip=true;
+  function draw(){
+    var svg=document.getElementById('gradSvg');svg.innerHTML='';
+    var W=840,H=240,padL=20,padR=20,padB=40,padT=20,n=depth;
+    var bw=(W-padL-padR)/n;
+    // gradient magnitude from output(=1) backward to input
+    var g=1, mags=[];
+    for(var i=0;i<n;i++){ if(skip){ g = g*(gain*0.6 + 0.4); } else { g = g*gain; } mags.push(g); }
+    // mags[0] near output ... draw left=input so reverse
+    var SVGNS="http://www.w3.org/2000/svg";
+    function el(t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
+    // baseline
+    svg.appendChild(el('line',{x1:padL,y1:H-padB,x2:W-padR,y2:H-padB,stroke:'#E4E1D8','stroke-width':1}));
+    var maxH=H-padB-padT;
+    for(var i=0;i<n;i++){
+      var m=mags[n-1-i]; // input side (i=0) = most-attenuated
+      var h=Math.max(1.5,m*maxH);
+      svg.appendChild(el('rect',{x:padL+i*bw+1,y:H-padB-h,width:Math.max(1,bw-2),height:h,
+        fill: skip?ARC:'#b4493f', opacity: skip?0.85:0.8, rx:1}));
+    }
+    svg.appendChild(el('text',{x:padL,y:H-12,'font-size':12,fill:'#9A9488'},'入力側 (浅い層)'));
+    svg.appendChild(el('text',{x:W-padR,y:H-12,'font-size':12,fill:'#9A9488','text-anchor':'end'},'出力側 (損失)'));
+    svg.appendChild(el('text',{x:padL,y:padT+2,'font-size':12,fill:'#565248'},'勾配の大きさ →'));
+    var inputGrad=mags[n-1];
+    var ro=document.getElementById('rout');
+    if(skip){
+      ro.textContent='skip 接続 ON ・ '+depth+'層: 入力層に届く勾配 ≈ '+inputGrad.toFixed(3)+'  →  深くても勾配が生き残り、全層が学習できる。';
+    } else {
+      ro.textContent='skip 接続 OFF ・ '+depth+'層: 入力層に届く勾配 ≈ '+inputGrad.toExponential(2)+'  →  ほぼ 0。浅い層は更新されず「勾配消失」。';
+    }
+  }
+  document.getElementById('depth').addEventListener('input',function(e){depth=+e.target.value;document.getElementById('depthV').textContent=depth;draw();});
+  document.getElementById('gain').addEventListener('input',function(e){gain=+e.target.value/100;document.getElementById('gainV').textContent=gain.toFixed(2);draw();});
+  document.getElementById('skipBtn').addEventListener('click',function(){
+    skip=!skip;this.textContent='skip 接続: '+(skip?'ON':'OFF');this.classList.toggle('on',skip);draw();});
+  draw();
+})();
+</script>
+
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>

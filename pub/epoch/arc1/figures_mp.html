@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>マカロック-ピッツ ニューロン — EPOCH 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+  }
+}
+</script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#FAFAF7;color:#1A1A1A;line-height:1.7}
+nav{background:#F4F2EC;padding:8px 12px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+nav select{background:#E4E1D8;color:#1A1A1A;border:1px solid #C8C4B8;border-radius:6px;padding:6px 8px;font-size:14px;flex:1;max-width:400px}
+nav button{background:#E4E1D8;color:#565248;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:14px}
+nav button:hover{background:#C8C4B8}
+.page{display:none;max-width:800px;margin:0 auto;padding:16px}
+.page.active{display:block}
+.section{background:#F4F2EC;border-radius:10px;padding:20px;margin:16px 0}
+.section h3{color:#3f6178;font-size:16px;margin-bottom:8px;border-bottom:1px solid #E4E1D8;padding-bottom:6px}
+h2{color:#5B7C99;margin-bottom:4px}
+.arc-label{color:#9A9488;font-size:13px;margin-bottom:12px}
+.formula{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:16px;margin:8px 0;font-size:14px;line-height:1.9;color:#1A1A1A;overflow-x:auto}
+.formula .katex{font-size:1.05em;color:#5B7C99}
+.formula .katex-display{margin:6px 0}
+.formula .hl{color:#5B7C99;font-weight:bold}
+.formula .note{color:#565248;font-size:12px;font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0;padding:8px;background:#FAFAF7;border-radius:6px}
+.controls label{color:#565248;font-size:13px}
+.controls input[type=range]{width:100px}
+.val{color:#5B7C99;font-weight:bold;min-width:36px;display:inline-block}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.pro,.con,.achieved,.challenge{padding:10px;border-radius:6px;font-size:13px}
+.pro{background:#e7f4ea;border:1px solid #15803d}.pro::before{content:'✓ '}
+.con{background:#f7efef;border:1px solid #b4493f}.con::before{content:'✗ '}
+.achieved{background:#F4F2EC;border:1px solid #3f6178}.achieved::before{content:'◎ '}
+.challenge{background:#f6f0e0;border:1px solid #3f6178}.challenge::before{content:'※ '}
+.breadcrumb{background:#FAFAF7;border-left:3px solid #3f6178;padding:10px 14px;margin:8px 0 16px;border-radius:4px;font-size:13px;color:#565248}
+.breadcrumb .tags{display:block;color:#9A9488;font-size:12px;margin-top:4px}
+.back-link{background:#F4F2EC;border:1px solid #E4E1D8;border-radius:8px;padding:14px 16px;margin-top:24px;text-align:center}
+.back-link a{color:#3f6178;text-decoration:none;font-size:14px}
+.back-link a:hover{text-decoration:underline}
+.ref-card{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:12px 0}
+.ref-card h4{color:#5B7C99;font-size:15px;margin-bottom:6px}
+.ref-card .ref-formula{background:#F4F2EC;border-radius:4px;padding:8px 10px;margin:8px 0;font-family:'Courier New',monospace;font-size:13px;color:#1A1A1A;overflow-x:auto}
+.ref-card .ref-meta{font-size:12px;color:#9A9488;margin-top:6px}
+.ref-card .ref-tag{display:inline-block;background:#eef1f5;color:#5B7C99;padding:2px 8px;border-radius:3px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:600px){.pros-cons{grid-template-columns:1fr}}
+
+body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; padding-bottom:64px }
+.page { display:block !important; max-width:820px; margin:0 auto; padding:14px }
+.intro { max-width:760px; margin:44px auto 8px; padding:0 20px }
+.intro h1 { color:#1A1A1A; margin-bottom:10px; font-size:clamp(1.6rem,4vw,2.05rem); font-weight:700; letter-spacing:-.02em; line-height:1.3 }
+.intro p { color:#565248; font-size:15px; line-height:1.9 }
+.fig-crumb { max-width:820px; margin:18px auto 0; padding:0 20px; font-size:12.5px; color:#9A9488 }
+.fig-crumb a { color:#3f6178; text-decoration:underline }
+.fig-crumb a:hover { color:#1A1A1A }
+.fig-stage { background:#fff; border:1px solid #E4E1D8; border-radius:14px; max-width:860px; margin:26px auto; padding:10px 6px; overflow:hidden }
+.fig-stage .page { color:#1A1A1A; margin:0 auto }
+.scene2-teaser { max-width:760px; margin:28px auto 0; padding:18px 22px; background:#F4F2EC; border:1px solid #E4E1D8; border-left:4px solid #5B7C99; border-radius:0 10px 10px 0; font-size:13.5px; line-height:1.85; color:#565248; text-align:left }
+.scene2-teaser strong { color:#1A1A1A }
+.scene2-teaser a { color:#3f6178; font-weight:700; text-decoration:underline }
+.back-link { max-width:820px; margin:36px auto 0; padding:0 20px; text-align:center }
+.back-link a { color:#1A1A1A; text-decoration:none; padding:11px 22px; background:#fff; border:1px solid #CFCBBE; border-radius:6px; display:inline-block; font-weight:600; font-size:14px }
+.back-link a:hover { background:#F4F2EC }
+.fig-topnav { max-width:820px; margin:14px auto 0; padding:0 20px }
+.fig-pager { display:flex; flex-wrap:wrap; gap:8px 10px; justify-content:center; align-items:center }
+.fig-pager a { text-decoration:none; font-size:13px; font-weight:600; padding:9px 15px; border-radius:6px; border:1px solid #E4E1D8; background:#fff; color:#1A1A1A; line-height:1.3 }
+.fig-pager a:hover { background:#F4F2EC }
+.fig-pager .fp-comm { border-color:#5B7C99; color:#3f6178; background:rgba(91,124,153,.08) }
+.fig-pager .fp-idx { color:#565248 }
+.fig-grid { max-width:820px; margin:28px auto; padding:0 20px; display:grid; grid-template-columns:1fr; gap:14px }
+.fig-card { background:#fff; border:1px solid #E4E1D8; border-radius:12px; overflow:hidden; transition:transform .15s,border-color .15s,box-shadow .15s }
+.fig-card:hover { transform:translateY(-2px); border-color:#5B7C99; box-shadow:0 8px 24px rgba(26,26,26,.08) }
+.fig-card a { display:block; padding:20px 22px; text-decoration:none; color:inherit }
+.fig-card .fig-emoji { display:none }
+.fig-card h3 { color:#1A1A1A; font-size:17px; font-weight:700; margin-bottom:6px }
+.fig-card h3 small { color:#9A9488; font-size:11px; font-weight:400; margin-left:6px }
+.fig-card p { color:#565248; font-size:13px; line-height:1.75; margin-bottom:8px }
+.fig-card .fig-tag { display:inline-block; background:#F4F2EC; color:#565248; border:1px solid #E4E1D8; padding:2px 8px; border-radius:10px; font-size:11px; margin-right:4px; margin-top:4px }
+
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; マカロック-ピッツ ニューロン</div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_turing.html">← チューリングテスト</a><a class="fp-comm" href="commentary.html#scene1">解説 Scene 1「ダートマスの夏」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_perceptron.html">単層パーセプトロン →</a></nav></div>
+
+<div class="intro">
+<h1>マカロック-ピッツ ニューロン — 史上初の「考える部品」</h1><p>1943 年、脳の神経細胞を初めて数式にした人工ニューロン。ニューロンを <strong>多数決スイッチ</strong> に見立てて、AND・OR を組み立ててみましょう。NOT・NAND・XOR の深掘りは詳細解説に。<br>XOR が作れない「壁」が、のちの AI の冬と多層ニューラルネットへの伏線です。</p>
+</div>
+
+<div class="fig-stage"><div class="page" id="mp_neuron">
+<h2>マカロック-ピッツ ニューロン — 史上初の「考える部品」</h2>
+<div class="arc-label">Arc 1 Scene 1「ダートマスの夏」— 脳を真似た最初の人工ニューロン（1943）</div>
+
+<div class="section">
+<h3>数式 — ニューロンは「多数決スイッチ」</h3>
+<div class="formula">
+<span class="hl">概要</span>: マカロック-ピッツ ニューロン（1943）= 脳の神経細胞を初めて数式にした<strong>史上初の人工ニューロン</strong>。発想はシンプルで、<strong>「入力たちの多数決で発火を決める」</strong>。<br><br>
+<span class="hl">多数決の比喩</span>: 入力 $x_i$ = 委員のスタンス（賛成 1 / 棄権 0）／ 重み $w_i$ = その委員の発言力 ／ 閾値 $\theta$ = 議案を通すのに必要な票数。合計が閾値を超えれば <strong>発火（=可決）</strong>。<br><br>
+発火するか、しないか:<br>
+$y = \begin{cases} 1 & (\,\underbrace{\sum_i w_i x_i}_{\text{重み付きの総得票}} \ge \underbrace{\theta}_{\text{可決ライン}}\,) \\ 0 & (\text{それ以外}) \end{cases}$<br><br>
+<span class="note">$x_i \in \{0, 1\}$ → 入力（前のニューロンが発火したか ＝ 委員が賛成票を入れたか）</span><br>
+<span class="note">$w_i$ → 結合の重み（その入力の発言力。負なら反対票として効く ＝ 抑制性）</span><br>
+<span class="note">$\theta$ → 閾値（可決ライン） ／ $y$ → 出力（発火 ＝ 議決成立）</span><br><br>
+<span class="note" style="color:#5B7C99">ポイント: 重み $w$ も閾値 $\theta$ も <strong>人間が手で設計する</strong>。ニューロン自身は学習しない ―― ここが次の「パーセプトロン」との決定的な違い。</span>
+</div>
+</div>
+
+<div class="section">
+<h3>インタラクティブ: 1 個のニューロンで AND / OR を組む</h3>
+<p style="color:#565248;font-size:13px">本編では <strong>AND（全員賛成で可決）</strong> と <strong>OR（誰か 1 人賛成で可決）</strong> の 2 例で「多数決スイッチ」の仕組みを体感します。NOT / NAND / XOR は下の「 詳細解説」で深掘り。</p>
+<div class="controls">
+<span style="color:#565248;font-size:13px">プリセット:</span>
+<button onclick="mpPreset(1,1,2)" style="background:#E4E1D8;color:#1A1A1A;border:none;border-radius:5px;padding:5px 10px;cursor:pointer;font-size:12px">AND（2 票必要）</button>
+<button onclick="mpPreset(1,1,1)" style="background:#E4E1D8;color:#1A1A1A;border:none;border-radius:5px;padding:5px 10px;cursor:pointer;font-size:12px">OR（1 票で十分）</button>
+</div>
+<div class="controls">
+<label>重み $w_1$: <input type="range" id="mpW1" min="-2" max="2" step="1" value="1" oninput="mpDraw()"><span class="val" id="vMpW1">+1</span></label>
+<label>重み $w_2$: <input type="range" id="mpW2" min="-2" max="2" step="1" value="1" oninput="mpDraw()"><span class="val" id="vMpW2">+1</span></label>
+<label>閾値 $\theta$: <input type="range" id="mpTh" min="-2" max="3" step="1" value="2" oninput="mpDraw()"><span class="val" id="vMpTh">2</span></label>
+</div>
+<div id="mpDiagram" style="text-align:center;margin:12px 0"></div>
+<div id="mpPanel" style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;font-size:13px;line-height:1.8"></div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;margin-top:8px;font-size:12px;color:#565248">
+ <strong>試してみよう</strong>: ① プリセット「AND」（可決ライン 2 票）から閾値 $\theta$ を 2 → 1 に下げると、たった 1 票で可決される「OR」に化ける。② 重みを負（抑制票）にすると <strong>NOT / NAND</strong> が組める。③ どう頑張っても <strong>XOR</strong> は作れない ―― その「作れなさ」が次の Scene の伏線です。詳細解説 ③ で理由を見ます。
+</div>
+<script>
+var mpX1=1,mpX2=0;
+function mpToggle(n){if(n===1){mpX1=mpX1?0:1;}else{mpX2=mpX2?0:1;}mpDraw();}
+function mpPreset(w1,w2,th){document.getElementById('mpW1').value=w1;document.getElementById('mpW2').value=w2;document.getElementById('mpTh').value=th;mpDraw();}
+function mpGateName(w1,w2,th){
+var sig='';
+[[0,0],[0,1],[1,0],[1,1]].forEach(function(c){sig+=((w1*c[0]+w2*c[1])>=th)?'1':'0';});
+var map={'0001':'AND ゲート','0111':'OR ゲート','1110':'NAND ゲート','1000':'NOR ゲート','1100':'NOT x₁','1010':'NOT x₂','0011':'x₁ をそのまま出力','0101':'x₂ をそのまま出力','0000':'常に 0（沈黙）','1111':'常に 1（暴走）'};
+return map[sig]||'特定の論理ゲートではない';
+}
+function mpDraw(){
+var w1=+document.getElementById('mpW1').value,w2=+document.getElementById('mpW2').value,th=+document.getElementById('mpTh').value;
+document.getElementById('vMpW1').textContent=(w1>=0?'+':'')+w1;
+document.getElementById('vMpW2').textContent=(w2>=0?'+':'')+w2;
+document.getElementById('vMpTh').textContent=th;
+var sum=w1*mpX1+w2*mpX2,y=sum>=th?1:0;
+var onC='#15803d',offC='#C8C4B8',fireC='#3f6178';
+var c1=mpX1?onC:offC,c2=mpX2?onC:offC,cy=y?fireC:offC;
+var svg='<svg viewBox="0 0 380 210" style="max-width:380px;width:100%">'
++'<line x1="86" y1="68" x2="174" y2="92" stroke="'+c1+'" stroke-width="3"/>'
++'<line x1="86" y1="142" x2="174" y2="118" stroke="'+c2+'" stroke-width="3"/>'
++'<line x1="252" y1="105" x2="312" y2="105" stroke="'+cy+'" stroke-width="3"/>'
++'<text x="126" y="70" fill="#5B7C99" font-size="12" text-anchor="middle">w₁ '+(w1>=0?'+':'')+w1+'</text>'
++'<text x="126" y="142" fill="#5B7C99" font-size="12" text-anchor="middle">w₂ '+(w2>=0?'+':'')+w2+'</text>'
++'<g onclick="mpToggle(1)" style="cursor:pointer">'
++'<circle cx="56" cy="60" r="30" fill="'+c1+'" stroke="#1A1A1A" stroke-width="1.5"/>'
++'<text x="56" y="55" fill="#FAFAF7" font-size="12" text-anchor="middle" font-weight="bold">x₁</text>'
++'<text x="56" y="73" fill="#FAFAF7" font-size="17" text-anchor="middle" font-weight="bold">'+mpX1+'</text></g>'
++'<g onclick="mpToggle(2)" style="cursor:pointer">'
++'<circle cx="56" cy="150" r="30" fill="'+c2+'" stroke="#1A1A1A" stroke-width="1.5"/>'
++'<text x="56" y="145" fill="#FAFAF7" font-size="12" text-anchor="middle" font-weight="bold">x₂</text>'
++'<text x="56" y="163" fill="#FAFAF7" font-size="17" text-anchor="middle" font-weight="bold">'+mpX2+'</text></g>'
++'<circle cx="213" cy="105" r="42" fill="'+cy+'" stroke="#1A1A1A" stroke-width="2"/>'
++'<text x="213" y="100" fill="#FAFAF7" font-size="12" text-anchor="middle">合計 '+sum+'</text>'
++'<text x="213" y="118" fill="#FAFAF7" font-size="12" text-anchor="middle">θ = '+th+'</text>'
++'<circle cx="338" cy="105" r="26" fill="'+cy+'" stroke="#1A1A1A" stroke-width="1.5"/>'
++'<text x="338" y="100" fill="#FAFAF7" font-size="11" text-anchor="middle" font-weight="bold">y</text>'
++'<text x="338" y="118" fill="#FAFAF7" font-size="16" text-anchor="middle" font-weight="bold">'+y+'</text>'
++'<text x="190" y="202" fill="#9A9488" font-size="11" text-anchor="middle">入力の丸をクリックで ON / OFF 切替</text>'
++'</svg>';
+document.getElementById('mpDiagram').innerHTML=svg;
+var tc='border:1px solid #E4E1D8;padding:5px 8px;text-align:center';
+var trows='';
+[[0,0],[0,1],[1,0],[1,1]].forEach(function(c){
+var s=w1*c[0]+w2*c[1],yy=s>=th?1:0,cur=(c[0]===mpX1&&c[1]===mpX2);
+trows+='<tr style="'+(cur?'background:#eef1f5':'')+'">'
++'<td style="'+tc+'">'+c[0]+'</td><td style="'+tc+'">'+c[1]+'</td>'
++'<td style="'+tc+'">'+s+'</td>'
++'<td style="'+tc+'">'+s+(s>=th?' ≥ ':' &lt; ')+th+'</td>'
++'<td style="'+tc+';color:'+(yy?'#3f6178':'#9A9488')+';font-weight:bold">'+yy+'</td></tr>';
+});
+var name=mpGateName(w1,w2,th);
+var nameC=(name.indexOf('ない')>=0||name.indexOf('常に')>=0)?'#565248':'#15803d';
+document.getElementById('mpPanel').innerHTML=
+'<div style="margin-bottom:6px">現在の設定: <strong>w₁='+(w1>=0?'+':'')+w1+', w₂='+(w2>=0?'+':'')+w2+', θ='+th+'</strong></div>'
++'<div style="font-size:15px;margin-bottom:10px">この回路は → <strong style="color:'+nameC+'">'+name+'</strong></div>'
++'<table style="width:100%;border-collapse:collapse;font-size:12.5px">'
++'<tr style="background:#F4F2EC"><th style="'+tc+';color:#5B7C99">x₁</th><th style="'+tc+';color:#5B7C99">x₂</th><th style="'+tc+';color:#5B7C99">w₁x₁+w₂x₂</th><th style="'+tc+';color:#5B7C99">θ と比較</th><th style="'+tc+';color:#5B7C99">出力 y</th></tr>'
++trows+'</table>'
++'<div style="margin-top:8px;color:#565248;font-size:12px">青い行が、いま図に表示している入力の組み合わせです。</div>';
+}
+mpDraw();
+</script>
+</div>
+
+<div class="section">
+<h3>解説</h3>
+<div class="pros-cons">
+<div class="achieved">1943年、マカロック と ピッツ は脳の神経細胞を初めて数式にした。「脳は論理計算をする機械」というこの見方が、AI と計算機科学の共通の土台になった</div>
+<div class="achieved">ニューロン 1 個で AND・OR・NOT が作れる。組み合わせれば、原理上どんな論理回路 ―― つまりどんな計算 ―― も表現できる</div>
+<div class="challenge">重み $w$ と閾値 $\theta$ は人間が手で設計する。ニューロン自身は学べない → 「自分で重みを決める」のが <strong>パーセプトロン</strong>（1957、Scene 2）</div>
+<div class="con">1 個のニューロン（＝ 1 本の直線）では <strong>XOR が解けない</strong>。この限界が、のちの「AI の冬」の引き金になる（Scene 3）</div>
+</div>
+<div style="margin-top:12px;background:#FAFAF7;border-left:3px solid #3f6178;border-radius:4px;padding:10px 14px;font-size:13px;color:#565248">
+<strong style="color:#5B7C99">直感的に</strong>: ニューロンは <strong>多数決スイッチ</strong>。委員（入力 $x_i$）が一票ずつ持ち、それぞれの発言力（重み $w_i$）で重み付けされる。総得票が可決ライン（閾値 $\theta$）を超えれば発火（=可決）。脳の神秘だった「思考」が、初めて ON / OFF の計算として書けることを示した ―― それが 1943 年の革新でした。
+</div>
+</div>
+
+<div class="section">
+<h3>詳細解説</h3>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">① 数値例 ―― AND ゲートを 1 個のニューロンで</div>
+設定: $w_1 = 1,\ w_2 = 1,\ \theta = 2$。<br>
+・両方 OFF $(0,0)$: 合計 $= 0$。$0 \ge 2$ ? いいえ → $y = 0$<br>
+・片方だけ ON $(1,0)$: 合計 $= 1$。$1 \ge 2$ ? いいえ → $y = 0$<br>
+・両方 ON $(1,1)$: 合計 $= 2$。$2 \ge 2$ ? <strong style="color:#5fa86f">はい → y = 1</strong><br>
+「両方そろったときだけ発火」＝ まさに AND。閾値 $\theta$ が「2 票そろえ」という可決ラインになっている。
+</div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">② OR ゲート ―― 可決ラインを 1 票に下げる</div>
+設定: $w_1 = 1,\ w_2 = 1,\ \theta = 1$（AND と重みは同じ、閾値だけ 1 に）。<br>
+・両方 OFF $(0,0)$: 合計 $= 0$。$0 \ge 1$ ? いいえ → $y = 0$<br>
+・片方だけ ON $(1,0)$: 合計 $= 1$。$1 \ge 1$ ? <strong style="color:#5fa86f">はい → y = 1</strong><br>
+・両方 ON $(1,1)$: 合計 $= 2$。$2 \ge 1$ ? <strong style="color:#5fa86f">はい → y = 1</strong><br>
+「誰か 1 人でも賛成すれば発火」＝ まさに OR。AND との違いは <strong>可決ラインの厳しさだけ</strong>。同じ重みでも閾値 1 つで論理が変わる。
+</div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">③ NOT ゲート ―― 抑制票（負の重み）で否決する</div>
+設定: $w_1 = -1,\ w_2 = 0,\ \theta = 0$。<br>
+・$x_1 = 0$: 合計 $= 0$。$0 \ge 0$ ? <strong style="color:#5fa86f">はい → y = 1</strong>（入力が来ないので、デフォルトで発火）<br>
+・$x_1 = 1$: 合計 $= -1$。$-1 \ge 0$ ? いいえ → $y = 0$（反対票が入って否決）<br>
+重みの符号が <strong>興奮性（＋）／ 抑制性（−）</strong>を表す。脳のニューロンも興奮性／抑制性のシナプスを持つ ―― この対応が「脳の数式化」の核心。
+</div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">④ NAND ゲート ―― AND の反転は全員に反対票</div>
+設定: $w_1 = -1,\ w_2 = -1,\ \theta = -1$。<br>
+・$(0,0)$: 合計 $= 0$。$0 \ge -1$ ? <strong style="color:#5fa86f">はい → y = 1</strong><br>
+・$(1,0)$ または $(0,1)$: 合計 $= -1$。$-1 \ge -1$ ? <strong style="color:#5fa86f">はい → y = 1</strong><br>
+・$(1,1)$: 合計 $= -2$。$-2 \ge -1$ ? いいえ → $y = 0$<br>
+「両方が立ったときだけ発火しない」＝ AND の反転。NAND が重要なのは <strong>NAND だけですべての論理回路が作れる</strong>こと（万能ゲート）―― 原理的に、NAND を組み合わせるだけでコンピュータが組める。
+</div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">⑤ 設計レシピのまとめ</div>
+<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px">
+<tr style="background:#F4F2EC"><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">ゲート</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">w₁</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">w₂</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">θ</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">多数決として読む</th></tr>
+<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">AND</td><td style="border:1px solid #E4E1D8;padding:6px 8px">+1</td><td style="border:1px solid #E4E1D8;padding:6px 8px">+1</td><td style="border:1px solid #E4E1D8;padding:6px 8px">2</td><td style="border:1px solid #E4E1D8;padding:6px 8px">2 票そろえば可決（全会一致）</td></tr>
+<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">OR</td><td style="border:1px solid #E4E1D8;padding:6px 8px">+1</td><td style="border:1px solid #E4E1D8;padding:6px 8px">+1</td><td style="border:1px solid #E4E1D8;padding:6px 8px">1</td><td style="border:1px solid #E4E1D8;padding:6px 8px">1 票で可決（誰でも提案可）</td></tr>
+<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">NOT x₁</td><td style="border:1px solid #E4E1D8;padding:6px 8px">−1</td><td style="border:1px solid #E4E1D8;padding:6px 8px">0</td><td style="border:1px solid #E4E1D8;padding:6px 8px">0</td><td style="border:1px solid #E4E1D8;padding:6px 8px">x₁ の反対票で否決</td></tr>
+<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">NAND</td><td style="border:1px solid #E4E1D8;padding:6px 8px">−1</td><td style="border:1px solid #E4E1D8;padding:6px 8px">−1</td><td style="border:1px solid #E4E1D8;padding:6px 8px">−1</td><td style="border:1px solid #E4E1D8;padding:6px 8px">全員反対のときのみ否決</td></tr>
+</table>
+<div style="color:#5fa86f;margin-top:6px">重みの符号が「興奮票（＋）／ 反対票（−）」、閾値が「可決ライン」。この 3 つの数字だけで論理が決まる。</div>
+</div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">⑥ なぜ XOR は作れないのか</div>
+XOR は「入力が違うときだけ発火」＝ $(0,1)$ と $(1,0)$ で $y = 1$、$(0,0)$ と $(1,1)$ で $y = 0$。<br>
+1 個のニューロンが引けるのは <strong>1 本の直線</strong>だけ。だが XOR の「発火する点」と「しない点」は、どんな直線を引いても 2 グループに分けられない（<strong>線形分離不可能</strong>）。<br>
+多数決の言葉で言えば、「全員一致でもダメ、誰か一人でもダメ、ちょうど 1 人だけ賛成のときだけ可決」というルールは <strong>単一の可決ライン</strong>では決められない。<br>
+この限界をミンスキーらが 1969 年に指摘し、ニューラルネット研究は「冬」に入る。打開策は ―― 多数決スイッチを <strong>多層に重ねる</strong>こと。その物語が Scene 2・3、そして Scene 5 へと続く。
+</div>
+<div style="background:linear-gradient(135deg,#F4F2EC,#eef1f5);border:1px solid #C8C4B8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">⑦ Scene 1 → Scene 2 への橋</div>
+1943 マカロック-ピッツ ニューロン（学習しない）→ 1957 <strong>パーセプトロン</strong>（自分で重みを学習する）→ 多層パーセプトロン（XOR を解く）。<br>
+このニューロンは「考える部品」の最初の 1 個。次の Scene 2「パーセプトロンの興奮と絶望」で、ニューロンはついに <strong>自分で学び始めます</strong>。
+</div>
+</div>
+</div></div>
+
+<div class="scene2-teaser">
+<strong>Scene 2 の続きへ →</strong><br>
+1943 年のニューロンは、重みも閾値も人間が手で決めていました。1957 年、ついに <strong>自分で重みを調整するニューロン</strong> が生まれます ―― Scene 2「パーセプトロンの興奮と絶望」。<a href="figures_perceptron.html" style="color:#fbbf24">単層パーセプトロン図解で動かしてみる →</a>
+</div>
+
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_turing.html">← チューリングテスト</a><a class="fp-comm" href="commentary.html#scene1">解説 Scene 1「ダートマスの夏」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_perceptron.html">単層パーセプトロン →</a></nav></div>
+
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>

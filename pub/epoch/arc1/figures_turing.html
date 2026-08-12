@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>チューリングテスト — EPOCH 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+  }
+}
+</script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#FAFAF7;color:#1A1A1A;line-height:1.7}
+nav{background:#F4F2EC;padding:8px 12px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+nav select{background:#E4E1D8;color:#1A1A1A;border:1px solid #C8C4B8;border-radius:6px;padding:6px 8px;font-size:14px;flex:1;max-width:400px}
+nav button{background:#E4E1D8;color:#565248;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:14px}
+nav button:hover{background:#C8C4B8}
+.page{display:none;max-width:800px;margin:0 auto;padding:16px}
+.page.active{display:block}
+.section{background:#F4F2EC;border-radius:10px;padding:20px;margin:16px 0}
+.section h3{color:#3f6178;font-size:16px;margin-bottom:8px;border-bottom:1px solid #E4E1D8;padding-bottom:6px}
+h2{color:#5B7C99;margin-bottom:4px}
+.arc-label{color:#9A9488;font-size:13px;margin-bottom:12px}
+.formula{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:16px;margin:8px 0;font-size:14px;line-height:1.9;color:#1A1A1A;overflow-x:auto}
+.formula .katex{font-size:1.05em;color:#5B7C99}
+.formula .katex-display{margin:6px 0}
+.formula .hl{color:#5B7C99;font-weight:bold}
+.formula .note{color:#565248;font-size:12px;font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0;padding:8px;background:#FAFAF7;border-radius:6px}
+.controls label{color:#565248;font-size:13px}
+.controls input[type=range]{width:100px}
+.val{color:#5B7C99;font-weight:bold;min-width:36px;display:inline-block}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.pro,.con,.achieved,.challenge{padding:10px;border-radius:6px;font-size:13px}
+.pro{background:#e7f4ea;border:1px solid #15803d}.pro::before{content:'✓ '}
+.con{background:#f7efef;border:1px solid #b4493f}.con::before{content:'✗ '}
+.achieved{background:#F4F2EC;border:1px solid #3f6178}.achieved::before{content:'◎ '}
+.challenge{background:#f6f0e0;border:1px solid #3f6178}.challenge::before{content:'※ '}
+.breadcrumb{background:#FAFAF7;border-left:3px solid #3f6178;padding:10px 14px;margin:8px 0 16px;border-radius:4px;font-size:13px;color:#565248}
+.breadcrumb .tags{display:block;color:#9A9488;font-size:12px;margin-top:4px}
+.back-link{background:#F4F2EC;border:1px solid #E4E1D8;border-radius:8px;padding:14px 16px;margin-top:24px;text-align:center}
+.back-link a{color:#3f6178;text-decoration:none;font-size:14px}
+.back-link a:hover{text-decoration:underline}
+.ref-card{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:12px 0}
+.ref-card h4{color:#5B7C99;font-size:15px;margin-bottom:6px}
+.ref-card .ref-formula{background:#F4F2EC;border-radius:4px;padding:8px 10px;margin:8px 0;font-family:'Courier New',monospace;font-size:13px;color:#1A1A1A;overflow-x:auto}
+.ref-card .ref-meta{font-size:12px;color:#9A9488;margin-top:6px}
+.ref-card .ref-tag{display:inline-block;background:#eef1f5;color:#5B7C99;padding:2px 8px;border-radius:3px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:600px){.pros-cons{grid-template-columns:1fr}}
+
+body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; padding-bottom:64px }
+.page { display:block !important; max-width:820px; margin:0 auto; padding:14px }
+.intro { max-width:760px; margin:44px auto 8px; padding:0 20px }
+.intro h1 { color:#1A1A1A; margin-bottom:10px; font-size:clamp(1.6rem,4vw,2.05rem); font-weight:700; letter-spacing:-.02em; line-height:1.3 }
+.intro p { color:#565248; font-size:15px; line-height:1.9 }
+.fig-crumb { max-width:820px; margin:18px auto 0; padding:0 20px; font-size:12.5px; color:#9A9488 }
+.fig-crumb a { color:#3f6178; text-decoration:underline }
+.fig-crumb a:hover { color:#1A1A1A }
+.fig-stage { background:#fff; border:1px solid #E4E1D8; border-radius:14px; max-width:860px; margin:26px auto; padding:10px 6px; overflow:hidden }
+.fig-stage .page { color:#1A1A1A; margin:0 auto }
+.scene2-teaser { max-width:760px; margin:28px auto 0; padding:18px 22px; background:#F4F2EC; border:1px solid #E4E1D8; border-left:4px solid #5B7C99; border-radius:0 10px 10px 0; font-size:13.5px; line-height:1.85; color:#565248; text-align:left }
+.scene2-teaser strong { color:#1A1A1A }
+.scene2-teaser a { color:#3f6178; font-weight:700; text-decoration:underline }
+.back-link { max-width:820px; margin:36px auto 0; padding:0 20px; text-align:center }
+.back-link a { color:#1A1A1A; text-decoration:none; padding:11px 22px; background:#fff; border:1px solid #CFCBBE; border-radius:6px; display:inline-block; font-weight:600; font-size:14px }
+.back-link a:hover { background:#F4F2EC }
+.fig-topnav { max-width:820px; margin:14px auto 0; padding:0 20px }
+.fig-pager { display:flex; flex-wrap:wrap; gap:8px 10px; justify-content:center; align-items:center }
+.fig-pager a { text-decoration:none; font-size:13px; font-weight:600; padding:9px 15px; border-radius:6px; border:1px solid #E4E1D8; background:#fff; color:#1A1A1A; line-height:1.3 }
+.fig-pager a:hover { background:#F4F2EC }
+.fig-pager .fp-comm { border-color:#5B7C99; color:#3f6178; background:rgba(91,124,153,.08) }
+.fig-pager .fp-idx { color:#565248 }
+.fig-grid { max-width:820px; margin:28px auto; padding:0 20px; display:grid; grid-template-columns:1fr; gap:14px }
+.fig-card { background:#fff; border:1px solid #E4E1D8; border-radius:12px; overflow:hidden; transition:transform .15s,border-color .15s,box-shadow .15s }
+.fig-card:hover { transform:translateY(-2px); border-color:#5B7C99; box-shadow:0 8px 24px rgba(26,26,26,.08) }
+.fig-card a { display:block; padding:20px 22px; text-decoration:none; color:inherit }
+.fig-card .fig-emoji { display:none }
+.fig-card h3 { color:#1A1A1A; font-size:17px; font-weight:700; margin-bottom:6px }
+.fig-card h3 small { color:#9A9488; font-size:11px; font-weight:400; margin-left:6px }
+.fig-card p { color:#565248; font-size:13px; line-height:1.75; margin-bottom:8px }
+.fig-card .fig-tag { display:inline-block; background:#F4F2EC; color:#565248; border:1px solid #E4E1D8; padding:2px 8px; border-radius:10px; font-size:11px; margin-right:4px; margin-top:4px }
+
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; チューリングテスト</div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures.html">← 図解一覧</a><a class="fp-comm" href="commentary.html#scene1">解説 Scene 1「ダートマスの夏」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_mp.html">MP ニューロン →</a></nav></div>
+
+<div class="intro">
+<h1>チューリングテスト — 知能を測る最初の物差し</h1><p>1950 年、Turing は「機械は考えるか？」という曖昧な問いを「審査員は機械と人間を見分けられるか？」という観測できる問いに置き換えました。あなたが審査員になって時代別に機械を見分け、さらに 1966 年の ELIZA のルール表を覗いて、「機械が言葉を理解するふり」の正体を確かめてみましょう。</p>
+</div>
+
+<div class="fig-stage"><div class="page" id="turing_test">
+<h2>チューリングテスト — 知能を測る最初の物差し</h2>
+<div class="arc-label">Arc 1 Scene 1「ダートマスの夏」— 「知能とは何か」をゲームで体感する</div>
+
+<div class="section">
+<h3>判定の論理</h3>
+<div class="formula">
+<span class="hl">概要</span>: チューリングテスト = 「機械は考えるか？」という答えようのない問いを、「審査員は機械と人間を見分けられるか？」という<strong>観測できる問い</strong>に置き換えた操作的定義（A. Turing, 1950）。<br><br>
+<span class="hl">模倣ゲーム</span>: 審査員が文字だけの会話で、見えない相手 A（人間）と B（機械）を判定する。<br><br>
+合格条件: $\Pr[\,\text{審査員が機械を正しく見抜く}\,] \approx \underbrace{0.5}_{\text{コイン投げと同じ}}$<br>
+<span class="note">→ 当てずっぽうと区別がつかない ＝ 機械は「知能あり」とみなしてよい</span><br><br>
+Turing の予測(1950): 5 分間の会話では審査員の $70\%$ 程度しか機械を見抜けない機械が、2000 年までに現れる<br>
+<span class="note">→「考えているか（内面・意識）」ではなく「考えているように振る舞えるか（外から見える行動）」を問う = <strong>行動主義</strong>的アプローチ</span>
+</div>
+</div>
+
+<div class="section">
+<h3>インタラクティブ: あなたが審査員（模倣ゲーム）</h3>
+<p style="color:#565248;font-size:13px">手がかりは文字の会話だけ。相手が <strong>人間</strong> か <strong>機械</strong> かを当ててください。時代を切り替えると、機械の「化け方」が変わります。</p>
+<div class="controls">
+<label>時代:
+<select id="ttEra" onchange="ttNew()" style="background:#E4E1D8;color:#1A1A1A;border:1px solid #C8C4B8;border-radius:4px;padding:4px 6px;font-size:13px">
+<option value="1966">1966年 — ELIZA の時代</option>
+<option value="2001">2001年 — チャットボットの時代</option>
+<option value="2024" selected>2024年 — 大規模言語モデルの時代</option>
+</select>
+</label>
+<span class="val" id="ttScore" style="min-width:auto">正解 0 / 0</span>
+</div>
+<div id="ttChat" style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:12px 0;font-size:13px;line-height:1.7;min-height:130px"></div>
+<div id="ttButtons" style="display:flex;gap:10px;flex-wrap:wrap">
+<button onclick="ttGuess('human')" style="flex:1;min-width:140px;background:#1a2e1a;color:#5fa86f;border:1px solid #15803d;border-radius:6px;padding:11px;cursor:pointer;font-size:14px"> 人間だと思う</button>
+<button onclick="ttGuess('machine')" style="flex:1;min-width:140px;background:#2a1a2e;color:#9a7bc0;border:1px solid #7c5cad;border-radius:6px;padding:11px;cursor:pointer;font-size:14px"> 機械だと思う</button>
+</div>
+<div id="ttResult" style="margin:12px 0;font-size:13px;line-height:1.7"></div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;font-size:12px;color:#565248">
+ <strong>試してみよう</strong>: 時代を <strong>1966年</strong> にすると機械はすぐ見抜ける。<strong>2024年</strong> に上げるとほぼ不可能になる ―― この変化こそ、機械が人間に追いついた 70 年間の縮図です。
+</div>
+<script>
+var ttRounds=[
+{era:'1966',kind:'machine',who:'ELIZA 型の対話プログラム',lines:[['最近、仕事で疲れていて…','なぜ仕事で疲れているのですか？'],['上司がとても厳しいんです','あなたの上司について、もっと聞かせてください'],['ところで君は何が好きなの？','私たちはあなたの話をしています。続けてください']],note:'機械でした。1966年の ELIZA は相手の言葉をオウム返しで質問に変えるだけ。自分のことを何も語れず、話題を深掘りできないのが見抜きどころ。'},
+{era:'1966',kind:'human',who:'人間',lines:[['好きな食べ物は？','味噌ラーメンかな。脂多めで頼んじゃう'],['昨日は何してた？','友達と映画見て、そのあと居酒屋。飲みすぎた'],['3 + 4 は？','7。さすがに簡単すぎでしょ（笑）']],note:'人間でした。具体的な固有名詞、雑談的な脱線、軽い冗談 ―― 1966年の機械にはまだ出せない自然さ。'},
+{era:'1966',kind:'machine',who:'初期の質問応答プログラム',lines:[['今日の天気はどう？','申し訳ありません。その入力は理解できません'],['空は晴れてる？','YES または NO で答えてください'],['なんで普通に話せないの？','ERROR: 想定外の入力です']],note:'機械でした。決まった型を外れると定型エラーを返す。柔軟さの欠如がはっきり出ます。'},
+{era:'2001',kind:'machine',who:'2000年代のチャットボット',lines:[['好きな映画ある？','私は映画が好きです。あなたはどんな映画が好きですか？'],['マトリックスは見た？','いいえ、まだ見ていません。それは良い映画ですか？'],['さっき映画好きって言ったよね、矛盾してない？','興味深い質問ですね。ところで、ご趣味は何ですか？']],note:'機械でした。受け答えは滑らかになったが、矛盾を突かれると話題をすり替える。一貫した記憶を持てないのが弱点。'},
+{era:'2001',kind:'human',who:'人間',lines:[['週末の予定は？','特にないなあ。たぶん部屋の片付け。ずっとサボってて…'],['3つ前は何の話だっけ？','えーっと、映画…じゃなくて天気？ごめん覚えてない'],['正直だね','記憶力には自信ないんだ（笑）']],note:'人間でした。曖昧な記憶、自然な言い淀み、自分の弱点を笑う余裕。作り込まれていない感じが人間らしさ。'},
+{era:'2001',kind:'machine',who:'2000年代の対話エージェント',lines:[['君、なかなか賢いね','ありがとうございます。私は賢く受け答えするよう設計されています'],['設計？人間じゃないんだ','はい。私はコンピュータプログラムです'],['正直でよろしい','正直であることは私の設計方針の一つです']],note:'機械でした。会話は自然だが、「設計」「方針」といった機械固有の語彙がこぼれます。'},
+{era:'2024',kind:'machine',who:'大規模言語モデル',lines:[['人生で一番後悔してることは？','難しいですね…強いて言えば、若い頃にもっといろんな人と関わる機会を作れなかったことかな'],['具体的なエピソードある？','学生の頃、隣のクラスに気になる人がいたんですが、結局一度も話しかけられなくて。今でもふと思い出します'],['切ないね','ええ。でも、その後悔があるから、今は積極的でいようと思えるんです']],note:'機械でした。2024年の言語モデルは、もっともらしい思い出や感情まで滑らかに語ります。見抜きどころは「整いすぎ」―― 言い淀みも脱線もない、できすぎた物語。'},
+{era:'2024',kind:'human',who:'人間',lines:[['コーヒー派？紅茶派？','コーヒー一択。1日3杯は飲んでる。中毒かも'],['飲みすぎでは（笑）','わかってるんだけどやめられないんだよなあ…紅茶も嫌いじゃないけど'],['健康診断、大丈夫？','それ言わないで']],note:'人間でした。とはいえ、この短い会話だけで機械と確実に見分けるのは、もう難しい。これが「チューリングテストは事実上突破された」と言われる現代の状況です。'},
+{era:'2024',kind:'machine',who:'大規模言語モデル',lines:[['2 の 10 乗は？','1024 です'],['即答だね、暗算得意？','数字の計算は割と得意な方だと思います。日常でもよく使いますし'],['一番苦手なことは？','そうですね…完璧に答えようとしすぎて、雑談がちょっと硬くなりがちなところでしょうか']],note:'機械でした。巨大な計算を一瞬で正確に返すのは機械のサイン。ただ、弱点を聞かれて自虐できるあたり、見分けは年々難しくなっています。'}
+];
+var ttCur=null,ttTotal=0,ttCorrect=0;
+function ttNew(){
+var era=document.getElementById('ttEra').value;
+var pool=ttRounds.filter(function(r){return r.era===era;});
+ttCur=pool[Math.floor(Math.random()*pool.length)];
+document.getElementById('ttResult').innerHTML='';
+document.getElementById('ttButtons').style.display='flex';
+var h='<div style="color:#9A9488;margin-bottom:8px">── 壁の向こうの相手と、文字だけで会話 ──</div>';
+ttCur.lines.forEach(function(l){
+h+='<div style="margin:6px 0"><span style="color:#5B7C99">審査員（あなた）:</span> '+l[0]+'</div>';
+h+='<div style="margin:6px 0 12px"><span style="color:#5B7C99">相手:</span> '+l[1]+'</div>';
+});
+document.getElementById('ttChat').innerHTML=h;
+}
+function ttGuess(g){
+if(!ttCur)return;
+var ok=(g===ttCur.kind);
+ttTotal++;if(ok)ttCorrect++;
+document.getElementById('ttScore').textContent='正解 '+ttCorrect+' / '+ttTotal;
+document.getElementById('ttButtons').style.display='none';
+var icon=ttCur.kind==='human'?' 人間':' 機械';
+var verdict=ok?'<span style="color:#15803d;font-weight:bold">○ 正解！</span>':'<span style="color:#b4493f;font-weight:bold">✗ はずれ…</span>';
+document.getElementById('ttResult').innerHTML=
+'<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px">'
++verdict+' 相手は <strong>'+icon+'</strong>（'+ttCur.who+'）。'
++'<div style="margin-top:8px;color:#565248">'+ttCur.note+'</div>'
++'<button onclick="ttNew()" style="margin-top:12px;background:#F4F2EC;color:#3f6178;border:1px solid #E4E1D8;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:13px">▶ 次の相手</button>'
++'</div>';
+}
+ttNew();
+</script>
+</div>
+
+<div class="section">
+<h3>ELIZA を覗く — オウム返しの正体</h3>
+<p style="color:#565248;font-size:13px">1966 年の ELIZA は実は <strong>数本のパターン応答ルール</strong>でできていた。「理解」していない ―― それでも多くの人が「話を聞いてくれた」と感じた。これが <strong>ELIZA 効果</strong>です。試しに自分の言葉を入力して、どのルールに引っかかるか覗いてみよう。</p>
+
+<div style="display:flex;flex-wrap:wrap;gap:14px;margin:14px 0;align-items:flex-start">
+  <div style="flex:0 0 auto;width:140px">
+    <svg viewBox="0 0 140 180" style="width:100%;display:block">
+      <rect x="10" y="20" width="120" height="120" rx="4" fill="#E4E1D8" stroke="#C8C4B8" stroke-width="2"/>
+      <rect x="22" y="30" width="96" height="52" fill="#FAFAF7" stroke="#15803d" stroke-width="1.5"/>
+      <text x="70" y="48" fill="#15803d" font-family="monospace" font-size="9" text-anchor="middle">DOCTOR.</text>
+      <text x="70" y="61" fill="#15803d" font-family="monospace" font-size="9" text-anchor="middle">TELL ME MORE</text>
+      <text x="70" y="74" fill="#15803d" font-family="monospace" font-size="9" text-anchor="middle">ABOUT YOUR_</text>
+      <circle cx="38" cy="106" r="14" fill="#F4F2EC" stroke="#9A9488" stroke-width="1.5"/>
+      <circle cx="38" cy="106" r="4" fill="#C8C4B8"/>
+      <circle cx="102" cy="106" r="14" fill="#F4F2EC" stroke="#9A9488" stroke-width="1.5"/>
+      <circle cx="102" cy="106" r="4" fill="#C8C4B8"/>
+      <line x1="52" y1="106" x2="88" y2="106" stroke="#9A9488" stroke-width="1" stroke-dasharray="2,2"/>
+      <circle cx="62" cy="128" r="2.5" fill="#b4493f"/>
+      <circle cx="70" cy="128" r="2.5" fill="#3f6178"/>
+      <circle cx="78" cy="128" r="2.5" fill="#15803d"/>
+      <rect x="6" y="142" width="128" height="14" rx="3" fill="#F4F2EC" stroke="#C8C4B8"/>
+      <text x="70" y="153" fill="#565248" font-family="serif" font-size="8" text-anchor="middle" font-style="italic">ELIZA-1966</text>
+      <circle cx="120" cy="36" r="2" fill="#15803d"><animate attributeName="opacity" values="1;0.25;1" dur="2s" repeatCount="indefinite"/></circle>
+    </svg>
+    <div style="text-align:center;font-size:11px;color:#9A9488;margin-top:4px;line-height:1.4">DOCTOR (1966)<br>MIT, J. Weizenbaum</div>
+  </div>
+  <div style="flex:1;min-width:220px">
+    <div style="font-size:12px;color:#5B7C99;margin-bottom:4px">あなた:</div>
+    <input id="elInput" type="text" value="最近、仕事で疲れていて…" placeholder="例: 私は学生です / 家族のことで悩んでいる"
+           style="width:100%;padding:8px 10px;background:#FAFAF7;color:#1A1A1A;border:1px solid #E4E1D8;border-radius:6px;font-size:14px;font-family:inherit"
+           onkeydown="if(event.key==='Enter'){elRespond();}" />
+    <div style="margin-top:8px">
+      <button onclick="elRespond()" style="background:#F4F2EC;color:#3f6178;border:1px solid #E4E1D8;border-radius:6px;padding:8px 16px;cursor:pointer;font-size:13px">▶ ELIZA に話す</button>
+      <button onclick="elRandom()" style="background:#F4F2EC;color:#565248;border:1px solid #E4E1D8;border-radius:6px;padding:8px 14px;cursor:pointer;font-size:13px;margin-left:4px"> 例文</button>
+    </div>
+    <div id="elResp" style="margin-top:10px;background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:10px 12px;font-size:13px;min-height:60px"></div>
+  </div>
+</div>
+
+<div style="font-size:13px;color:#565248;margin:14px 0 6px">ELIZA のルール表（上から順にマッチをチェック / マッチしたルールがハイライトされる）:</div>
+<div id="elRules" style="overflow-x:auto"></div>
+
+<div style="background:#FAFAF7;border-left:3px solid #3f6178;border-radius:4px;padding:10px 14px;margin-top:14px;font-size:13px;color:#565248;line-height:1.7">
+ <strong style="color:#5B7C99">ELIZA 効果</strong>: Weizenbaum 自身が驚いたのは、人々が「ELIZA は本当に話を聞いてくれている」と信じたこと ―― 秘書ですら「席を外してください、これは個人的な話なんです」と頼んだといいます。<strong>知能の判定は、相手の側ではなく観察者の側で起きる</strong> ―― これがチューリングテストの底にある真実です。
+</div>
+
+<script>
+var elRules=[
+  {label:'家族', pattern:/(母|父|家族|親|兄|妹|弟|姉)/, template:'あなたの$1について、もっと聞かせてください', display:'母 / 父 / 家族 / 親 / 兄 / 妹 / 弟 / 姉 を含む'},
+  {label:'否定', pattern:/(.+?)(できない|したくない|やりたくない)/, template:'なぜ$1$2のですか？', display:'… できない / したくない / やりたくない'},
+  {label:'疲労感情', pattern:/(疲れ|つらい|悲しい|しんどい|苦しい)/, template:'$1のは、何が原因だと思いますか？', display:'疲れ / つらい / 悲しい / しんどい / 苦しい'},
+  {label:'好嫌', pattern:/(.+?)(が好き|が嫌い)/, template:'なぜ$1$2なのですか？', display:'… が好き / が嫌い'},
+  {label:'断定', pattern:/(.+?)(です|だ)$/, template:'$1とは、具体的にどういうことですか？', display:'… です / だ で終わる文'},
+  {label:'疑問', pattern:/[?？]$/, template:'あなた自身は、それについてどう思いますか？', display:'? または ？ で終わる文'},
+  {label:'デフォルト', pattern:/.*/, template:'なるほど。それについてもう少し詳しく聞かせてください', display:'上のどれにも当てはまらないとき'}
+];
+var elExamples=['最近、仕事で疲れていて…','私は学生です','家族のことで悩んでいる','コーヒーが好き','勉強したくない','人生の意味とは何ですか？','明日も同じだ'];
+function elRenderTable(matchedIdx){
+  var h='<table style="width:100%;border-collapse:collapse;font-size:12px;line-height:1.55">';
+  h+='<tr style="background:#F4F2EC"><th style="border:1px solid #E4E1D8;padding:5px 6px;color:#5B7C99;width:6%">#</th><th style="border:1px solid #E4E1D8;padding:5px 8px;color:#5B7C99">入力に含まれるパターン</th><th style="border:1px solid #E4E1D8;padding:5px 8px;color:#5B7C99">応答テンプレート</th></tr>';
+  elRules.forEach(function(r,i){
+    var hl=(i===matchedIdx);
+    var bg=hl?'background:#eef1f5':'';
+    var weight=hl?'font-weight:bold':'';
+    var color=hl?'#eaf0f5':'#565248';
+    h+='<tr style="'+bg+'">'
+      +'<td style="border:1px solid #E4E1D8;padding:4px 6px;text-align:center;'+weight+';color:'+(hl?'#5B7C99':'#565248')+'">'+(i+1)+'</td>'
+      +'<td style="border:1px solid #E4E1D8;padding:4px 8px;'+weight+';color:'+color+'"><span style="color:#5fa86f">'+r.label+'</span>: '+r.display+'</td>'
+      +'<td style="border:1px solid #E4E1D8;padding:4px 8px;font-family:monospace;font-size:11.5px;'+weight+';color:'+color+'">'+r.template+'</td>'
+      +'</tr>';
+  });
+  h+='</table>';
+  document.getElementById('elRules').innerHTML=h;
+}
+function elRespond(){
+  var s=document.getElementById('elInput').value.trim();
+  var box=document.getElementById('elResp');
+  if(!s){elRenderTable(-1);box.innerHTML='<span style="color:#565248">何か入力してください</span>';return;}
+  for(var i=0;i<elRules.length;i++){
+    var m=s.match(elRules[i].pattern);
+    if(m){
+      var resp=elRules[i].template;
+      for(var j=1;j<m.length;j++){resp=resp.replace(new RegExp('\\$'+j,'g'),m[j]||'');}
+      box.innerHTML='<div style="color:#565248;font-size:11px;margin-bottom:4px">ELIZA:</div>'
+        +'<div style="font-size:14px;color:#5B7C99">「'+resp+'」</div>'
+        +'<div style="color:#9A9488;font-size:11px;margin-top:8px">↑ ルール #'+(i+1)+'（'+elRules[i].label+'）が発火 / マッチ: <code style="background:#F4F2EC;padding:1px 5px;border-radius:3px;color:#5fa86f">'+(m[0]||'(空)')+'</code></div>';
+      elRenderTable(i);return;
+    }
+  }
+  elRenderTable(-1);
+}
+function elRandom(){
+  var s=elExamples[Math.floor(Math.random()*elExamples.length)];
+  document.getElementById('elInput').value=s;
+  elRespond();
+}
+elRespond();
+</script>
+</div>
+
+<div class="section">
+<h3>解説</h3>
+<div class="pros-cons">
+<div class="achieved">1950年、Turing は「機械は考えるか」という曖昧な問いを、<strong>外から観測できる振る舞い</strong>の問いに変換した ―― AI に初めて測定可能な目標を与えた</div>
+<div class="achieved">ダートマス会議（1956）の 6 年前。この「知能とは何か」の操作的定義が、その後すべての AI 研究の出発点になった</div>
+<div class="challenge"><strong>中国語の部屋</strong>（サール, 1980）: ルール表に従って中国語を返す人は、中国語を「理解」しているのか？ → 正しく振る舞えても「理解」とは限らない、という反論</div>
+<div class="con">現代の大規模言語モデルは事実上テストを通過した。だが「賢く見える」ことは「賢い」ことと同じなのか？ 議論は今も続いている</div>
+</div>
+<div style="margin-top:12px;background:#FAFAF7;border-left:3px solid #3f6178;border-radius:4px;padding:10px 14px;font-size:13px;color:#565248">
+<strong style="color:#5B7C99">直感的に</strong>: カーテン越しに誰かと話して、相手がロボットだと気づけなければ「十分に賢い」。中身（意識があるか）は問わず、外から見える振る舞いだけで判定する ―― これがチューリングの大胆な割り切りでした。
+</div>
+</div>
+
+<div class="section">
+<h3>詳細解説</h3>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">① 模倣ゲームの原型</div>
+Turing の原論文は、まず「男・女・審査員」の 3 人ゲームを示す。審査員は文字の質問だけで男女を当てる。次に「男」を機械に置き換える ―― これが模倣ゲーム。狙いは <strong>相手の正体を直接見せない</strong>こと。声や外見という先入観を排し、純粋に「知的な振る舞い」だけを評価する。
+</div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">② 時代で変わる「化け方」</div>
+<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px">
+<tr style="background:#F4F2EC"><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">機械</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">年代</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">仕組み</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">見抜きどころ</th></tr>
+<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">ELIZA</td><td style="border:1px solid #E4E1D8;padding:6px 8px">1966</td><td style="border:1px solid #E4E1D8;padding:6px 8px">言葉を質問で返す型</td><td style="border:1px solid #E4E1D8;padding:6px 8px">自分を語れない</td></tr>
+<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">PARRY / A.L.I.C.E.</td><td style="border:1px solid #E4E1D8;padding:6px 8px">1972–2000年代</td><td style="border:1px solid #E4E1D8;padding:6px 8px">パターン応答の辞書</td><td style="border:1px solid #E4E1D8;padding:6px 8px">矛盾・深掘りに弱い</td></tr>
+<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">大規模言語モデル</td><td style="border:1px solid #E4E1D8;padding:6px 8px">2020年代</td><td style="border:1px solid #E4E1D8;padding:6px 8px">巨大データで次の語を予測</td><td style="border:1px solid #E4E1D8;padding:6px 8px">整いすぎ・即答すぎ</td></tr>
+</table>
+<div style="color:#5fa86f;margin-top:6px">ポイント: 70 年かけて「見抜きどころ」は、機械の弱点から人間の癖へと逆転した。</div>
+</div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">③ では、機械はどうやって賢くなる？</div>
+チューリングテストは「知能のゴール」を定めた。だが <strong>どうやってそこに到達するか</strong> は別問題。ダートマス会議では道が 2 つに分かれる ―― ルールを人間が書く <strong>記号主義</strong> と、脳のニューロンを真似る <strong>結合主義</strong>。次の図解では、その結合主義の出発点 ―― 1943年に生まれた「最初の人工ニューロン」に触れる。
+</div>
+</div>
+</div></div>
+
+
+
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures.html">← 図解一覧</a><a class="fp-comm" href="commentary.html#scene1">解説 Scene 1「ダートマスの夏」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_mp.html">MP ニューロン →</a></nav></div>
+
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>

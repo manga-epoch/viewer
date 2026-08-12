@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Head Attention 並列 — プロトタイプ ⑤ — EPOCH</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){if(typeof renderMathInElement==='function'){renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});}}
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#0f172a;color:#e2e8f0;line-height:1.7;padding-bottom:48px}
+.pkg-nav{background:#1e293b;padding:8px 16px;display:flex;gap:10px;align-items:center;border-bottom:1px solid #334155;flex-wrap:wrap;font-size:13px;position:sticky;top:0;z-index:100}
+.pkg-nav a{color:#94a3b8;text-decoration:none;padding:4px 8px;border-radius:4px}
+.pkg-nav a:hover{background:#334155;color:#e2e8f0}
+.pkg-nav .pkg-home{color:#f59e0b;font-weight:bold}
+.pkg-sep{color:#475569}
+.proto-banner{max-width:800px;margin:14px auto 0;padding:8px 14px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.4);border-radius:6px;font-size:12px;color:#c084fc;text-align:center}
+.proto-crumb{max-width:800px;margin:8px auto 0;padding:0 16px;font-size:12.5px;color:#64748b}
+.proto-crumb a{color:#3b82f6;text-decoration:none}
+.intro{max-width:800px;margin:18px auto;padding:0 16px}
+.intro h1{color:#f59e0b;margin-bottom:8px;font-size:22px}
+.intro p{color:#94a3b8;font-size:14px}
+.section{background:#1e293b;border-radius:10px;padding:20px;margin:16px auto;max-width:800px}
+.section h3{color:#f59e0b;font-size:16px;margin-bottom:8px;border-bottom:1px solid #334155;padding-bottom:6px}
+.formula{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:14px;margin:8px 0;font-size:14px;line-height:1.9}
+.formula .katex{color:#fbbf24}
+.note{color:#94a3b8;font-size:12px;font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0;padding:8px;background:#0f172a;border-radius:6px}
+.head-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.head-tab{background:#334155;color:#cbd5e1;border:1px solid #475569;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:12px;text-align:center;flex:1;min-width:80px;transition:all 0.15s}
+.head-tab:hover{background:#475569}
+.head-tab.active{background:#f59e0b;color:#0f172a;border-color:#fbbf24;font-weight:bold}
+.head-title{color:#fbbf24;font-size:15px;font-weight:bold;margin:14px 0 4px}
+.head-desc{color:#cbd5e1;font-size:13px;margin-bottom:14px;line-height:1.7;background:#0f172a;border-left:3px solid #f59e0b;padding:10px 14px;border-radius:4px}
+.heat-wrap{overflow-x:auto;margin:12px 0;text-align:center}
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+@media(max-width:540px){.overview-grid{grid-template-columns:1fr}}
+.overview-card{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;cursor:pointer;transition:border-color 0.15s}
+.overview-card:hover{border-color:#f59e0b}
+.overview-card h4{color:#fbbf24;font-size:12px;margin-bottom:4px;text-align:center}
+.overview-card p{color:#94a3b8;font-size:10.5px;text-align:center;line-height:1.5}
+.back-link{max-width:800px;margin:24px auto 0;padding:16px;text-align:center}
+.back-link a{color:#3b82f6;text-decoration:none;padding:8px 16px;background:#1e293b;border-radius:6px;display:inline-block}
+</style>
+</head>
+<body>
+<nav class="pkg-nav">
+<a href="../index.html" class="pkg-home">🎬 EPOCH Arc 1 Scene 1</a>
+<span class="pkg-sep">|</span>
+<a href="../index.html">📖 マンガ</a>
+<a href="../commentary.html">📚 巻末解説</a>
+<a href="../figures.html">📐 図解一覧</a>
+</nav>
+<div class="proto-banner">🧪 プロトタイプ ⑤ — 評価用</div>
+<div class="proto-crumb">🧪 <a href="index.html">プロトタイプ一覧</a> &nbsp;›&nbsp; Multi-Head Attention 並列</div>
+
+<div class="intro">
+<h1>🎭 Multi-Head Attention — 4 つの "視点" が並列で見る</h1>
+<p>同じ文「彼は本を買った。それを読んだ。」を、4 つの attention head が並列に処理する。Head ごとに異なる "視点"（局所注意 / 主述対応 / 指示語解決 / 文末区切り）を学習する典型的なパターンを、ヒートマップで体感。</p>
+</div>
+
+<div class="section">
+<h3>📐 数式</h3>
+<div class="formula">
+$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h) W_O$<br><br>
+$\text{head}_i = \text{Attention}(Q W_i^Q,\ K W_i^K,\ V W_i^V)$<br><br>
+<span class="note">単一の attention を <strong>h 個並列</strong>に走らせ、最後に結合して線形射影。各 head は独立した QKV 変換を持ち、<strong>異なるパターンを同時に学習</strong>できる。GPT-2 small は h=12 head、d_model=768 → 各 head は dₖ=64 次元。</span>
+</div>
+</div>
+
+<div class="section">
+<h3>📊 4 head の attention パターンを切替</h3>
+
+<div class="head-tabs" id="headTabs"></div>
+
+<div class="head-title" id="headTitle"></div>
+<div class="head-desc" id="headDesc"></div>
+<div class="heat-wrap" id="headHeat"></div>
+
+<div style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;margin-top:8px;font-size:12px;color:#94a3b8">
+👀 <strong>注目</strong>: Head 1（局所）は対角線上に濃度が集まる ／ Head 3（指示語）は「それ」行の「本」列だけ突出 ／ Head 4（文末）は「。」行が全体に薄く広がる。<strong>同じ入力でも head ごとに見ているパターンが全く違う</strong>のが Multi-Head の本質。
+</div>
+
+</div>
+
+<div class="section">
+<h3>🔍 4 head 俯瞰モード</h3>
+<p style="color:#94a3b8;font-size:13px;margin-bottom:8px">4 つの head のパターン差を一覧で比較。各小マップをタップで詳細切替。</p>
+<div class="overview-grid" id="overviewGrid"></div>
+</div>
+
+<div class="section">
+<h3>💡 ポイント</h3>
+<div style="background:#0f172a;border-left:3px solid #f59e0b;border-radius:4px;padding:12px 16px;font-size:13px;color:#cbd5e1;line-height:1.8">
+<strong style="color:#fbbf24">なぜ複数の head が必要か</strong>: 単一の attention は「1 種類の関係」しか学べない。実際の文では <strong>主述・指示語・局所文脈・大域構造</strong>が同時に重要 ―― これを並列に分担させるのが Multi-Head。<br><br>
+研究では実際の Transformer の各 head を分析すると、<strong>「previous-token head」「subject-verb head」「coreference head」</strong>などの分業が観察される（Vig 2019, Voita et al. 2019 ほか）。本プロトタイプの 4 head はその観察を簡略化した教育例。
+</div>
+</div>
+
+<script>
+var tokens=['彼','は','本','を','買った','。','それ','を','読んだ','。'];
+
+var heads=[
+  {name:'Head 1',label:'局所注意',emoji:'📍',
+   desc:'各単語が <strong>隣接する単語に注目</strong>するパターン。ヒートマップは対角線上に濃度が集まる。N-gram 的な局所文脈を捕まえる head の典型。',
+   pattern:[
+    [0.40,0.30,0.15,0.05,0.05,0,0,0,0.05,0],
+    [0.25,0.30,0.25,0.10,0.05,0,0,0,0.05,0],
+    [0.10,0.25,0.30,0.25,0.05,0,0,0,0.05,0],
+    [0.05,0.10,0.25,0.30,0.25,0.05,0,0,0,0],
+    [0.05,0.05,0.10,0.25,0.30,0.25,0,0,0,0],
+    [0,0,0.05,0.10,0.30,0.30,0.15,0.05,0.05,0],
+    [0,0,0.05,0.05,0.05,0.10,0.35,0.30,0.10,0],
+    [0,0,0,0,0.05,0.05,0.25,0.30,0.30,0.05],
+    [0,0,0.05,0,0,0,0.10,0.25,0.35,0.25],
+    [0,0,0.05,0,0,0.05,0.05,0.10,0.30,0.45]
+   ]},
+  {name:'Head 2',label:'主述対応',emoji:'🔗',
+   desc:'<strong>動詞 ↔ 主語 / 目的語の対応</strong>。「買った」が「彼」と「本」を、「読んだ」が「それ」と「本」を強く参照。「誰が何をした」の文型を捕まえる head。',
+   pattern:[
+    [0.40,0.10,0.10,0,0.35,0,0,0,0,0.05],
+    [0.30,0.20,0.05,0,0.40,0,0,0,0,0.05],
+    [0.10,0.05,0.40,0.05,0.35,0,0,0,0,0.05],
+    [0.05,0,0.30,0.20,0.40,0,0,0,0,0.05],
+    [0.30,0.05,0.30,0.05,0.20,0,0,0,0,0.10],
+    [0.10,0.05,0.15,0.05,0.50,0.15,0,0,0,0],
+    [0,0,0.30,0,0,0,0.35,0,0.30,0.05],
+    [0,0,0.20,0,0,0,0.25,0.15,0.35,0.05],
+    [0,0,0.30,0,0.05,0,0.30,0.05,0.25,0.05],
+    [0,0,0.10,0,0.05,0.10,0.10,0.05,0.30,0.30]
+   ]},
+  {name:'Head 3',label:'指示語解決',emoji:'🎯',
+   desc:'<strong>「それ」のような指示語が前文の指示対象を強く参照</strong>。「それ」行の「本」列がぐっと濃い ―― 多くの行はほぼ自己参照だが、指示語の解決という重要な仕事をこの head が単独で担う。',
+   pattern:[
+    [0.70,0.15,0.05,0,0.05,0,0,0,0,0.05],
+    [0.20,0.70,0.05,0,0.05,0,0,0,0,0],
+    [0.05,0.05,0.75,0.10,0.05,0,0,0,0,0],
+    [0,0,0.15,0.75,0.10,0,0,0,0,0],
+    [0,0,0.05,0.10,0.80,0.05,0,0,0,0],
+    [0,0,0.05,0,0.10,0.80,0.05,0,0,0],
+    [0,0,0.65,0,0.05,0,0.25,0.05,0,0],
+    [0,0,0.05,0,0,0,0.15,0.75,0.05,0],
+    [0,0,0.50,0,0.05,0,0.20,0.05,0.20,0],
+    [0,0,0.05,0,0,0,0.05,0,0.10,0.80]
+   ]},
+  {name:'Head 4',label:'文末 / 区切り',emoji:'🔚',
+   desc:'<strong>文末「。」が文全体を見渡す</strong>。前半の単語は前半の「。」（index 5）を、後半の単語は後半の「。」（index 9）を強く参照。文単位の境界認識を担う head。',
+   pattern:[
+    [0.20,0.10,0.10,0.05,0.10,0.40,0,0,0,0.05],
+    [0.10,0.10,0.10,0.05,0.10,0.50,0,0,0,0.05],
+    [0.10,0.05,0.10,0.05,0.10,0.55,0,0,0,0.05],
+    [0.05,0.05,0.10,0.10,0.10,0.55,0,0,0,0.05],
+    [0.05,0.05,0.10,0.05,0.10,0.60,0,0,0,0.05],
+    [0.15,0.10,0.20,0.10,0.20,0.15,0.05,0,0,0.05],
+    [0,0,0,0,0,0.10,0.10,0.10,0.10,0.60],
+    [0,0,0,0,0,0.05,0.10,0.10,0.15,0.60],
+    [0,0,0,0,0,0.05,0.05,0.10,0.15,0.65],
+    [0,0,0.05,0,0,0.15,0.15,0.15,0.25,0.25]
+   ]}
+];
+
+var curHead=0;
+
+function renderHeatmap(pattern,size,inSmall){
+  size=size||24;
+  var n=tokens.length;
+  var h='<table style="border-collapse:collapse;font-family:sans-serif;margin:0 auto;border:1px solid #334155">';
+  h+='<tr><th style="background:transparent;padding:2px"></th>';
+  tokens.forEach(function(t){
+    h+='<th style="min-width:'+size+'px;padding:2px 1px;color:#93c5fd;font-size:'+(inSmall?8:10)+'px;border-bottom:1px solid #334155;font-weight:normal">'+t+'</th>';
+  });
+  h+='</tr>';
+  for(var i=0;i<n;i++){
+    h+='<tr><th style="padding:1px 5px;text-align:right;color:#93c5fd;font-size:'+(inSmall?8:10)+'px;border-right:1px solid #334155;font-weight:normal">'+tokens[i]+'</th>';
+    for(var j=0;j<n;j++){
+      var w=pattern[i][j]||0;
+      var alpha=(w*0.92).toFixed(2);
+      var bg='rgba(245,158,11,'+alpha+')';
+      var lbl=(!inSmall && w>=0.30)?(w*100).toFixed(0):'';
+      h+='<td title="'+tokens[i]+' → '+tokens[j]+': '+(w*100).toFixed(0)+'%" style="width:'+size+'px;height:'+size+'px;padding:0;background:'+bg+';border:1px solid #1e293b;text-align:center;font-size:8px;color:#0f172a;font-weight:bold">'+lbl+'</td>';
+    }
+    h+='</tr>';
+  }
+  h+='</table>';
+  return h;
+}
+
+function renderTabs(){
+  var h='';
+  heads.forEach(function(hd,i){
+    h+='<button class="head-tab'+(i===curHead?' active':'')+'" onclick="pickHead('+i+')">'+hd.emoji+' '+hd.name+'<br><span style="font-size:10px;opacity:0.85">'+hd.label+'</span></button>';
+  });
+  document.getElementById('headTabs').innerHTML=h;
+}
+
+function renderHead(){
+  var hd=heads[curHead];
+  document.getElementById('headTitle').innerHTML=hd.emoji+' '+hd.name+': '+hd.label;
+  document.getElementById('headDesc').innerHTML=hd.desc;
+  document.getElementById('headHeat').innerHTML=renderHeatmap(hd.pattern,26,false);
+}
+
+function renderOverview(){
+  var h='';
+  heads.forEach(function(hd,i){
+    h+='<div class="overview-card" onclick="pickHead('+i+');window.scrollTo({top:document.querySelector(\'h3\').offsetTop,behavior:\'smooth\'})">';
+    h+='<h4>'+hd.emoji+' '+hd.name+': '+hd.label+'</h4>';
+    h+=renderHeatmap(hd.pattern,14,true);
+    h+='<p style="margin-top:6px">タップで詳細</p>';
+    h+='</div>';
+  });
+  document.getElementById('overviewGrid').innerHTML=h;
+}
+
+function pickHead(i){curHead=i;renderTabs();renderHead();}
+
+renderTabs();
+renderHead();
+renderOverview();
+</script>
+
+<div class="back-link">
+<a href="index.html">← プロトタイプ一覧に戻る</a>
+</div>
+</body>
+</html>

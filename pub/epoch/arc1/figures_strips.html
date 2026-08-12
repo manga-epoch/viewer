@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRIPS プランナー — EPOCH 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+  }
+}
+</script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#FAFAF7;color:#1A1A1A;line-height:1.7}
+nav{background:#F4F2EC;padding:8px 12px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+nav select{background:#E4E1D8;color:#1A1A1A;border:1px solid #C8C4B8;border-radius:6px;padding:6px 8px;font-size:14px;flex:1;max-width:400px}
+nav button{background:#E4E1D8;color:#565248;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:14px}
+nav button:hover{background:#C8C4B8}
+.page{display:none;max-width:800px;margin:0 auto;padding:16px}
+.page.active{display:block}
+.section{background:#F4F2EC;border-radius:10px;padding:20px;margin:16px 0}
+.section h3{color:#3f6178;font-size:16px;margin-bottom:8px;border-bottom:1px solid #E4E1D8;padding-bottom:6px}
+h2{color:#5B7C99;margin-bottom:4px}
+.arc-label{color:#9A9488;font-size:13px;margin-bottom:12px}
+.formula{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:16px;margin:8px 0;font-size:14px;line-height:1.9;color:#1A1A1A;overflow-x:auto}
+.formula .katex{font-size:1.05em;color:#5B7C99}
+.formula .katex-display{margin:6px 0}
+.formula .hl{color:#5B7C99;font-weight:bold}
+.formula .note{color:#565248;font-size:12px;font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0;padding:8px;background:#FAFAF7;border-radius:6px}
+.controls label{color:#565248;font-size:13px}
+.controls input[type=range]{width:100px}
+.val{color:#5B7C99;font-weight:bold;min-width:36px;display:inline-block}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.pro,.con,.achieved,.challenge{padding:10px;border-radius:6px;font-size:13px}
+.pro{background:#e7f4ea;border:1px solid #15803d}.pro::before{content:'✓ '}
+.con{background:#f7efef;border:1px solid #b4493f}.con::before{content:'✗ '}
+.achieved{background:#F4F2EC;border:1px solid #3f6178}.achieved::before{content:'◎ '}
+.challenge{background:#f6f0e0;border:1px solid #3f6178}.challenge::before{content:'※ '}
+.breadcrumb{background:#FAFAF7;border-left:3px solid #3f6178;padding:10px 14px;margin:8px 0 16px;border-radius:4px;font-size:13px;color:#565248}
+.breadcrumb .tags{display:block;color:#9A9488;font-size:12px;margin-top:4px}
+.back-link{background:#F4F2EC;border:1px solid #E4E1D8;border-radius:8px;padding:14px 16px;margin-top:24px;text-align:center}
+.back-link a{color:#3f6178;text-decoration:none;font-size:14px}
+.back-link a:hover{text-decoration:underline}
+.ref-card{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:12px 0}
+.ref-card h4{color:#5B7C99;font-size:15px;margin-bottom:6px}
+.ref-card .ref-formula{background:#F4F2EC;border-radius:4px;padding:8px 10px;margin:8px 0;font-family:'Courier New',monospace;font-size:13px;color:#1A1A1A;overflow-x:auto}
+.ref-card .ref-meta{font-size:12px;color:#9A9488;margin-top:6px}
+.ref-card .ref-tag{display:inline-block;background:#eef1f5;color:#5B7C99;padding:2px 8px;border-radius:3px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:600px){.pros-cons{grid-template-columns:1fr}}
+
+body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; padding-bottom:64px }
+.page { display:block !important; max-width:820px; margin:0 auto; padding:14px }
+.intro { max-width:760px; margin:44px auto 8px; padding:0 20px }
+.intro h1 { color:#1A1A1A; margin-bottom:10px; font-size:clamp(1.6rem,4vw,2.05rem); font-weight:700; letter-spacing:-.02em; line-height:1.3 }
+.intro p { color:#565248; font-size:15px; line-height:1.9 }
+.fig-crumb { max-width:820px; margin:18px auto 0; padding:0 20px; font-size:12.5px; color:#9A9488 }
+.fig-crumb a { color:#3f6178; text-decoration:underline }
+.fig-crumb a:hover { color:#1A1A1A }
+.fig-stage { background:#fff; border:1px solid #E4E1D8; border-radius:14px; max-width:860px; margin:26px auto; padding:10px 6px; overflow:hidden }
+.fig-stage .page { color:#1A1A1A; margin:0 auto }
+.scene2-teaser { max-width:760px; margin:28px auto 0; padding:18px 22px; background:#F4F2EC; border:1px solid #E4E1D8; border-left:4px solid #5B7C99; border-radius:0 10px 10px 0; font-size:13.5px; line-height:1.85; color:#565248; text-align:left }
+.scene2-teaser strong { color:#1A1A1A }
+.scene2-teaser a { color:#3f6178; font-weight:700; text-decoration:underline }
+.back-link { max-width:820px; margin:36px auto 0; padding:0 20px; text-align:center }
+.back-link a { color:#1A1A1A; text-decoration:none; padding:11px 22px; background:#fff; border:1px solid #CFCBBE; border-radius:6px; display:inline-block; font-weight:600; font-size:14px }
+.back-link a:hover { background:#F4F2EC }
+.fig-topnav { max-width:820px; margin:14px auto 0; padding:0 20px }
+.fig-pager { display:flex; flex-wrap:wrap; gap:8px 10px; justify-content:center; align-items:center }
+.fig-pager a { text-decoration:none; font-size:13px; font-weight:600; padding:9px 15px; border-radius:6px; border:1px solid #E4E1D8; background:#fff; color:#1A1A1A; line-height:1.3 }
+.fig-pager a:hover { background:#F4F2EC }
+.fig-pager .fp-comm { border-color:#5B7C99; color:#3f6178; background:rgba(91,124,153,.08) }
+.fig-pager .fp-idx { color:#565248 }
+.fig-grid { max-width:820px; margin:28px auto; padding:0 20px; display:grid; grid-template-columns:1fr; gap:14px }
+.fig-card { background:#fff; border:1px solid #E4E1D8; border-radius:12px; overflow:hidden; transition:transform .15s,border-color .15s,box-shadow .15s }
+.fig-card:hover { transform:translateY(-2px); border-color:#5B7C99; box-shadow:0 8px 24px rgba(26,26,26,.08) }
+.fig-card a { display:block; padding:20px 22px; text-decoration:none; color:inherit }
+.fig-card .fig-emoji { display:none }
+.fig-card h3 { color:#1A1A1A; font-size:17px; font-weight:700; margin-bottom:6px }
+.fig-card h3 small { color:#9A9488; font-size:11px; font-weight:400; margin-left:6px }
+.fig-card p { color:#565248; font-size:13px; line-height:1.75; margin-bottom:8px }
+.fig-card .fig-tag { display:inline-block; background:#F4F2EC; color:#565248; border:1px solid #E4E1D8; padding:2px 8px; border-radius:10px; font-size:11px; margin-right:4px; margin-top:4px }
+
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; STRIPS プランナー</div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_cyc.html">← Cyc 常識推論</a><a class="fp-comm" href="commentary.html#scene3">解説 Scene 3「専門家の時代」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_attention.html">Self-Attention →</a></nav></div>
+
+<div class="intro">
+<h1>STRIPS プランナー — ブロックワールドで「行動の計画」を作る</h1><p>1971 年 SRI Fikes & Nilsson、世界初の自律移動ロボット <strong>Shakey</strong> (1966-1972) を動かした「状態空間探索」システム。各アクションは <strong>precondition / add-list / delete-list</strong> の 3 つで定義される。初期状態 → 目標状態 への <strong>plan (行動の列)</strong> を自動で探索する仕組みは、2022 年以降の <strong>LLM エージェント</strong> (ReAct, Plan-and-Execute, AutoGPT) の祖先 ―― Bitter Lesson が「単純な敗北ではない」と言う理由。</p>
+</div>
+
+<div class="fig-stage"><div class="page" id="strips">
+<h2>STRIPS プランナー — ブロックワールドで「行動の計画」を作る</h2>
+<div class="arc-label">Arc 1 Scene 3 おまけ — 1971 SRI Fikes &amp; Nilsson、Shakey ロボットを動かした「状態空間探索」が、現代の LLM エージェントへ</div>
+
+<div class="section">
+<h3>数式と仕組み</h3>
+<div class="formula">
+<span class="hl">STRIPS</span> (Stanford Research Institute Problem Solver, 1971) は、<strong>初期状態 → 目標状態</strong> に到達するための「行動の列 (plan)」を自動で探索するシステム。Shakey ロボット (1966-1972、世界初の自律移動ロボット) の制御に使われた。<br><br>
+各アクションは 3 つの集合で定義される:<br>
+$\text{Action} = \langle \text{precondition},\ \text{add-list},\ \text{delete-list} \rangle$<br><br>
+例: <code>pickup(A)</code> = 「A を掴む」<br>
+- precondition: A が table 上、A の上に何もない、手が空いている<br>
+- add-list: 手が A を持っている<br>
+- delete-list: A は table 上ではなくなる、手は空いていない<br><br>
+<span class="note">STRIPS は <strong>state-space search</strong> (状態空間探索) を行う。現代の <strong>LLM エージェント</strong> (ReAct, Plan-and-Execute, AutoGPT) は、LLM が plan を「生成」する点で違うが、根本構造は同じ ―― 状態 → アクション → 状態の繰り返しで目標に到達する。</span>
+</div>
+</div>
+
+<div class="section">
+<h3>インタラクティブ: ブロックワールドで plan を観察</h3>
+<p style="color:#565248;font-size:13px">初期状態: A が B の上、C が table の上。目標状態: C が B の上、A が table の上。STRIPS が plan を 4 ステップで導出し、アニメーション再生する。</p>
+
+<div class="perceptron-svg-wrap" style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;margin:12px 0">
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+<div style="background:#F4F2EC;border-radius:8px;padding:10px;text-align:center">
+<div style="color:#565248;font-size:11px;margin-bottom:4px">初期状態</div>
+<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+<rect x="50" y="40" width="60" height="40" rx="4" fill="#5B7C99" stroke="#3f6178" stroke-width="2"/>
+<text x="80" y="65" text-anchor="middle" fill="#FAFAF7" font-size="20" font-weight="bold">A</text>
+<rect x="50" y="80" width="60" height="40" rx="4" fill="#3f6178" stroke="#3f6178" stroke-width="2"/>
+<text x="80" y="105" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">B</text>
+<rect x="130" y="80" width="60" height="40" rx="4" fill="#15803d" stroke="#15803d" stroke-width="2"/>
+<text x="160" y="105" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">C</text>
+<line x1="0" y1="120" x2="200" y2="120" stroke="#565248" stroke-width="2"/>
+<text x="100" y="20" text-anchor="middle" fill="#565248" font-size="10" font-family="monospace">(on A B) (on-table C)</text>
+</svg>
+</div>
+<div style="background:#F4F2EC;border-radius:8px;padding:10px;text-align:center">
+<div style="color:#565248;font-size:11px;margin-bottom:4px">目標状態</div>
+<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
+<rect x="20" y="80" width="60" height="40" rx="4" fill="#5B7C99" stroke="#3f6178" stroke-width="2"/>
+<text x="50" y="105" text-anchor="middle" fill="#FAFAF7" font-size="20" font-weight="bold">A</text>
+<rect x="130" y="40" width="60" height="40" rx="4" fill="#15803d" stroke="#15803d" stroke-width="2"/>
+<text x="160" y="65" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">C</text>
+<rect x="130" y="80" width="60" height="40" rx="4" fill="#3f6178" stroke="#3f6178" stroke-width="2"/>
+<text x="160" y="105" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">B</text>
+<line x1="0" y1="120" x2="200" y2="120" stroke="#565248" stroke-width="2"/>
+<text x="100" y="20" text-anchor="middle" fill="#565248" font-size="10" font-family="monospace">(on-table A) (on C B)</text>
+</svg>
+</div>
+</div>
+
+<div style="text-align:center;margin:12px 0">
+<button id="strips-play-btn" style="background:#5B7C99;color:#FAFAF7;border:0;padding:10px 20px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:14px">Plan 実行 (4 ステップ)</button>
+<button id="strips-step-btn" style="background:#F4F2EC;color:#565248;border:1px solid #C8C4B8;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px">→ 1 ステップ</button>
+<button id="strips-reset-btn" style="background:#F4F2EC;color:#565248;border:1px solid #C8C4B8;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px">リセット</button>
+</div>
+
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px">
+<div style="color:#565248;font-size:11px;margin-bottom:6px">現在状態 (ステップ <span id="strips-step-num">0</span> / 4)</div>
+<svg id="strips-world" viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;background:#FAFAF7;border-radius:4px">
+<line x1="0" y1="145" x2="400" y2="145" stroke="#565248" stroke-width="2"/>
+<text x="200" y="160" text-anchor="middle" fill="#9A9488" font-size="10">table</text>
+<g id="strips-block-A">
+<rect x="80" y="65" width="60" height="40" rx="4" fill="#5B7C99" stroke="#3f6178" stroke-width="2"/>
+<text x="110" y="90" text-anchor="middle" fill="#FAFAF7" font-size="20" font-weight="bold">A</text>
+</g>
+<g id="strips-block-B">
+<rect x="80" y="105" width="60" height="40" rx="4" fill="#3f6178" stroke="#3f6178" stroke-width="2"/>
+<text x="110" y="130" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">B</text>
+</g>
+<g id="strips-block-C">
+<rect x="200" y="105" width="60" height="40" rx="4" fill="#15803d" stroke="#15803d" stroke-width="2"/>
+<text x="230" y="130" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">C</text>
+</g>
+<g id="strips-hand">
+<rect x="320" y="20" width="60" height="20" rx="4" fill="#F4F2EC" stroke="#C8C4B8" stroke-width="1"/>
+<text x="350" y="34" text-anchor="middle" fill="#565248" font-size="10" font-family="monospace">hand: 空</text>
+</g>
+</svg>
+</div>
+
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;margin-top:10px;color:#565248;font-size:13px">
+<strong>Plan ログ</strong>
+<div id="strips-log" style="background:#FAFAF7;border-radius:4px;padding:10px;margin-top:6px;font-family:monospace;font-size:12px;color:#565248;min-height:80px">
+<div>初期: (on A B) (on-table C) (clear A) (clear C) (hand-empty)</div>
+<div>目標: (on-table A) (on C B)</div>
+<div style="color:#5B7C99">→ Plan 実行ボタンを押してください</div>
+</div>
+</div>
+
+<script>
+(function(){
+// Block positions (x, y for block top-left)
+var POSITIONS = {
+A_on_B: {x:80, y:65},
+A_on_table: {x:80, y:105},
+B_on_table: {x:80, y:105},
+B_on_table_right: {x:200, y:105},
+C_on_table: {x:200, y:105},
+C_on_B: {x:200, y:65},
+hand_A: {x:80, y:5},
+hand_B: {x:80, y:5},
+hand_C: {x:200, y:5},
+};
+
+var steps = [
+{action: 'unstack(A, B)', desc: 'A を B から取る (precondition: clear A, on A B, hand-empty)',
+ blocks: {A: {x:80, y:5}, B: {x:80, y:105}, C: {x:200, y:105}}, hand: 'A'},
+{action: 'putdown(A)', desc: 'A を table に置く (add: on-table A, hand-empty / del: hand A)',
+ blocks: {A: {x:80, y:105}, B: {x:80, y:105}, C: {x:200, y:105}}, hand: '空'},
+{action: 'pickup(C)', desc: 'C を table から取る (precondition: clear C, on-table C, hand-empty)',
+ blocks: {A: {x:80, y:105}, B: {x:80, y:105}, C: {x:200, y:5}}, hand: 'C'},
+{action: 'stack(C, B)', desc: 'C を B の上に積む (add: on C B, hand-empty / del: hand C)',
+ blocks: {A: {x:80, y:105}, B: {x:80, y:105}, C: {x:200, y:65}}, hand: '空'},
+];
+
+// Initial layout: A is stacked on B at left (so B should be at left position too)
+// Adjust: initial → B at left (80), A on B (80, top=65), C at right (200)
+var initLayout = {A: {x:80, y:65}, B: {x:80, y:105}, C: {x:200, y:105}};
+
+// Update steps to use correct positions
+// Step 0 (after unstack(A,B)): A in hand, B remains at left, C remains at right
+// Step 1 (after putdown(A)): A on table - but where? Use right of B
+steps[0].blocks = {A: {x:80, y:5}, B: {x:80, y:105}, C: {x:200, y:105}};
+steps[1].blocks = {A: {x:280, y:105}, B: {x:80, y:105}, C: {x:200, y:105}};
+steps[2].blocks = {A: {x:280, y:105}, B: {x:80, y:105}, C: {x:200, y:5}};
+steps[3].blocks = {A: {x:280, y:105}, B: {x:80, y:105}, C: {x:80, y:65}};
+
+var step = 0;
+var logEl = document.getElementById('strips-log');
+var stepEl = document.getElementById('strips-step-num');
+var playBtn = document.getElementById('strips-play-btn');
+var stepBtn = document.getElementById('strips-step-btn');
+var resetBtn = document.getElementById('strips-reset-btn');
+
+function moveBlock(id, pos){
+var el = document.getElementById('strips-block-' + id);
+var rect = el.querySelector('rect');
+var text = el.querySelector('text');
+rect.style.transition = 'all 0.5s ease';
+text.style.transition = 'all 0.5s ease';
+rect.setAttribute('x', pos.x);
+rect.setAttribute('y', pos.y);
+text.setAttribute('x', pos.x + 30);
+text.setAttribute('y', pos.y + 25);
+}
+
+function setHand(label){
+var t = document.getElementById('strips-hand').querySelector('text');
+t.textContent = 'hand: ' + label;
+}
+
+function applyStep(i){
+var s = steps[i];
+moveBlock('A', s.blocks.A);
+moveBlock('B', s.blocks.B);
+moveBlock('C', s.blocks.C);
+setHand(s.hand);
+}
+
+function addLog(text, color){
+var d = document.createElement('div');
+d.style.color = color || '#15803d';
+d.textContent = text;
+logEl.appendChild(d);
+logEl.scrollTop = logEl.scrollHeight;
+}
+
+function nextStep(){
+if(step >= steps.length){
+addLog('目標到達: (on-table A) (on C B) ✓', '#5B7C99');
+return false;
+}
+applyStep(step);
+addLog((step+1) + '. ' + steps[step].action, '#15803d');
+addLog('   ' + steps[step].desc, '#565248');
+step++;
+stepEl.textContent = step;
+return step < steps.length;
+}
+
+stepBtn.addEventListener('click', nextStep);
+
+playBtn.addEventListener('click', function(){
+playBtn.disabled = true;
+playBtn.style.opacity = '0.5';
+var iv = setInterval(function(){
+var cont = nextStep();
+if(!cont){
+clearInterval(iv);
+playBtn.disabled = false;
+playBtn.style.opacity = '1';
+}
+}, 1200);
+});
+
+resetBtn.addEventListener('click', function(){
+step = 0;
+stepEl.textContent = 0;
+moveBlock('A', initLayout.A);
+moveBlock('B', initLayout.B);
+moveBlock('C', initLayout.C);
+setHand('空');
+logEl.innerHTML = '<div>初期: (on A B) (on-table C) (clear A) (clear C) (hand-empty)</div><div>目標: (on-table A) (on C B)</div><div style="color:#5B7C99">→ Plan 実行ボタンを押してください</div>';
+playBtn.disabled = false;
+playBtn.style.opacity = '1';
+});
+})();
+</script>
+</div>
+
+<div class="section">
+<h3>試してみよう</h3>
+<div class="achieved">「Plan 実行」を押すと、STRIPS が <strong>4 ステップの plan</strong> を順次実行: ①A を B から取る → ②A を table に置く → ③C を table から取る → ④C を B の上に積む。各アクションには <strong>precondition / add / delete</strong> が定義されている。</div>
+<div class="achieved">「1 ステップ」ボタンで 1 アクションずつ進めると、各ステップで「なぜそれをしたか」が分かる。「A を直接 table に動かす」というショートカットはなく、必ず <strong>持つ→置く</strong> の 2 ステップに分解される ―― これが symbolic AI の「世界を象徴で記述する」発想。</div>
+<div class="challenge">考えてみよう: もし初期状態が <code>(on A B), (on B C), (on-table C)</code> (A は B の上、B は C の上) だったら、STRIPS は何ステップで <code>(on-table A) (on-table B) (on-table C)</code> に到達する? <strong>答え: 4 ステップ</strong> (unstack A, putdown A, unstack B, putdown B)。状態空間探索は組合せ爆発しやすいが、precondition を使って枝刈りすることで現実的な時間で解ける。</div>
+</div>
+
+<div class="section">
+<h3>現代への橋</h3>
+<div class="scene2-teaser">
+<strong>STRIPS が今も生きている →</strong><br>
+2022 年以降の <strong>LLM エージェント</strong> (ReAct, Plan-and-Execute, AutoGPT) は、LLM が plan を「生成」する点で違うが、根本構造は同じ。「現在の状態 → アクション → 新しい状態」の繰り返しで目標達成する設計図は、Shakey ロボットの 1971 年から変わっていない ―― これが Bitter Lesson が「単純な敗北ではない」と言う理由。Symbolic AI の遺産は形を変えて、今も AI の中で生きている。<br><br>
+→ <a href="commentary.html" style="color:#5B7C99">巻末解説で Bitter Lesson の完全な意味を読む</a>
+</div>
+</div>
+</div></div>
+
+<div class="scene2-teaser">
+ <strong>Bitter Lesson の真意 →</strong><br>
+記号主義は単純な敗北ではなかった。STRIPS の遺産は形を変えて、今も LLM エージェントの中に生きている。これが <a href="commentary.html" style="color:#fbbf24">巻末解説で Sutton『苦い教訓』(Bitter Lesson, 2019) が語る歴史的教訓</a>。
+</div>
+
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_cyc.html">← Cyc 常識推論</a><a class="fp-comm" href="commentary.html#scene3">解説 Scene 3「専門家の時代」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_attention.html">Self-Attention →</a></nav></div>
+
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>

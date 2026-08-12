@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Self-Attention (おまけ) — EPOCH 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+  }
+}
+</script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#FAFAF7;color:#1A1A1A;line-height:1.7}
+nav{background:#F4F2EC;padding:8px 12px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+nav select{background:#E4E1D8;color:#1A1A1A;border:1px solid #C8C4B8;border-radius:6px;padding:6px 8px;font-size:14px;flex:1;max-width:400px}
+nav button{background:#E4E1D8;color:#565248;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:14px}
+nav button:hover{background:#C8C4B8}
+.page{display:none;max-width:800px;margin:0 auto;padding:16px}
+.page.active{display:block}
+.section{background:#F4F2EC;border-radius:10px;padding:20px;margin:16px 0}
+.section h3{color:#3f6178;font-size:16px;margin-bottom:8px;border-bottom:1px solid #E4E1D8;padding-bottom:6px}
+h2{color:#5B7C99;margin-bottom:4px}
+.arc-label{color:#9A9488;font-size:13px;margin-bottom:12px}
+.formula{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:16px;margin:8px 0;font-size:14px;line-height:1.9;color:#1A1A1A;overflow-x:auto}
+.formula .katex{font-size:1.05em;color:#5B7C99}
+.formula .katex-display{margin:6px 0}
+.formula .hl{color:#5B7C99;font-weight:bold}
+.formula .note{color:#565248;font-size:12px;font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0;padding:8px;background:#FAFAF7;border-radius:6px}
+.controls label{color:#565248;font-size:13px}
+.controls input[type=range]{width:100px}
+.val{color:#5B7C99;font-weight:bold;min-width:36px;display:inline-block}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.pro,.con,.achieved,.challenge{padding:10px;border-radius:6px;font-size:13px}
+.pro{background:#e7f4ea;border:1px solid #15803d}.pro::before{content:'✓ '}
+.con{background:#f7efef;border:1px solid #b4493f}.con::before{content:'✗ '}
+.achieved{background:#F4F2EC;border:1px solid #3f6178}.achieved::before{content:'◎ '}
+.challenge{background:#f6f0e0;border:1px solid #3f6178}.challenge::before{content:'※ '}
+.breadcrumb{background:#FAFAF7;border-left:3px solid #3f6178;padding:10px 14px;margin:8px 0 16px;border-radius:4px;font-size:13px;color:#565248}
+.breadcrumb .tags{display:block;color:#9A9488;font-size:12px;margin-top:4px}
+.back-link{background:#F4F2EC;border:1px solid #E4E1D8;border-radius:8px;padding:14px 16px;margin-top:24px;text-align:center}
+.back-link a{color:#3f6178;text-decoration:none;font-size:14px}
+.back-link a:hover{text-decoration:underline}
+.ref-card{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:12px 0}
+.ref-card h4{color:#5B7C99;font-size:15px;margin-bottom:6px}
+.ref-card .ref-formula{background:#F4F2EC;border-radius:4px;padding:8px 10px;margin:8px 0;font-family:'Courier New',monospace;font-size:13px;color:#1A1A1A;overflow-x:auto}
+.ref-card .ref-meta{font-size:12px;color:#9A9488;margin-top:6px}
+.ref-card .ref-tag{display:inline-block;background:#eef1f5;color:#5B7C99;padding:2px 8px;border-radius:3px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:600px){.pros-cons{grid-template-columns:1fr}}
+
+body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; padding-bottom:64px }
+.page { display:block !important; max-width:820px; margin:0 auto; padding:14px }
+.intro { max-width:760px; margin:44px auto 8px; padding:0 20px }
+.intro h1 { color:#1A1A1A; margin-bottom:10px; font-size:clamp(1.6rem,4vw,2.05rem); font-weight:700; letter-spacing:-.02em; line-height:1.3 }
+.intro p { color:#565248; font-size:15px; line-height:1.9 }
+.fig-crumb { max-width:820px; margin:18px auto 0; padding:0 20px; font-size:12.5px; color:#9A9488 }
+.fig-crumb a { color:#3f6178; text-decoration:underline }
+.fig-crumb a:hover { color:#1A1A1A }
+.fig-stage { background:#fff; border:1px solid #E4E1D8; border-radius:14px; max-width:860px; margin:26px auto; padding:10px 6px; overflow:hidden }
+.fig-stage .page { color:#1A1A1A; margin:0 auto }
+.scene2-teaser { max-width:760px; margin:28px auto 0; padding:18px 22px; background:#F4F2EC; border:1px solid #E4E1D8; border-left:4px solid #5B7C99; border-radius:0 10px 10px 0; font-size:13.5px; line-height:1.85; color:#565248; text-align:left }
+.scene2-teaser strong { color:#1A1A1A }
+.scene2-teaser a { color:#3f6178; font-weight:700; text-decoration:underline }
+.back-link { max-width:820px; margin:36px auto 0; padding:0 20px; text-align:center }
+.back-link a { color:#1A1A1A; text-decoration:none; padding:11px 22px; background:#fff; border:1px solid #CFCBBE; border-radius:6px; display:inline-block; font-weight:600; font-size:14px }
+.back-link a:hover { background:#F4F2EC }
+.fig-topnav { max-width:820px; margin:14px auto 0; padding:0 20px }
+.fig-pager { display:flex; flex-wrap:wrap; gap:8px 10px; justify-content:center; align-items:center }
+.fig-pager a { text-decoration:none; font-size:13px; font-weight:600; padding:9px 15px; border-radius:6px; border:1px solid #E4E1D8; background:#fff; color:#1A1A1A; line-height:1.3 }
+.fig-pager a:hover { background:#F4F2EC }
+.fig-pager .fp-comm { border-color:#5B7C99; color:#3f6178; background:rgba(91,124,153,.08) }
+.fig-pager .fp-idx { color:#565248 }
+.fig-grid { max-width:820px; margin:28px auto; padding:0 20px; display:grid; grid-template-columns:1fr; gap:14px }
+.fig-card { background:#fff; border:1px solid #E4E1D8; border-radius:12px; overflow:hidden; transition:transform .15s,border-color .15s,box-shadow .15s }
+.fig-card:hover { transform:translateY(-2px); border-color:#5B7C99; box-shadow:0 8px 24px rgba(26,26,26,.08) }
+.fig-card a { display:block; padding:20px 22px; text-decoration:none; color:inherit }
+.fig-card .fig-emoji { display:none }
+.fig-card h3 { color:#1A1A1A; font-size:17px; font-weight:700; margin-bottom:6px }
+.fig-card h3 small { color:#9A9488; font-size:11px; font-weight:400; margin-left:6px }
+.fig-card p { color:#565248; font-size:13px; line-height:1.75; margin-bottom:8px }
+.fig-card .fig-tag { display:inline-block; background:#F4F2EC; color:#565248; border:1px solid #E4E1D8; padding:2px 8px; border-radius:10px; font-size:11px; margin-right:4px; margin-top:4px }
+
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; Self-Attention (おまけ)</div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_strips.html">← STRIPS プランニング</a><a class="fp-idx" href="figures.html">図解一覧</a></nav></div>
+
+<div class="intro">
+<h1>Self-Attention — Arc 1 の重み付き和は、ChatGPT の心臓だった</h1><p>1943 マカロック-ピッツ ニューロンが書いた $y = \sum w_i x_i$。74 年後、その <strong>重み $w_i$ が「入力ごとに動的に決まる」</strong>ことに人類は気づきます ―― それが 2017 年の Self-Attention、Transformer の核心、ChatGPT の出発点。Arc 1 で学んだ「重み」と「softmax」だけで、現代 AI の輪郭が見えます。</p>
+</div>
+
+<div class="fig-stage"><div class="page" id="attention_omake">
+<h2>Self-Attention — 「重み」を文脈で動的に決める革命 <small style="color:#565248;font-size:13px;font-weight:normal">（おまけ）</small></h2>
+<div class="arc-label">Arc 1 Scene 1 おまけ — 1943 マカロック-ピッツの「重み付き和」が、2017 年に ChatGPT の核心へ</div>
+
+<div class="section">
+<h3>数式 — 実は MP ニューロンと地続き</h3>
+<div class="formula">
+<span class="hl">概要</span>: Self-Attention（2017）= 文中の単語たちが「<strong>どこを参照すべきか</strong>」を入力ごとに計算しあう仕組み。Transformer の心臓部であり、ChatGPT / GPT / Claude の出発点。<br><br>
+$\text{Attention}(Q, K, V) = \underbrace{\text{softmax}\!\left(\dfrac{Q K^\top}{\sqrt{d}}\right)}_{\substack{\text{注意の重み }\alpha\\\text{(入力ごとに動的)}}} \cdot \underbrace{V}_{\substack{\text{参照先の}\\\text{情報}}}$<br><br>
+<span class="hl">Scene 1 との対応</span>: MP ニューロン $y = \sum w_i x_i$ の <strong>重み $w_i$ が「文脈で動的に決まる」</strong>ようになっただけ。<br>
+<span class="note">MP では重み $w$ は人間が手で固定。パーセプトロン以降は学習で固定値に収束。Self-Attention では <strong>入力ごとに毎回計算</strong>。「静的 → 学習 → 動的」と進化してきた。</span><br><br>
+<span class="note" style="color:#5B7C99">3 つの登場人物: $Q$ = 「今見ている単語」が出す問い ／ $K$ = 「他の単語」が出す目印 ／ $V$ = 「他の単語」が持つ情報。$Q$ と $K$ の内積が大きい単語ほど強く参照する。</span>
+</div>
+</div>
+
+<div class="section">
+<h3>インタラクティブ: 「彼」「それ」は文中のどこを見ているか</h3>
+<p style="color:#565248;font-size:13px">文を選び、● マーク付きの単語をクリックすると、その単語が文中のどこに <strong>attention</strong> を向けているかが背景の濃さで見える。</p>
+<div class="controls">
+<label>文:
+<select id="attSent" onchange="attPickSent(this.value)" style="background:#E4E1D8;color:#1A1A1A;border:1px solid #C8C4B8;border-radius:4px;padding:4px 6px;font-size:13px;max-width:100%">
+<option value="0">彼は本を買った。それを読んだ。</option>
+<option value="1">猫が犬を追いかけた。彼はとても速かった。</option>
+<option value="2">私は学生です。本が好きです。</option>
+</select>
+</label>
+</div>
+<div id="attTokens" style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:12px 0;line-height:2.4;text-align:center;min-height:60px"></div>
+<div id="attExplain" style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;font-size:13px;color:#565248;min-height:60px"></div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;margin-top:8px;font-size:12px;color:#565248">
+ <strong>試してみよう</strong>: 1 つ目の文で「<strong>それ</strong>」をクリック → attention が「<strong>本</strong>」に集中。指示語の参照先を attention が解いている。これだけで Transformer の文脈理解の輪郭が見える。
+</div>
+<script>
+var attData=[
+  {tokens:['彼','は','本','を','買った','。','それ','を','読んだ','。'],
+   pickable:[0,2,6,8],
+   weights:{
+     0:[0.30,0.05,0.10,0.05,0.40,0,0,0,0.10,0],
+     1:[0.10,0.40,0.10,0.05,0.20,0,0.05,0.05,0.05,0],
+     2:[0.05,0.05,0.30,0.10,0.40,0,0.05,0,0.05,0],
+     3:[0.05,0.05,0.30,0.30,0.20,0,0.05,0.05,0,0],
+     4:[0.20,0.05,0.30,0.10,0.20,0,0.05,0,0.10,0],
+     5:[0.10,0.05,0.15,0.05,0.30,0.20,0.05,0,0.10,0],
+     6:[0.05,0,0.65,0,0.05,0,0.10,0,0.15,0],
+     7:[0.05,0,0.40,0.10,0.05,0,0.05,0.05,0.30,0],
+     8:[0.05,0,0.55,0,0.10,0,0.20,0,0.10,0],
+     9:[0.05,0,0.20,0,0.10,0.10,0.15,0,0.30,0.10]
+   },
+   notes:{
+     0:'「彼」→ 動作の「買った」と関連付け。主語と動詞の典型対応。',
+     2:'「本」→ 直後の動詞「買った」を強く参照。目的語ベクトルの基本。',
+     6:'「それ」→ 前文の「本」に強く注目。<strong style="color:#5B7C99">これが指示語の解決</strong> ―― attention の核心的能力。',
+     8:'「読んだ」→ 目的語「本」と先行動詞「それ」（=本の参照）に注目。意味の橋渡し。'
+   }},
+  {tokens:['猫','が','犬','を','追いかけた','。','彼','は','とても','速かった','。'],
+   pickable:[0,2,6,9],
+   weights:{
+     0:[0.30,0.05,0.10,0,0.50,0,0,0,0,0.05,0],
+     1:[0.40,0.10,0.05,0,0.35,0,0,0,0,0.10,0],
+     2:[0.10,0,0.30,0.05,0.50,0,0,0,0,0.05,0],
+     3:[0.05,0,0.40,0.10,0.40,0,0,0,0,0.05,0],
+     4:[0.30,0.05,0.25,0.10,0.20,0,0,0,0,0.10,0],
+     5:[0.10,0.05,0.10,0.05,0.35,0.10,0.05,0,0,0.15,0.05],
+     6:[0.45,0,0.20,0,0.05,0,0.20,0,0,0.10,0],
+     7:[0.30,0,0.10,0,0.05,0,0.20,0.10,0.05,0.20,0],
+     8:[0.05,0,0.05,0,0.05,0,0.10,0.05,0.10,0.60,0],
+     9:[0.30,0,0.10,0,0.10,0,0.30,0,0.05,0.15,0],
+     10:[0.10,0,0.05,0,0.10,0.05,0.15,0.05,0.05,0.40,0.05]
+   },
+   notes:{
+     0:'「猫」→ 主語として「追いかけた」に注目。',
+     2:'「犬」→ 目的語として「追いかけた」に注目。',
+     6:'<strong style="color:#5B7C99">「彼」は誰？</strong> attention は「猫」に少し強めに分布するが、「犬」にも残る ―― 単層では曖昧。多層・多ヘッドで段階的に絞り込む。',
+     9:'「速かった」→ 主語の「彼」と「猫」を結び付けようとしている。'
+   }},
+  {tokens:['私','は','学生','です','。','本','が','好き','です','。'],
+   pickable:[0,2,5,7],
+   weights:{
+     0:[0.40,0,0.40,0.10,0,0.05,0,0.05,0,0],
+     1:[0.40,0.10,0.30,0.10,0,0,0,0.10,0,0],
+     2:[0.20,0.05,0.30,0.30,0,0,0,0.10,0.05,0],
+     3:[0.20,0.05,0.40,0.25,0,0,0,0.10,0,0],
+     4:[0.15,0.05,0.20,0.20,0.10,0.10,0,0.15,0.05,0],
+     5:[0.05,0,0.05,0,0,0.40,0.05,0.35,0.10,0],
+     6:[0.05,0,0.05,0,0,0.40,0.10,0.30,0.10,0],
+     7:[0.10,0,0,0,0,0.50,0.05,0.30,0.05,0],
+     8:[0.05,0,0,0.05,0,0.20,0.05,0.40,0.20,0.05],
+     9:[0.05,0,0,0,0.05,0.15,0.05,0.25,0.20,0.25]
+   },
+   notes:{
+     0:'「私」→ 述語の「学生」と相互参照。',
+     2:'「学生」→ 主語「私」と「です」の両方を参照。',
+     5:'「本」→ 述語「好き」を強く参照。「私 is 学生」と「本 is 好き」は別の文脈として認識。',
+     7:'「好き」→ 目的物「本」を強く参照。基本的な主述対応。'
+   }}
+];
+var attCurSent=0,attCurTok=null;
+function attPickSent(idx){attCurSent=+idx;attCurTok=null;attHeatRow=null;attHeatCol=null;attRender();attHeatRender();}
+function attPickTok(i){
+  var d=attData[attCurSent];
+  if(d.pickable.indexOf(i)<0)return;
+  attCurTok=i;attRender();
+}
+function attRender(){
+  var d=attData[attCurSent];
+  var html='';
+  d.tokens.forEach(function(t,i){
+    var isPickable=d.pickable.indexOf(i)>=0;
+    var isSel=(i===attCurTok);
+    var w=(attCurTok!==null && d.weights[attCurTok])?d.weights[attCurTok][i]:0;
+    var bg,fg,bd,cur;
+    if(isSel){bg='#3f6178';fg='#FAFAF7';bd='2px solid #5B7C99';cur='pointer';}
+    else if(w>0){
+      var alpha=(0.15+w*0.85).toFixed(2);
+      bg='rgba(245,158,11,'+alpha+')';
+      fg=w>0.3?'#eaf0f5':'#1A1A1A';
+      bd='1px solid '+(w>0.3?'#3f6178':'#C8C4B8');
+      cur=isPickable?'pointer':'default';
+    } else {
+      bg=isPickable?'#F4F2EC':'transparent';
+      fg=isPickable?'#565248':'#9A9488';
+      bd=isPickable?'1px solid #E4E1D8':'1px dashed transparent';
+      cur=isPickable?'pointer':'default';
+    }
+    var marker=isPickable?'<span style="color:#3f6178;font-size:10px;vertical-align:super">●</span>':'';
+    html+='<span onclick="attPickTok('+i+')" style="display:inline-block;margin:3px 2px;padding:5px 9px;border-radius:6px;background:'+bg+';color:'+fg+';border:'+bd+';cursor:'+cur+';font-size:14px;user-select:none">'+t+marker+'</span>';
+  });
+  document.getElementById('attTokens').innerHTML=html;
+  var ex=document.getElementById('attExplain');
+  if(attCurTok===null){
+    ex.innerHTML='<span style="color:#565248">● マーク付きの単語をクリックすると、その単語が文中のどこに注目するかが見えます。</span>';
+  } else {
+    var top=[];
+    d.weights[attCurTok].forEach(function(ww,j){if(ww>0.05)top.push({w:ww,t:d.tokens[j]});});
+    top.sort(function(a,b){return b.w-a.w;});
+    var bars=top.slice(0,4).map(function(o){return '<span style="color:#5B7C99">'+o.t+'</span> '+(o.w*100).toFixed(0)+'%';}).join('  /  ');
+    ex.innerHTML='<div style="color:#5B7C99;margin-bottom:6px"><strong>'+d.tokens[attCurTok]+'</strong> の attention 上位:</div>'
+      +'<div style="margin-bottom:8px;font-size:13px">'+bars+'</div>'
+      +'<div style="color:#565248;font-size:13px">'+d.notes[attCurTok]+'</div>';
+  }
+}
+attRender();
+</script>
+</div>
+
+<div class="section">
+<h3>attention 行列ヒートマップ — 全トークンが全トークンを見ている</h3>
+<p style="color:#565248;font-size:13px">上で選んだ文の <strong>全 N×N の注意行列</strong>。マス目の濃さ = 行のトークンが列のトークンに払う注意の強さ。行 / 列のヘッダーをタップすると「その単語が見ている先」「その単語を見ている人」を逆引きできます。</p>
+<div id="attHeatmap" style="overflow-x:auto;margin:12px 0"></div>
+<div id="attHeatExplain" style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;font-size:13px;color:#565248;min-height:54px"></div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;margin-top:8px;font-size:12px;color:#565248">
+ <strong>注目</strong>: 1 つ目の文「彼は本を買った。それを読んだ」のヒートマップで <strong>「それ」の行</strong>を見ると、列「本」がぐっと濃い ―― 指示語の解決そのものが行列の 1 マスに表れている。
+</div>
+<script>
+var attHeatRow=null,attHeatCol=null;
+function attHeatPickRow(i){attHeatRow=(attHeatRow===i)?null:i;attHeatCol=null;attHeatRender();}
+function attHeatPickCol(j){attHeatCol=(attHeatCol===j)?null:j;attHeatRow=null;attHeatRender();}
+function attHeatPickCell(i,j){attHeatRow=i;attHeatCol=j;attHeatRender();}
+function attHeatRender(){
+  var d=attData[attCurSent];
+  var n=d.tokens.length;
+  var size=26;
+  var h='<table style="border-collapse:collapse;font-family:sans-serif;margin:0 auto;border:1px solid #E4E1D8">';
+  h+='<tr><th style="background:transparent;padding:2px"></th>';
+  d.tokens.forEach(function(t,j){
+    var hl=(j===attHeatCol);
+    var bg=hl?'rgba(59,130,246,0.22)':'transparent';
+    var color=hl?'#d6e0e9':'#5B7C99';
+    var weight=hl?'bold':'normal';
+    h+='<th style="min-width:'+size+'px;padding:3px 2px;background:'+bg+';color:'+color+';font-size:10px;font-weight:'+weight+';cursor:pointer;border-bottom:1px solid #E4E1D8" onclick="attHeatPickCol('+j+')">'+t+'</th>';
+  });
+  h+='</tr>';
+  d.tokens.forEach(function(rowTok,i){
+    var rowHl=(i===attHeatRow);
+    var rowBg=rowHl?'rgba(245,158,11,0.22)':'transparent';
+    var rowColor=rowHl?'#eaf0f5':'#5B7C99';
+    var rowWeight=rowHl?'bold':'normal';
+    h+='<tr><th style="background:'+rowBg+';padding:1px 6px;text-align:right;color:'+rowColor+';font-size:10px;font-weight:'+rowWeight+';cursor:pointer;border-right:1px solid #E4E1D8" onclick="attHeatPickRow('+i+')">'+rowTok+'</th>';
+    var weights=d.weights[i]||[];
+    for(var j=0;j<n;j++){
+      var w=weights[j]||0;
+      var sel=(i===attHeatRow && j===attHeatCol);
+      var rowOnly=(i===attHeatRow && attHeatCol===null);
+      var colOnly=(j===attHeatCol && attHeatRow===null);
+      var alpha=(w*0.92).toFixed(2);
+      var bg='rgba(245,158,11,'+alpha+')';
+      var border;
+      if(sel) border='2px solid #5B7C99';
+      else if(rowOnly||colOnly) border='1px solid rgba(59,130,246,0.5)';
+      else border='1px solid #F4F2EC';
+      var lbl=(w>=0.30)?(w*100).toFixed(0):'';
+      h+='<td onclick="attHeatPickCell('+i+','+j+')" title="'+rowTok+' → '+d.tokens[j]+': '+(w*100).toFixed(0)+'%" style="width:'+size+'px;height:'+size+'px;padding:0;background:'+bg+';border:'+border+';cursor:pointer;text-align:center;vertical-align:middle;font-size:9px;color:#FAFAF7;font-weight:bold">'+lbl+'</td>';
+    }
+    h+='</tr>';
+  });
+  h+='</table>';
+  document.getElementById('attHeatmap').innerHTML=h;
+  var ex=document.getElementById('attHeatExplain');
+  if(attHeatRow!==null && attHeatCol!==null){
+    var w=(d.weights[attHeatRow]||[])[attHeatCol]||0;
+    ex.innerHTML='<div style="color:#5B7C99;margin-bottom:4px"><strong>'+d.tokens[attHeatRow]+' → '+d.tokens[attHeatCol]+'</strong></div>'
+      +'<div style="font-size:14px">注意度: '+(w*100).toFixed(1)+'%</div>';
+  } else if(attHeatRow!==null){
+    var weights=d.weights[attHeatRow]||[];
+    var top=[];
+    weights.forEach(function(ww,j){if(ww>0.04)top.push({w:ww,t:d.tokens[j]});});
+    top.sort(function(a,b){return b.w-a.w;});
+    var bars=top.slice(0,5).map(function(o){return '<span style="color:#5B7C99">'+o.t+'</span> '+(o.w*100).toFixed(0)+'%';}).join('  /  ');
+    ex.innerHTML='<div style="color:#5B7C99;margin-bottom:4px"> <strong>'+d.tokens[attHeatRow]+'</strong> が見ている先（上位）:</div><div>'+bars+'</div>';
+  } else if(attHeatCol!==null){
+    var top=[];
+    d.tokens.forEach(function(srcTok,si){
+      var ww=(d.weights[si]||[])[attHeatCol]||0;
+      if(ww>0.04)top.push({w:ww,t:srcTok});
+    });
+    top.sort(function(a,b){return b.w-a.w;});
+    var bars=top.slice(0,5).map(function(o){return '<span style="color:#5B7C99">'+o.t+'</span> '+(o.w*100).toFixed(0)+'%';}).join('  /  ');
+    ex.innerHTML='<div style="color:#5B7C99;margin-bottom:4px"> <strong>'+d.tokens[attHeatCol]+'</strong> を見ている人（上位）:</div><div>'+bars+'</div>';
+  } else {
+    ex.innerHTML='<span style="color:#565248">行（●）= 見ている側 ／ 列（▪）= 見られている側。マスをタップで個別注意度、行 / 列ヘッダーをタップで分布を逆引き。</span>';
+  }
+}
+attHeatRender();
+</script>
+</div>
+
+<div class="section">
+<h3>次トークン予測 — softmax で「次の語」を確率分布として選ぶ</h3>
+<p style="color:#565248;font-size:13px">Transformer が文を「生成」するとは、文末まで進んで <strong>「次に来る語の確率分布」を吐く</strong> こと。<strong>温度（temperature）$T$</strong> を動かすと、分布が鋭く（決定的）/ 平坦（多様）に変わります ―― これが LLM の創造性を制御するつまみ。</p>
+<div class="controls">
+<label>プロンプト:
+<select id="ntPrompt" onchange="ntRender()" style="background:#E4E1D8;color:#1A1A1A;border:1px solid #C8C4B8;border-radius:4px;padding:4px 6px;font-size:13px">
+<option value="0">「私は学生」</option>
+<option value="1">「今日の天気は」</option>
+<option value="2">「コーヒーが」</option>
+<option value="3">「AI とは」</option>
+</select>
+</label>
+<label style="margin-left:10px">温度 $T$: <input type="range" id="ntT" min="1" max="30" step="1" value="10" oninput="ntRender()"><span class="val" id="vNtT">1.0</span></label>
+</div>
+<div id="ntBars" style="margin:12px 0"></div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;margin-top:8px;font-size:12px;color:#565248">
+ <strong>試してみよう</strong>: $T$ を <strong>0.1</strong> に下げる → 最有力候補に確率が集中（決定的）。<strong>2.0</strong> に上げる → 分布がフラット（多様で創造的、だが脱線しやすい）。エントロピー $H$ も同時に動きます ―― これが「何 bit ぶん次が不確かか」の指標。
+</div>
+<script>
+var ntData=[
+  {prompt:'私は学生',tokens:[
+    {tok:'です',score:5.0},{tok:'だ',score:3.2},{tok:'の',score:2.8},
+    {tok:'でした',score:2.5},{tok:'なので',score:2.2},{tok:'ではない',score:1.9},
+    {tok:'じゃない',score:1.6},{tok:'ですが',score:1.4},{tok:'と',score:1.2},{tok:'時代',score:1.0}
+  ]},
+  {prompt:'今日の天気は',tokens:[
+    {tok:'晴れ',score:4.5},{tok:'良い',score:3.8},{tok:'雨',score:3.5},
+    {tok:'曇り',score:3.2},{tok:'最高',score:2.5},{tok:'どう',score:2.3},
+    {tok:'いい',score:2.0},{tok:'素晴らしい',score:1.8},{tok:'悪い',score:1.6},{tok:'？',score:1.4}
+  ]},
+  {prompt:'コーヒーが',tokens:[
+    {tok:'好き',score:4.2},{tok:'飲みたい',score:3.7},{tok:'好きです',score:3.4},
+    {tok:'美味しい',score:3.1},{tok:'必要',score:2.5},{tok:'入った',score:2.2},
+    {tok:'冷めた',score:2.0},{tok:'欲しい',score:1.8},{tok:'こぼれた',score:1.5},{tok:'切れた',score:1.2}
+  ]},
+  {prompt:'AI とは',tokens:[
+    {tok:'何か',score:4.0},{tok:'人工知能',score:3.5},{tok:'いえ',score:3.2},
+    {tok:'すなわち',score:2.9},{tok:'機械',score:2.6},{tok:'未来',score:2.3},
+    {tok:'技術',score:2.0},{tok:'コンピュータ',score:1.7},{tok:'プログラム',score:1.5},{tok:'夢',score:1.2}
+  ]}
+];
+function ntRender(){
+  var idx=+document.getElementById('ntPrompt').value;
+  var T=(+document.getElementById('ntT').value)/10;
+  document.getElementById('vNtT').textContent=T.toFixed(1);
+  var d=ntData[idx];
+  var sc=d.tokens.map(function(t){return t.score/T;});
+  var maxs=Math.max.apply(null,sc);
+  var exp=sc.map(function(s){return Math.exp(s-maxs);});
+  var sum=exp.reduce(function(a,b){return a+b;},0);
+  var probs=exp.map(function(e){return e/sum;});
+  var entropy=0;
+  probs.forEach(function(p){if(p>0)entropy-=p*Math.log2(p);});
+  var h='<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;font-size:13px">';
+  h+='<div style="color:#565248;margin-bottom:10px">「<span style="color:#1A1A1A;font-size:14px">'+d.prompt+'</span>」の次に来る確率 <span style="color:#9A9488">（エントロピー H = '+entropy.toFixed(2)+' bit）</span></div>';
+  d.tokens.forEach(function(t,i){
+    var p=probs[i];
+    var pct=(p*100);
+    var width=Math.max(1.5,p*100);
+    var color=i===0?'#3f6178':(i<3?'rgba(245,158,11,0.65)':'#C8C4B8');
+    var fg=width>20?'#FAFAF7':'#1A1A1A';
+    h+='<div style="display:flex;align-items:center;margin:4px 0;font-size:12px">'
+      +'<span style="width:80px;color:#565248;text-align:right;padding-right:8px;flex:0 0 auto">'+t.tok+'</span>'
+      +'<div style="flex:1;background:#F4F2EC;border-radius:4px;height:20px;position:relative;overflow:hidden">'
+      +'<div style="width:'+width+'%;height:100%;background:'+color+';border-radius:4px;transition:width 0.18s ease-out"></div>'
+      +'<span style="position:absolute;left:8px;top:0;line-height:20px;color:'+fg+';font-weight:'+(i===0?'bold':'normal')+';font-size:11px">'+pct.toFixed(1)+'%</span>'
+      +'</div></div>';
+  });
+  h+='</div>';
+  document.getElementById('ntBars').innerHTML=h;
+}
+ntRender();
+</script>
+</div>
+
+<div class="section">
+<h3>解説</h3>
+<div class="pros-cons">
+<div class="achieved">2017 年「Attention Is All You Need」: RNN/CNN を捨て、attention だけで翻訳精度を塗り替えた。<strong>Transformer</strong> の登場</div>
+<div class="achieved">ChatGPT / GPT-4 / Gemini / Claude — 現代の主要 LLM はすべてこの機構を心臓に持つ</div>
+<div class="challenge">計算量が文長 $N$ に対し $O(N^2)$。長文では計算が爆発するため改良が続く（FlashAttention, Linear Attention, など）</div>
+<div class="con">「注意」と呼ぶが、人間の注意とは違う。<strong>動的な重み付け関数</strong>に過ぎず、意識や理解を持つわけではない</div>
+</div>
+<div style="margin-top:12px;background:#FAFAF7;border-left:3px solid #3f6178;border-radius:4px;padding:10px 14px;font-size:13px;color:#565248;line-height:1.7">
+<strong style="color:#5B7C99">ここがすごい</strong>: 1943 年マカロック-ピッツが書いた $y = \sum w_i x_i$。74 年後、その <strong>$w_i$ が「入力ごとに動的に決まる」</strong>ことに人類は気づいた。Scene 1 で学んだ「重み付き和」と「softmax」だけで、ChatGPT の心臓部の輪郭が見えます。
+</div>
+</div>
+
+<div class="section">
+<h3>おまけ詳細</h3>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">① QKV の比喩 ―― 図書館検索</div>
+キーワード検索を想像する。「<strong>本</strong>」というクエリ ($Q$) を投げ、図書館の各本の <strong>背表紙</strong> ($K$ = キー) と照合する。一致度が高い本ほど中身 ($V$ = 値) を多く引き出す。Self-Attention はこれを文中のすべての単語で同時に行う。$Q, K, V$ は同じ単語ベクトルから 3 通りに線形変換した別の側面 ―― 「問いの自分」「答える側の自分」「中身としての自分」。
+</div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">② Scene 1 の重みと何が違うか</div>
+<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px">
+<tr style="background:#F4F2EC"><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">機構</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">年</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">重みの性質</th></tr>
+<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">MP ニューロン</td><td style="border:1px solid #E4E1D8;padding:6px 8px">1943</td><td style="border:1px solid #E4E1D8;padding:6px 8px"><strong>静的</strong> — 人間が手で設計</td></tr>
+<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">パーセプトロン</td><td style="border:1px solid #E4E1D8;padding:6px 8px">1957</td><td style="border:1px solid #E4E1D8;padding:6px 8px"><strong>学習</strong> — 訓練で固定値に収束</td></tr>
+<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">Self-Attention</td><td style="border:1px solid #E4E1D8;padding:6px 8px">2017</td><td style="border:1px solid #E4E1D8;padding:6px 8px"><strong>動的</strong> — 入力ごとに毎回計算</td></tr>
+</table>
+<div style="color:#5fa86f;margin-top:6px">重みが「静的 → 学習 → 動的」と進化してきた歴史。Scene 1 のニューロンは、その出発点。</div>
+</div>
+<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">③ なぜ softmax か</div>
+内積 $QK^\top$ はバラバラの大小値（負も無限大もありうる）。これを <strong>softmax</strong> に通すと「合計 1 の確率分布」になり、「注意の総量は 1」と決まる。MP の「閾値で発火 / 非発火を 2 値判定」が、Self-Attention では「文中のすべての単語へ、確率的に注意を配分する」に進化したと見れる。<br>
+<span class="note">$\sqrt{d}$ で割るのは、内積が次元 $d$ に比例して大きくなるのを抑える正規化（gradient が消えないように）</span>
+</div>
+<div style="background:linear-gradient(135deg,#F4F2EC,#eef1f5);border:1px solid #C8C4B8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">④ Arc 2「覚醒」への橋</div>
+ここで触れた Self-Attention は、Arc 2 Scene 8「注意こそ、すべて」で本格的に物語化されます。Arc 1 で蒔かれた「重み」「閾値」「softmax」の種が、いつ・なぜ・どのように <strong>Transformer</strong> に結実したか ―― 1991 年の冬を越えた者たちから、2017 年「Attention Is All You Need」までの 26 年の物語。続きは Arc 2 で。
+</div>
+</div>
+</div>
+</div>
+
+<div class="scene2-teaser">
+<strong>この続きは Arc 2「覚醒」Scene 8 へ</strong><br>
+Self-Attention の本格的な物語化は、Arc 2 Scene 8「注意こそ、すべて」(2017 年、Transformer 登場) で展開されます。Arc 1 で蒔かれた「重み・閾値・softmax」の種が、いつ・なぜ・どのように結実したか ―― 続きは Arc 2 で。
+</div>
+
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_strips.html">← STRIPS プランニング</a><a class="fp-idx" href="figures.html">図解一覧</a></nav></div>
+
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>

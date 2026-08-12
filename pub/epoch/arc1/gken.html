@@ -1,0 +1,158 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G検定対策（第1〜2章）— EPOCH Arc 1「黎明」</title>
+<style>
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#5B7C99;--link:#3f6178}
+*{box-sizing:border-box}
+body{font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif;background:var(--bg);color:var(--ink);line-height:1.9;letter-spacing:.02em;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:48px 20px 120px}
+.gk-eyebrow{font-size:12px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--arc);margin-bottom:12px}
+h1{font-family:"Noto Serif JP","Hiragino Mincho ProN",serif;font-size:clamp(1.8rem,5vw,2.5rem);font-weight:600;letter-spacing:.02em;margin:0 0 6px}
+h1 .sub{display:block;font-family:inherit;font-size:15px;color:var(--ink-muted);font-weight:400;letter-spacing:.04em;margin-top:8px}
+h2{font-size:clamp(1.3rem,3.4vw,1.7rem);font-weight:700;margin:60px 0 16px}
+h2::before{content:"";display:block;width:40px;height:3px;background:var(--arc);margin-bottom:16px;border-radius:2px}
+p{margin:16px 0;font-size:16px;color:#2c2924}
+strong{font-weight:700;color:var(--ink)}
+a{color:var(--link);text-decoration:underline;text-underline-offset:2px}
+.gk-intro{font-size:16.5px}
+.gk-term-hint{border-bottom:1.5px dotted var(--arc);color:var(--link)}
+.gk-disc{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--arc);border-radius:8px;padding:13px 16px;font-size:13.5px;color:var(--ink-sub);margin:18px 0 8px}
+.gk-list{padding-left:20px}.gk-list li{margin:8px 0;font-size:16px}
+.gk-map{font-size:14px;color:var(--ink-muted);margin:8px 0 14px}
+.gk-note{font-size:14.5px;color:var(--ink-sub);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px}
+.dtable{border-collapse:collapse;margin:10px 0 6px;font-size:15px;width:100%}
+.dtable th,.dtable td{border:1px solid var(--border);padding:9px 14px;text-align:center;vertical-align:top}
+.dtable thead th{background:var(--surface);font-weight:700;color:var(--ink)}
+.dtable.dtable-l td:last-child,.dtable.dtable-l td:nth-child(2){text-align:left}
+.dtable td.hl{color:#3f6178;font-weight:700;white-space:nowrap;background:rgba(91,124,153,.06)}
+.gk-term{font:inherit;color:var(--link);background:none;border:none;border-bottom:1.5px dotted var(--arc);padding:0;cursor:pointer}
+.gk-term:hover{color:var(--ink);background:rgba(91,124,153,.08)}
+.gk-pop{position:absolute;z-index:50;max-width:320px;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(26,26,26,.14);padding:16px 18px;font-size:14px;line-height:1.75;color:var(--ink-sub);display:none}
+.gk-pop .gp-t{font-weight:700;color:var(--ink);font-size:15.5px;margin-bottom:2px}
+.gk-pop .gp-en{font-size:12px;color:var(--ink-muted);margin-bottom:8px}
+.gk-pop .gp-link{display:inline-block;margin-top:10px;color:var(--link);font-weight:700;font-size:13px}
+.gk-pop .gp-x{position:absolute;top:8px;right:11px;color:var(--ink-muted);cursor:pointer;font-size:16px;line-height:1}
+.gk-mock{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin:48px 0 0}
+.gk-mock-h{font-weight:700;font-size:16px;margin-bottom:6px;color:var(--ink)}
+.gk-mock-h::before{content:"";display:inline-block;width:14px;height:14px;border:2.5px solid var(--arc);border-radius:50%;margin-right:8px;vertical-align:-2px}
+.gk-mock p{font-size:14px;color:var(--ink-sub);margin:6px 0 0}
+.gkq-btn{display:inline-block;background:var(--ink);color:var(--bg);font-weight:700;border:none;border-radius:6px;padding:12px 24px;font-size:14px;cursor:pointer;margin-top:16px;font-family:inherit}
+.gkq-btn:hover{opacity:.9}
+.gkq-q{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin:14px 0}
+.gkq-qh{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.gkq-n{font-weight:700;color:var(--arc);font-size:14px}
+.gkq-tag{font-size:11px;color:var(--ink-muted);border:1px solid var(--border);border-radius:10px;padding:1px 8px}
+.gkq-text{font-size:15.5px;font-weight:600;color:var(--ink);line-height:1.65;margin-bottom:12px}
+.gkq-opts{display:flex;flex-direction:column;gap:7px}
+.gkq-opt{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14.5px;color:var(--ink-sub);cursor:pointer;line-height:1.55}
+.gkq-opt:hover{background:var(--surface)}
+.gkq-opt input{margin-top:3px}
+.gkq-k{flex:0 0 20px;height:20px;border:1px solid var(--ink-muted);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--ink-sub)}
+.gkq-opt.is-correct{border-color:var(--arc);background:rgba(91,124,153,.08)}
+.gkq-opt.is-correct .gkq-k{border-color:var(--arc);background:var(--arc);color:#fff}
+.gkq-opt.is-wrong{border-color:#c08a82;background:rgba(180,73,63,.07)}
+.gkq-exp{margin-top:12px;font-size:13.5px;color:var(--ink-sub);line-height:1.75;border-top:1px solid var(--border);padding-top:10px}
+.gkq-exp b{color:#3f6178}
+.gkq-result{background:var(--arc);color:#fff;border-radius:8px;padding:14px 18px;font-weight:700;font-size:17px;text-align:center;margin:6px 0 18px}
+.gk-back{display:flex;flex-wrap:wrap;gap:18px;margin:54px 0 0;padding-top:22px;border-top:1px solid var(--border);font-size:14px}
+@media(max-width:560px){.wrap{padding:36px 16px 90px}.dtable{font-size:13.5px}.dtable th,.dtable td{padding:8px 9px}}
+</style><style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style></head><body>
+<div class="wrap">
+<div class="gk-eyebrow">G-TEST PREP ・ β</div>
+<h1>G 検定対策<span class="sub">Arc 1「黎明」対応 — 第 1〜2 章（AI とは／AI をめぐる動向）</span></h1>
+
+<p class="gk-intro">本作の AI 史パート（Arc 1「黎明」）に対応する、<strong>G 検定の第 1〜2 章まとめ</strong>です。漫画で「物語」として体験した出来事を、試験で問われる形に整理しました。<span class="gk-term-hint">下線つきの用語</span>はクリックすると意味と「漫画のどこで出たか」が開きます。</p>
+<div class="gk-disc">⚠️ 本ページは作者自作のまとめ（JDLA シラバスに沿った独自教材）です。<strong>公式教材・過去問ではありません</strong>。β 版・無料。</div>
+
+<h2>AI の 3 つのブーム</h2>
+<table class="dtable dtable-l"><thead><tr><th>ブーム</th><th>時期</th><th>中心技術</th><th>衰退理由</th></tr></thead><tbody>
+<tr><td class="hl">第1次</td><td>1950s〜60s</td><td>探索・推論（<button class="gk-term" data-k="toy">トイ・プロブレム</button>）</td><td>現実の複雑な問題（<button class="gk-term" data-k="frame">フレーム問題</button>）に対応できず</td></tr>
+<tr><td class="hl">第2次</td><td>1980s</td><td>知識表現（<button class="gk-term" data-k="es">エキスパートシステム</button>）</td><td><button class="gk-term" data-k="bottleneck">知識獲得のボトルネック</button></td></tr>
+<tr><td class="hl">第3次</td><td>2010s〜現在</td><td>機械学習・特徴表現学習</td><td>（継続中）統計的機械学習→ディープラーニング（2012〜）</td></tr>
+</tbody></table>
+
+<h2>AI の定義</h2>
+<ul class="gk-list">
+<li>「人工知能」の定義は専門家でも見解が分かれ、<strong>統一見解はない</strong>。</li>
+<li>大まかには「人工的につくられた人間のような知能、ないしそれをつくる技術」。</li>
+<li><button class="gk-term" data-k="strongweak">強いAI／弱いAI</button>：強い AI＝意識を持ち真に考える／弱い AI＝特定タスクの道具。</li>
+</ul>
+
+<h2>重要な歴史的出来事</h2>
+<table class="dtable dtable-l"><thead><tr><th>年</th><th>出来事</th></tr></thead><tbody>
+<tr><td class="hl">1946</td><td>ENIAC … 世界初の汎用電子コンピュータ</td></tr>
+<tr><td class="hl">1956</td><td><button class="gk-term" data-k="dartmouth">ダートマス会議</button> … 「人工知能」という言葉が誕生</td></tr>
+<tr><td class="hl">1958</td><td><button class="gk-term" data-k="perceptron">パーセプトロン</button>（ローゼンブラット）</td></tr>
+<tr><td class="hl">1969</td><td>ミンスキー&パパートが単純パーセプトロンの限界（<button class="gk-term" data-k="xor">XOR問題</button>）を指摘 → 第1次 AI の冬</td></tr>
+<tr><td class="hl">1982</td><td><button class="gk-term" data-k="fifthgen">第五世代コンピュータ</button>（日本）</td></tr>
+<tr><td class="hl">1997</td><td>ディープブルーがチェス世界王者カスパロフに勝利</td></tr>
+<tr><td class="hl">2011</td><td>IBM Watson が Jeopardy! で優勝</td></tr>
+<tr><td class="hl">2012</td><td><button class="gk-term" data-k="alexnet">AlexNet</button> が ILSVRC で圧勝、ディープラーニングの幕開け</td></tr>
+<tr><td class="hl">2016</td><td>AlphaGo が囲碁トップ棋士イ・セドルに勝利</td></tr>
+</tbody></table>
+
+<h2>AI の重要な未解決問題</h2>
+<ul class="gk-list">
+<li><button class="gk-term" data-k="frame">フレーム問題</button>：現実世界で「何を考慮すべきか」を絞り込めない。</li>
+<li><button class="gk-term" data-k="symbol">シンボルグラウンディング問題</button>：記号と実世界の意味をどう結びつけるか。</li>
+<li><button class="gk-term" data-k="chinese">中国語の部屋</button>：記号操作だけでは「理解」とは言えない（サール）。</li>
+<li><button class="gk-term" data-k="singularity">シンギュラリティ</button>：AI が人類の知能を超える特異点（2045 年予想）。</li>
+<li>トロッコ問題：自動運転倫理で頻出の思考実験。／ 身体性 (embodiment)：身体を通して世界を知覚することの重要性。</li>
+</ul>
+
+<h2>第1次ブーム — 探索・推論</h2>
+<p class="gk-map">漫画では <a href="commentary.html#scene1">Scene 1（ダートマスの夏）</a> に対応。</p>
+<table class="dtable dtable-l"><thead><tr><th>探索手法</th><th>特徴</th></tr></thead><tbody>
+<tr><td class="hl"><button class="gk-term" data-k="bfs">幅優先探索 / 深さ優先探索</button></td><td>BFS=メモリ大・最短解保証／DFS=メモリ小・保証なし</td></tr>
+<tr><td class="hl"><button class="gk-term" data-k="astar">A* / ヒューリスティック探索</button></td><td>推定コストで効率化（ヒューリスティック）</td></tr>
+</tbody></table>
+<table class="dtable dtable-l"><thead><tr><th>ボードゲーム</th><th>概要</th></tr></thead><tbody>
+<tr><td class="hl"><button class="gk-term" data-k="minimax">Mini-Max法 / αβ法</button></td><td>利得最大／相手最小を仮定、αβ で枝刈り</td></tr>
+<tr><td class="hl"><button class="gk-term" data-k="mcts">モンテカルロ木探索</button></td><td>ランダムプレイアウトで局面評価（囲碁で効果大）</td></tr>
+</tbody></table>
+<p class="gk-note">ロボットの行動計画：<button class="gk-term" data-k="strips">STRIPS</button>（前提・動作・結果でプラン記述）／<button class="gk-term" data-k="shrdlu">SHRDLU</button>（積み木の世界で自然言語を理解）。</p>
+
+<h2>第2次ブーム — 知識表現</h2>
+<p class="gk-map">漫画では <a href="commentary.html#scene3">Scene 3（専門家の時代）</a> に対応。</p>
+<table class="dtable dtable-l"><thead><tr><th>用語</th><th>内容</th></tr></thead><tbody>
+<tr><td class="hl"><button class="gk-term" data-k="es">エキスパートシステム</button></td><td>専門家の知識を IF-THEN 化、推論エンジンで結論導出</td></tr>
+<tr><td class="hl"><button class="gk-term" data-k="dendral">DENDRAL</button></td><td>世界初の ES、有機化合物の構造推定</td></tr>
+<tr><td class="hl"><button class="gk-term" data-k="mycin">MYCIN</button></td><td>感染症診断、確信度 (CF) を導入</td></tr>
+<tr><td class="hl"><button class="gk-term" data-k="cyc">Cycプロジェクト</button></td><td>一般常識を全て記述する壮大な試み（継続中）</td></tr>
+<tr><td class="hl"><button class="gk-term" data-k="ontology">オントロジー</button></td><td>概念体系を形式的に定義。意味ネットワーク＝概念をノード・関係を矢印で表現</td></tr>
+<tr><td class="hl"><button class="gk-term" data-k="eliza">イライザ / イライザ効果</button></td><td>パターンマッチの擬似カウンセラー。機械を人間的と感じる「イライザ効果」</td></tr>
+</tbody></table>
+
+<h2>第3次ブーム — 機械学習・特徴表現学習</h2>
+<p class="gk-map">漫画では Arc 2「覚醒」以降で本格化（Arc 1 のラスト＝Bitter Lesson が前夜）。</p>
+<table class="dtable dtable-l"><thead><tr><th>年</th><th>モデル</th><th>特徴</th></tr></thead><tbody>
+<tr><td class="hl">2012</td><td><button class="gk-term" data-k="alexnet">AlexNet</button></td><td>DL で圧勝、エラー率 15%（前年 26%）</td></tr>
+<tr><td class="hl">2014</td><td>VGG / GoogLeNet</td><td>GoogLeNet は Inception モジュール</td></tr>
+<tr><td class="hl">2015</td><td>ResNet</td><td>Skip Connection で 152 層、人間超え（3.6%）</td></tr>
+<tr><td class="hl">2017</td><td>SENet</td><td>Squeeze-and-Excitation、Attention 機構。ILSVRC 最終回</td></tr>
+</tbody></table>
+<p class="gk-note">補足：協調フィルタリング／コンテンツベース／コールドスタート問題（レコメンド）。ライフゲーム・遺伝的アルゴリズム・特徴量エンジニアリング（第3次で DL により自動化）。</p>
+
+<div class="gk-mock" id="gkq">
+<div class="gk-mock-h">G 検定 模擬試験（オリジナル想定問題）</div>
+<p>第1〜2章（Arc 1 範囲）の<strong>本番形式</strong>（文脈・「最も適切／最も不適切」・空欄補充・応用）のオリジナル想定問題から<strong>ランダムに 10 問</strong>出題します。JDLA シラバスに沿った自作問題で、実際の過去問ではありません。</p>
+<div id="gkq-area"><button id="gkq-start" class="gkq-btn">模試を始める（10 問）→</button></div>
+</div>
+
+<div class="gk-back">
+<a href="commentary.html">← 巻末解説へ戻る</a>
+<a href="index.html">漫画を読む</a>
+<a href="figures.html">図解 (Lab) を見る</a>
+</div>
+
+</div>
+<script>const TERMS={"dartmouth": {"t": "ダートマス会議", "en": "Dartmouth Workshop, 1956", "d": "ジョン・マッカーシーらが開催。「人工知能 (Artificial Intelligence)」という言葉が初めて使われた会議。AI 研究の出発点。", "href": "commentary.html#scene1", "lbl": "Scene 1 で読む"}, "turing": {"t": "チューリングテスト", "en": "Turing Test, 1950", "d": "機械が知能を持つかを「人間と区別できない振る舞い」で判定する操作的基準（アラン・チューリング）。", "href": "commentary.html#scene1", "lbl": "Scene 1 で読む"}, "strongweak": {"t": "強いAI／弱いAI", "en": "Strong/Weak AI (J. Searle)", "d": "強い AI＝意識を持ち真に考える AI（AGI に近い）／弱い AI＝特定タスクを解く道具としての AI。ジョン・サールの区別。"}, "frame": {"t": "フレーム問題", "en": "Frame Problem, 1969", "d": "AI が現実世界で「今、何を考慮すべきか」を有限時間で絞り込めない問題（マッカーシー&ヘイズ）。第1次 AI の限界の象徴。", "href": "commentary.html#scene1", "lbl": "Scene 1 で読む"}, "chinese": {"t": "中国語の部屋", "en": "Chinese Room, 1980", "d": "記号操作だけでは「意味理解」とは言えない、というサールの思考実験。"}, "symbol": {"t": "シンボルグラウンディング問題", "en": "Symbol Grounding, 1990", "d": "記号と実世界の意味をどう結びつけるか（ハルナッド）。"}, "singularity": {"t": "シンギュラリティ", "en": "Singularity (Kurzweil)", "d": "AI が人類の知能を超える技術的特異点。カーツワイルは 2045 年と予想。"}, "toy": {"t": "トイ・プロブレム", "en": "Toy Problem", "d": "迷路・ハノイの塔・三目並べなど、ルールが明確な小さな問題。第1次ブームの探索が得意とした領域。"}, "bfs": {"t": "幅優先探索 / 深さ優先探索", "en": "BFS / DFS", "d": "BFS＝メモリ消費大・最短解保証あり／DFS＝メモリ消費小・最短解保証なし。基本の探索手法。"}, "astar": {"t": "A* / ヒューリスティック探索", "en": "A* search", "d": "ゴールまでの推定コスト（ヒューリスティック）を使って効率的に探索する手法。"}, "minimax": {"t": "Mini-Max法 / αβ法", "en": "Minimax / Alpha-Beta", "d": "自分の利得最大・相手は最小と仮定して手を読む（Mini-Max）。無駄な枝を刈るのが αβ法。"}, "mcts": {"t": "モンテカルロ木探索", "en": "MCTS", "d": "ランダムにプレイアウトして局面を評価。囲碁で効果大、AlphaGo の核の一つ。"}, "strips": {"t": "STRIPS", "en": "STRIPS, 1971", "d": "前提条件・動作・結果でロボットの行動計画を記述（スタンフォード研究所）。現代 AI プランニングの祖。", "href": "commentary.html#scene3", "lbl": "Scene 3 で読む"}, "shrdlu": {"t": "SHRDLU", "en": "SHRDLU, 1970", "d": "積み木の世界で自然言語の指示を理解する初期システム（テリー・ウィノグラード）。"}, "perceptron": {"t": "パーセプトロン", "en": "Perceptron, 1958", "d": "ローゼンブラットが作った学習する人工ニューロン。入力に重みを掛けて閾値で 0/1 を出力。", "href": "commentary.html#scene2", "lbl": "Scene 2 で読む"}, "xor": {"t": "XOR問題", "en": "XOR Problem, 1969", "d": "単層パーセプトロンでは線形分離できない問題。ミンスキー&パパートが限界を指摘→第1次 AI の冬。", "href": "commentary.html#scene2", "lbl": "Scene 2 で読む"}, "es": {"t": "エキスパートシステム", "en": "Expert System", "d": "専門家の知識を IF-THEN ルール化し、推論エンジンで結論を導く（第2次ブームの主役）。", "href": "commentary.html#scene3", "lbl": "Scene 3 で読む"}, "dendral": {"t": "DENDRAL", "en": "DENDRAL, 1960s", "d": "世界初のエキスパートシステム。未知の有機化合物の構造推定（スタンフォード大、ファイゲンバウム）。", "href": "commentary.html#scene3", "lbl": "Scene 3 で読む"}, "mycin": {"t": "MYCIN", "en": "MYCIN, 1970s", "d": "感染症診断のエキスパートシステム。確信度 (CF) を導入。", "href": "commentary.html#scene3", "lbl": "Scene 3 で読む"}, "cyc": {"t": "Cycプロジェクト", "en": "Cyc, 1984-", "d": "一般常識を全て記述しようとする壮大な試み（ダグラス・レナト）。現在も継続。", "href": "commentary.html#scene3", "lbl": "Scene 3 で読む"}, "ontology": {"t": "オントロジー", "en": "Ontology", "d": "概念体系を形式的に定義する枠組み（ヘビーウェイト／ライトウェイト）。"}, "eliza": {"t": "イライザ / イライザ効果", "en": "ELIZA, 1966", "d": "パターンマッチで擬似カウンセラーを演じた初期対話システム（ワイゼンバウム）。機械の応答を人間的と感じる心理が「イライザ効果」。"}, "fifthgen": {"t": "第五世代コンピュータ", "en": "FGCS, 1982", "d": "日本の国家プロジェクト。Prolog ベースの並行推論機（ICOT、渕一博）。", "href": "commentary.html#scene3", "lbl": "Scene 3 で読む"}, "ilsvrc": {"t": "ILSVRC", "en": "ImageNet challenge", "d": "画像認識精度を競う国際コンペ。2012 AlexNet が DL で圧勝し第3次ブームの起点に。"}, "alexnet": {"t": "AlexNet", "en": "AlexNet, 2012", "d": "ヒントン研究室。ILSVRC でエラー率 15%（前年 26%）と圧勝、ディープラーニングの幕開け。"}, "bottleneck": {"t": "知識獲得のボトルネック", "en": "Knowledge acquisition bottleneck", "d": "専門知をルールとして書き出すのが困難で、第2次ブーム衰退の主因になった問題。", "href": "commentary.html#scene3", "lbl": "Scene 3 で読む"}};(function(){var pop=document.createElement('div');pop.className='gk-pop';pop.innerHTML='<span class="gp-x">\u00d7</span><div class="gp-body"></div>';document.body.appendChild(pop);var bodyEl=pop.querySelector('.gp-body');pop.querySelector('.gp-x').onclick=function(){pop.style.display='none'};document.querySelectorAll('.gk-term').forEach(function(b){b.onclick=function(e){e.stopPropagation();var d=TERMS[b.dataset.k];if(!d)return;var h=d.href?('<a class="gp-link" href="'+d.href+'">'+d.lbl+' \u2192</a>'):'';bodyEl.innerHTML='<div class="gp-t">'+d.t+'</div><div class="gp-en">'+(d.en||'')+'</div>'+d.d+h;pop.style.display='block';var r=b.getBoundingClientRect();var top=r.bottom+window.scrollY+8;var left=Math.min(r.left+window.scrollX,window.scrollX+document.documentElement.clientWidth-pop.offsetWidth-12);pop.style.top=top+'px';pop.style.left=Math.max(12,left)+'px';};});document.addEventListener('click',function(){pop.style.display='none'});})();const QBANK=[{"q": "哲学者ジョン・サールは、意識を持ち真の意味で「考える」AIと、特定タスクの問題解決を行う「道具」としてのAIを区別した。前者・後者を指す語の組合せとして最も適切なものを1つ選べ。", "o": ["強いAI／弱いAI", "汎用AI／特化AI", "記号主義AI／結合主義AI", "自律型AI／支援型AI"], "a": 0, "e": "サールの区別は強いAI（意識を持つ）／弱いAI（道具）。汎用/特化や記号/結合は別の観点。", "t": "第1章・定義"}, {"q": "第1次AIブームの探索・推論は、迷路やハノイの塔のようなルールが明確な問題は解けたが、現実の複雑な問題には対応できず終焉した。この「現実世界への適用を阻んだ」とされる代表的な困難として最も適切なものを1つ選べ。", "o": ["勾配消失問題", "フレーム問題", "過学習", "次元の呪い"], "a": 1, "e": "現実世界で「今、何を考慮すべきか」を有限時間で絞り込めないフレーム問題が第1次の壁の象徴。他は機械学習・DL文脈の語。", "t": "第1章・未解決問題"}, {"q": "第2次AIブームで実用化されて適用範囲を広げたものの、専門知を明示的なルールとして記述・獲得することの難しさがネックとなって衰退した技術として、最も適切なものを1つ選べ。", "o": ["ディープラーニング", "強化学習", "エキスパートシステム", "サポートベクターマシン"], "a": 2, "e": "エキスパートシステム。IF-THENで知識を書くが、知識獲得のボトルネックにより第2次の冬を迎えた。", "t": "第2章・知識表現"}, {"q": "AIに関する有名な議論・問題の説明として、最も不適切なものを1つ選べ。", "o": ["フレーム問題：現実世界で考慮すべき事項を有限時間で絞り込めない", "中国語の部屋：記号操作だけでは意味理解とは言えない", "シンボルグラウンディング問題：記号と実世界の意味をどう結びつけるか", "シンギュラリティ：機械が人間の感情を完全に再現する現象"], "a": 3, "e": "シンギュラリティはAIが人類の知能を超える技術的特異点（カーツワイル、2045年予想）。感情の再現ではない。", "t": "第1章・未解決問題"}, {"q": "基本的な探索手法に関する説明として、最も適切なものを1つ選べ。", "o": ["幅優先探索(BFS)はメモリ消費が小さく最短解を保証しない", "深さ優先探索(DFS)はメモリ消費が大きく最短解を保証する", "幅優先探索(BFS)はメモリ消費が大きいが最短解を保証する", "ヒューリスティック探索は推定を用いず必ず全探索する"], "a": 2, "e": "BFSはメモリ大・最短解保証、DFSはメモリ小・保証なし。A*等のヒューリスティック探索は推定コストを使う。", "t": "第2章・探索"}, {"q": "2人で行うゲームで、自分の利得を最大化し相手は最小化すると仮定して手を読む手法を( ア )、そのうち探索しても結果に影響しない枝を刈って効率化する手法を( イ )という。空欄の組合せとして最も適切なものを1つ選べ。", "o": ["( ア )Mini-Max法 ( イ )αβ法", "( ア )モンテカルロ法 ( イ )Mini-Max法", "( ア )αβ法 ( イ )Mini-Max法", "( ア )動的計画法 ( イ )貪欲法"], "a": 0, "e": "Mini-Max法＋αβ枝刈り。モンテカルロ木探索はランダムプレイアウトで評価する別手法。", "t": "第2章・探索"}, {"q": "囲碁のように一手ごとの厳密な局面評価が難しく、探索空間が膨大なゲームにおいて、ランダムなプレイアウトを多数行って局面を評価する手法として最も適切なものを1つ選べ。", "o": ["αβ法", "モンテカルロ木探索", "幅優先探索", "動的計画法"], "a": 1, "e": "モンテカルロ木探索(MCTS)。AlphaGoが深層学習と組み合わせて活用し囲碁で成果を上げた。", "t": "第2章・探索"}, {"q": "1970年代の感染症診断エキスパートシステムMYCINが、医師の「たぶん」のような不確実さを機械で扱うために導入した仕組みとして最も適切なものを1つ選べ。", "o": ["誤差逆伝播法", "確信度(Certainty Factor)", "アテンション機構", "ドロップアウト"], "a": 1, "e": "MYCINは確信度CFでルールの確からしさを0〜1で表し、掛け合わせて推論した。他はNN/DLの技術。", "t": "第2章・知識表現"}, {"q": "知識表現に関する用語の説明として、最も不適切なものを1つ選べ。", "o": ["オントロジー：概念体系を形式的に定義したもの", "意味ネットワーク：概念をノード、関係をリンク（矢印）で表現する", "Cycプロジェクト：一般常識をすべて記述しようとした壮大な試み", "イライザ効果：エキスパートシステムが人間の専門家を超える現象"], "a": 3, "e": "イライザ効果は機械の応答を人間的だと感じてしまう心理現象（ELIZA由来）。専門家超えの意味ではない。", "t": "第2章・知識表現"}, {"q": "画像認識の国際コンペILSVRCで2012年にディープラーニングを用いて圧勝し（前年エラー率約26%→約15%）、第3次AIブームの起点とされたモデルとして最も適切なものを1つ選べ。", "o": ["ResNet", "AlexNet", "VGG", "GoogLeNet"], "a": 1, "e": "AlexNet（ヒントン研究室）。2012年ILSVRCでの圧勝がDLブームの号砲となった。", "t": "第2章・機械学習"}, {"q": "ILSVRCではモデルが年々深くなった。2015年に( ア )が( イ )という仕組みで非常に深い層の学習を可能にし、人間に匹敵する認識率（エラー率約3.6%）を示した。空欄の組合せとして最も適切なものを1つ選べ。", "o": ["( ア )ResNet ( イ )スキップ結合（残差接続）", "( ア )AlexNet ( イ )ドロップアウト", "( ア )VGG ( イ )プーリング", "( ア )GoogLeNet ( イ )アテンション"], "a": 0, "e": "ResNetのSkip Connection（残差接続）により152層もの深いネットワークの学習が可能になった。", "t": "第2章・機械学習"}, {"q": "1971年に開発され、前提条件・動作・効果の3要素でロボットの行動計画を記述し、現代のAIプランニングの源流とされる手法として最も適切なものを1つ選べ。", "o": ["SHRDLU", "STRIPS", "DENDRAL", "Prolog"], "a": 1, "e": "STRIPS（スタンフォード研究所）。Shakeyロボットの行動計画に用いられた。SHRDLUは積み木世界の自然言語理解。", "t": "第2章・探索"}, {"q": "次のAIの歴史的出来事を、古いものから新しいものへ正しく並べたものとして最も適切なものを1つ選べ。", "o": ["ダートマス会議 → パーセプトロン → ディープブルー → AlphaGo", "パーセプトロン → ダートマス会議 → AlphaGo → ディープブルー", "ダートマス会議 → ディープブルー → パーセプトロン → AlphaGo", "パーセプトロン → ダートマス会議 → ディープブルー → AlphaGo"], "a": 0, "e": "1956ダートマス会議 → 1958パーセプトロン → 1997ディープブルー → 2016 AlphaGo の順。", "t": "第1章・歴史"}, {"q": "人工知能をめぐる一般的な説明として、最も不適切なものを1つ選べ。", "o": ["「人工知能」の定義は専門家の間でも一致していない", "第3次AIブームの中心は機械学習・特徴表現学習である", "第1次AIブームの中心技術はエキスパートシステムである", "ENIAC(1946)は世界初の汎用電子コンピュータである"], "a": 2, "e": "第1次の中心は探索・推論。エキスパートシステムは第2次ブームの中心技術。", "t": "第1章・歴史"}, {"q": "AIの2大アプローチ（記号主義と結合主義）に関する説明として、最も適切なものを1つ選べ。", "o": ["記号主義は人間がルールを書き下し、結合主義はニューロンを模して例から学習する", "記号主義はニューラルネットを用い、結合主義は探索木を用いる", "両者はともに2010年代に初めて登場した", "結合主義は第2次AIブームの主役だった"], "a": 0, "e": "記号主義＝人間がルールを記述、結合主義＝NNで学習。第3次ブームは結合主義(DL)の躍進。", "t": "第2章・知識表現"}, {"q": "1966年にワイゼンバウムが開発し、パターンマッチによって擬似的なカウンセラーを演じた初期の対話システムとして最も適切なものを1つ選べ。", "o": ["SHRDLU", "ELIZA（イライザ）", "Watson", "MYCIN"], "a": 1, "e": "ELIZA。ここから「機械の応答を人間的と感じる」イライザ効果という語が生まれた。", "t": "第2章・知識表現"}, {"q": "チェス・囲碁・自然言語処理のいずれにおいても、人間が知識やルールを作り込む手法より、計算資源とデータを活かして機械が自ら学習する手法が長期的には優勢になった——という経験則を述べたものとして最も適切なものを1つ選べ。", "o": ["ノーフリーランチ定理", "Bitter Lesson（苦い教訓）", "ムーアの法則", "ノーマンの法則"], "a": 1, "e": "サットンのBitter Lesson(2019)。Arc1のラストの主題で、第3次ブーム以降の方向性を示す。", "t": "第2章・機械学習"}, {"q": "世界初の本格的なエキスパートシステムとされ、未知の有機化合物の構造を推定したシステムとして最も適切なものを1つ選べ。", "o": ["MYCIN", "DENDRAL", "Cyc", "ディープブルー"], "a": 1, "e": "DENDRAL（1960s、スタンフォード、ファイゲンバウム）。MYCINは感染症診断のES。", "t": "第2章・知識表現"}, {"q": "1982年に日本が国家プロジェクトとして開始し、Prologを基盤とする並行推論機の開発を目指した計画として最も適切なものを1つ選べ。", "o": ["ダートマス計画", "第五世代コンピュータプロジェクト", "ImageNetプロジェクト", "ENIAC計画"], "a": 1, "e": "第五世代コンピュータプロジェクト（ICOT、渕一博）。論理プログラミングを基盤とした。", "t": "第2章・知識表現"}, {"q": "迷路・ハノイの塔・三目並べのように、ルールが明確で探索によって解ける小さな問題を指す語として最も適切なものを1つ選べ。", "o": ["トイ・プロブレム", "フレーム問題", "ベンチマーク", "コールドスタート問題"], "a": 0, "e": "トイ・プロブレム。第1次ブームの探索・推論が得意とした領域。現実問題では破綻した。", "t": "第2章・探索"}];(function(){var area=document.getElementById('gkq-area');var start=document.getElementById('gkq-start');if(!start)return;function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}function pick(n){return shuffle(QBANK.slice()).slice(0,n);}function render(qs){window._gkqs=qs;var h='';qs.forEach(function(q,i){h+='<div class="gkq-q" data-a="'+q.a+'"><div class="gkq-qh"><span class="gkq-n">Q'+(i+1)+'</span><span class="gkq-tag">'+esc(q.t)+'</span></div>';h+='<div class="gkq-text">'+esc(q.q)+'</div><div class="gkq-opts">';q.o.forEach(function(o,j){h+='<label class="gkq-opt"><input type="radio" name="q'+i+'" value="'+j+'"><span class="gkq-k">'+String.fromCharCode(97+j)+'</span><span>'+esc(o)+'</span></label>';});h+='</div><div class="gkq-exp" style="display:none"></div></div>';});h+='<button id="gkq-grade" class="gkq-btn">採点する →</button>';area.innerHTML=h;document.getElementById('gkq-grade').onclick=grade;}function grade(){var qs=window._gkqs;var qels=area.querySelectorAll('.gkq-q');var score=0;qels.forEach(function(qel,i){var correct=parseInt(qel.dataset.a,10);var sel=qel.querySelector('input[name="q'+i+'"]:checked');var chosen=sel?parseInt(sel.value,10):-1;qel.querySelectorAll('.gkq-opt').forEach(function(op,j){op.querySelector('input').disabled=true;if(j===correct)op.classList.add('is-correct');if(j===chosen&&chosen!==correct)op.classList.add('is-wrong');});if(chosen===correct)score++;var exp=qel.querySelector('.gkq-exp');exp.style.display='block';exp.innerHTML='<b>正解 '+String.fromCharCode(97+correct)+'</b> \u2014 '+esc(qs[i].e);});var pct=Math.round(score/qs.length*100);area.insertAdjacentHTML('afterbegin','<div class="gkq-result">結果: '+score+' / '+qs.length+' 問正解（'+pct+'%）</div>');var g=document.getElementById('gkq-grade');g.textContent='もう一度（別の 10 問）→';g.onclick=function(){render(pick(10));document.getElementById('gkq').scrollIntoView({behavior:'smooth'});};area.querySelector('.gkq-result').scrollIntoView({block:'center'});}start.onclick=function(){render(pick(10));};})();</script>
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body></html>

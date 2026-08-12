@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>畳み込みとプーリング — EPOCH Arc 2 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+</script>
+<style>
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.9;margin:0;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+.fig-crumb{max-width:860px;margin:18px auto 0;padding:0 20px;font-size:12.5px;color:var(--ink-muted)}
+.fig-crumb a{color:var(--link);text-decoration:underline}
+.fig-crumb a:hover{color:var(--ink)}
+.intro{max-width:760px;margin:40px auto 8px;padding:0 20px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub);margin-bottom:12px}
+.intro h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:0 0 12px}
+.intro p{color:var(--ink-sub);font-size:15.5px;line-height:1.9}
+.intro strong{color:var(--ink)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;max-width:880px;margin:26px auto;padding:24px 22px}
+.fig-stage h2{font-size:1.15rem;font-weight:700;margin:6px 0 4px;letter-spacing:-.01em}
+.fig-stage h2::before{content:"";display:inline-block;width:22px;height:3px;background:var(--arc);border-radius:2px;margin-right:10px;vertical-align:middle}
+.fig-stage .lead{color:var(--ink-sub);font-size:14px;margin:2px 0 18px;line-height:1.8}
+.fig-stage h3{font-size:1.0rem;font-weight:700;margin:26px 0 8px}
+.fig-stage p{font-size:14.5px;color:#2c2924}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrl{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-sub);min-width:120px}
+.ctrl label{font-weight:700;color:var(--ink);font-size:12.5px}
+.ctrl .val{font-variant-numeric:tabular-nums;color:var(--link);font-weight:700}
+input[type=range]{accent-color:var(--arc);width:100%}
+.btn{background:var(--ink);color:var(--bg);border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.btn.ghost.on{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1px solid var(--border);background:#fff;border-radius:18px;padding:6px 14px;font-size:12.5px;color:var(--ink-sub);cursor:pointer}
+.chip.on{border-color:var(--arc);background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+.grid-wrap{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;justify-content:center;margin:10px 0}
+.gcap{text-align:center;font-size:12px;color:var(--ink-muted);margin-top:8px}
+.formula{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:15px;text-align:center}
+.note{font-size:13px;color:var(--ink-sub);line-height:1.8}
+.readout{font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0;white-space:pre-wrap}
+.kv{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-sub)}
+.kv b{color:var(--ink)}
+table.mini{border-collapse:collapse;font-size:13.5px;margin:6px auto}
+table.mini th,table.mini td{border:1px solid var(--border);padding:7px 13px;text-align:center}
+table.mini th{background:var(--surface);font-weight:700}
+table.mini td.hl{background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+svg text{font-family:"Inter","Noto Sans JP",sans-serif}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-sub);justify-content:center;margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.back-link{max-width:820px;margin:36px auto 0;padding:0 20px;text-align:center}
+.back-link a{color:var(--ink);text-decoration:none;padding:11px 22px;background:#fff;border:1px solid #CFCBBE;border-radius:6px;display:inline-block;font-weight:600;font-size:14px}
+.back-link a:hover{background:var(--surface)}
+.fig-topnav{max-width:820px;margin:14px auto 0;padding:0 20px}
+.fig-pager{display:flex;flex-wrap:wrap;gap:8px 10px;justify-content:center;align-items:center}
+.fig-pager a{text-decoration:none;font-size:13px;font-weight:600;padding:9px 15px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--ink);line-height:1.3}
+.fig-pager a:hover{background:var(--surface)}
+.fig-pager .fp-comm{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.fig-pager .fp-idx{color:var(--ink-sub)}
+.fig-grid{max-width:840px;margin:28px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fig-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s,box-shadow .15s}
+.fig-card:hover{transform:translateY(-2px);border-color:var(--arc);box-shadow:0 8px 24px rgba(26,26,26,.08)}
+.fig-card a{display:block;padding:20px 22px;text-decoration:none;color:inherit}
+.fig-card h3{font-size:16px;font-weight:700;margin:0 0 6px}
+.fig-card h3 small{color:var(--ink-muted);font-size:11px;font-weight:400;margin-left:6px}
+.fig-card p{font-size:13px;line-height:1.7;color:var(--ink-sub);margin:0 0 8px}
+.fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style><meta name="robots" content="noindex,nofollow"></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 畳み込みとプーリング</div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_nn.html">← NN の土台</a><a class="fp-comm" href="commentary.html#scene2">解説 Scene 2「機械に、目を」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_imagenet.html">ImageNet 誤り率 →</a></nav></div>
+<div class="intro">
+<div class="eyebrow">EPOCH Arc 2 ・ Scene 2「機械に、目を」</div>
+<h1>畳み込みとプーリング — 機械が「見る」ための発明</h1>
+<p>普通のニューラルネットは画像を「ただの数字の列」として扱うため、少しずれただけで別物になってしまう。
+CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (カーネル) を画像の上で滑らせ</strong>、
+「この局所領域にエッジ・模様があるか?」をスキャンする。同じフィルタを全域で使い回す <strong>重み共有</strong>が、
+パラメータ数を劇的に減らし、位置がずれても同じ特徴を捉える <strong>並進不変性</strong>を生む。
+下の格子をクリックして絵を描き、フィルタを選び、特徴マップが浮かび上がる様子を確かめよう。</p>
+</div>
+
+<div class="fig-stage">
+<h2>畳み込みを手で滑らせる</h2>
+<div class="lead">左の入力 (7×7) のセルをクリックして塗る。フィルタを選ぶと、3×3 を 1 マスずつ滑らせて内積を取った<strong>特徴マップ</strong>(5×5) が右に現れる。「スライド」で受容野が動く様子をアニメーションする。</div>
+
+<div class="chips" id="kernels">
+<span class="chip on" data-k="edgev">縦エッジ検出</span>
+<span class="chip" data-k="edgeh">横エッジ検出</span>
+<span class="chip" data-k="lap">輪郭 (ラプラシアン)</span>
+<span class="chip" data-k="sharp">シャープ</span>
+<span class="chip" data-k="blur">ぼかし (平均)</span>
+</div>
+
+<div class="grid-wrap">
+  <div>
+    <svg id="inGrid" width="224" height="224" viewBox="0 0 224 224"></svg>
+    <div class="gcap">入力画像 7×7 (クリックで塗る)</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:84px">
+    <svg id="kerGrid" width="120" height="120" viewBox="0 0 120 120"></svg>
+    <div class="gcap">フィルタ 3×3</div>
+  </div>
+  <div>
+    <svg id="outGrid" width="200" height="200" viewBox="0 0 200 200"></svg>
+    <div class="gcap">特徴マップ 5×5</div>
+  </div>
+</div>
+
+<div class="ctrls">
+  <button class="btn" id="slideBtn">▶ スライド (畳み込みを再生)</button>
+  <button class="btn ghost" id="poolBtn">2×2 Max プーリングを見る</button>
+  <button class="btn ghost" id="clearBtn">クリア</button>
+</div>
+<div class="readout" id="calc">フィルタを選び、入力を塗ってください。</div>
+
+<div class="formula">
+$\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
+<div class="note" style="margin-top:8px">特徴マップの各セル = フィルタ重み $w$ と、その位置の入力パッチ $x$ の<strong>内積</strong>。フィルタは画像全体で<strong>共有</strong>される (= 9 個の重みだけ)。</div>
+</div>
+
+<h3>なぜ「普通のNN」より強いのか</h3>
+<table class="mini">
+<tr><th></th><th>全結合 NN</th><th>CNN</th></tr>
+<tr><td>1000×1000 画像→1000 隠れ</td><td class="hl">約 10 億 パラメータ</td><td class="hl">フィルタ数×9 程度</td></tr>
+<tr><td>少しの平行移動</td><td>別の入力に見える</td><td>同じ特徴を検出 (不変)</td></tr>
+<tr><td>局所のパターン</td><td>明示的に扱えない</td><td>フィルタが直接捉える</td></tr>
+</table>
+<p class="note">Hubel &amp; Wiesel (1959) が猫の視覚野で見つけた「単純細胞→複雑細胞」の階層を、福島邦彦のネオコグニトロン (1980) が模し、LeCun の LeNet (1989/1998) が誤差逆伝播で学習可能にした ―― それが今日の CNN。</p>
+</div>
+
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_nn.html">← NN の土台</a><a class="fp-comm" href="commentary.html#scene2">解説 Scene 2「機械に、目を」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_imagenet.html">ImageNet 誤り率 →</a></nav></div>
+
+<script>
+(function(){
+  var ARC="#6E7BA8";
+  var N=7, K=3, M=N-K+1; // input 7, kernel 3, output 5
+  var img=[], curK="edgev";
+  var KERNELS={
+    edgev:[[-1,0,1],[-1,0,1],[-1,0,1]],
+    edgeh:[[-1,-1,-1],[0,0,0],[1,1,1]],
+    lap:[[0,-1,0],[-1,4,-1],[0,-1,0]],
+    sharp:[[0,-1,0],[-1,5,-1],[0,-1,0]],
+    blur:[[1,1,1],[1,1,1],[1,1,1]]  // averaged by /9 at use
+  };
+  // seed a simple diagonal stroke + vertical bar
+  for(var r=0;r<N;r++){img[r]=[];for(var c=0;c<N;c++){img[r][c]= (c===2||c===3||r===c)?1:0;}}
+  var SVGNS="http://www.w3.org/2000/svg";
+  function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+  function gray(v){v=Math.max(0,Math.min(1,v));var g=Math.round(255-v*215);return"rgb("+g+","+g+","+g+")";}
+  function drawInput(hi){
+    var s=document.getElementById('inGrid');s.innerHTML='';var cell=224/N;
+    for(var r=0;r<N;r++)for(var c=0;c<N;c++){
+      var rect=el('rect',{x:c*cell+1,y:r*cell+1,width:cell-2,height:cell-2,rx:3,
+        fill: img[r][c]?'#2c2924':'#fff', stroke:'#E4E1D8'});
+      rect.style.cursor='pointer';
+      (function(rr,cc){rect.addEventListener('click',function(){img[rr][cc]=img[rr][cc]?0:1;drawAll();});})(r,c);
+      s.appendChild(rect);
+    }
+    if(hi){ // highlight 3x3 receptive field at hi=[r,c]
+      s.appendChild(el('rect',{x:hi[1]*cell,y:hi[0]*cell,width:cell*K,height:cell*K,rx:4,
+        fill:'rgba(110,123,168,.16)',stroke:ARC,'stroke-width':3}));
+    }
+  }
+  function drawKernel(){
+    var s=document.getElementById('kerGrid');s.innerHTML='';var cell=120/K, k=KERNELS[curK];
+    for(var r=0;r<K;r++)for(var c=0;c<K;c++){
+      s.appendChild(el('rect',{x:c*cell+1,y:r*cell+1,width:cell-2,height:cell-2,rx:3,fill:'#fff',stroke:'#E4E1D8'}));
+      var t=el('text',{x:c*cell+cell/2,y:r*cell+cell/2+5,'text-anchor':'middle','font-size':16,
+        fill:k[r][c]<0?'#b4493f':(k[r][c]>0?ARC:'#9A9488'),'font-weight':700});
+      t.textContent=(curK==='blur')?'⅑':k[r][c];s.appendChild(t);
+    }
+  }
+  function conv(){
+    var k=KERNELS[curK], div=(curK==='blur')?9:1, out=[], mn=1e9,mx=-1e9;
+    for(var i=0;i<M;i++){out[i]=[];for(var j=0;j<M;j++){
+      var sum=0;for(var u=0;u<K;u++)for(var v=0;v<K;v++)sum+=k[u][v]*img[i+u][j+v];
+      sum/=div;out[i][j]=sum;if(sum<mn)mn=sum;if(sum>mx)mx=sum;}}
+    return {out:out,mn:mn,mx:mx};
+  }
+  function norm(v,mn,mx){if(mx-mn<1e-6)return .5;return (v-mn)/(mx-mn);}
+  function drawOutput(hi){
+    var c=conv(),s=document.getElementById('outGrid');s.innerHTML='';var cell=200/M;
+    for(var i=0;i<M;i++)for(var j=0;j<M;j++){
+      var nv=norm(c.out[i][j],c.mn,c.mx);
+      var rect=el('rect',{x:j*cell+1,y:i*cell+1,width:cell-2,height:cell-2,rx:3,fill:gray(nv),stroke:'#E4E1D8'});
+      s.appendChild(rect);
+    }
+    if(hi){s.appendChild(el('rect',{x:hi[1]*cell,y:hi[0]*cell,width:cell,height:cell,rx:3,
+      fill:'none',stroke:ARC,'stroke-width':3}));}
+  }
+  function calcText(r,c){
+    var k=KERNELS[curK],div=(curK==='blur')?9:1,parts=[],sum=0;
+    for(var u=0;u<K;u++)for(var v=0;v<K;v++){var w=k[u][v],x=img[r+u][c+v];sum+=w*x;
+      if(x)parts.push((w<0?'(':'')+w+(w<0?')':'')+'×'+x);}
+    sum/=div;
+    document.getElementById('calc').textContent=
+      '位置 ('+r+','+c+') の特徴マップ値  =  Σ w·x  =  '+(parts.length?parts.join(' + '):'0')+(div>1?'  ÷9':'')+'  =  '+sum.toFixed(2);
+  }
+  function drawAll(hi){drawInput(hi);drawKernel();drawOutput(hi);}
+  // events
+  document.querySelectorAll('#kernels .chip').forEach(function(ch){
+    ch.addEventListener('click',function(){
+      document.querySelectorAll('#kernels .chip').forEach(function(x){x.classList.remove('on');});
+      ch.classList.add('on');curK=ch.getAttribute('data-k');drawAll();
+      document.getElementById('calc').textContent='フィルタ「'+ch.textContent+'」を選択。スライドで内積を確認。';
+    });
+  });
+  var sliding=false;
+  document.getElementById('slideBtn').addEventListener('click',function(){
+    if(sliding)return;sliding=true;var seq=[];for(var i=0;i<M;i++)for(var j=0;j<M;j++)seq.push([i,j]);
+    var t=0;var iv=setInterval(function(){
+      if(t>=seq.length){clearInterval(iv);sliding=false;drawAll();return;}
+      var p=seq[t++];drawAll(p);calcText(p[0],p[1]);
+    },140);
+  });
+  document.getElementById('poolBtn').addEventListener('click',function(){
+    var c=conv();// 2x2 max pool on 5x5 -> 2x2 (stride2, floor)
+    var P=Math.floor(M/2),txt='2×2 Max プーリング (5×5 → '+P+'×'+P+'): 各 2×2 窓の最大値だけ残す → サイズ縮小 + 位置ズレに頑健\n';
+    for(var i=0;i<P;i++){var row=[];for(var j=0;j<P;j++){
+      var m=-1e9;for(var a=0;a<2;a++)for(var b=0;b<2;b++)m=Math.max(m,c.out[i*2+a][j*2+b]);row.push(m.toFixed(1));}
+      txt+='  ['+row.join(', ')+']\n';}
+    document.getElementById('calc').textContent=txt;
+  });
+  document.getElementById('clearBtn').addEventListener('click',function(){
+    for(var r=0;r<N;r++)for(var c=0;c<N;c++)img[r][c]=0;drawAll();
+  });
+  drawAll();
+})();
+</script>
+
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>
