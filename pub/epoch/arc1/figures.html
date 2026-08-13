@@ -86,6 +86,44 @@ body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Int
 .epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
 .epoch-legal-footer a{color:#3f6178;text-decoration:none}
 .epoch-legal-footer a:hover{text-decoration:underline}
+</style><style class="epoch-theme">
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--surface-sunk:#EFEDE6;--border:#E4E1D8;--border-strong:#CFCBBE;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--link:#3f6178;--ok:#15803d;--bad:#b4493f;--font-sans:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;--font-serif:"Times New Roman","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;--radius:6px;--radius-lg:12px;--arc:#5B7C99;--arcrgba:91,124,153}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);
+ line-height:1.9;letter-spacing:.02em;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+a{color:var(--link)}
+h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3}
+h2{font-size:1.15rem;font-weight:700;line-height:1.4}
+h3{font-size:1.02rem;font-weight:700;line-height:1.5}
+p,li{font-size:15px}
+.intro{max-width:760px;margin:0 auto;padding:34px 20px 6px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub)}
+.fig-crumb{font-size:12.5px;color:var(--ink-muted)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;
+ max-width:880px;margin:22px auto;padding:24px 22px}
+.fig-stage h2::before{content:"";display:block;width:22px;height:3px;background:var(--arc);
+ border-radius:2px;margin-bottom:10px}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrls label{font-size:13px;color:var(--ink-sub);font-weight:600}
+input[type=range]{accent-color:var(--arc)}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:var(--radius);
+ padding:9px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.chip{border-radius:18px;border:1px solid var(--border);background:#fff;
+ padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.chip[aria-pressed=true],.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* 旧テンプレ由来の器。行間と書体が散らばっていたので土台へ寄せる */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+ padding:20px;margin:16px 0;line-height:1.9;font-family:var(--font-sans)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.formula{background:var(--surface-sunk);border:1px solid var(--border);border-radius:8px;padding:14px}
+.val{color:var(--arc);font-weight:700}
+.pro{background:#e7f4ea;border:1px solid var(--ok);border-radius:8px;padding:12px 14px}
+.con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
+.achieved,.challenge{background:var(--surface);border:1px solid var(--border);
+ border-radius:8px;padding:12px 14px}
 </style></head>
 <body>
 <div class="intro">
@@ -151,6 +189,15 @@ body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Int
 </div>
 
 <div class="fig-card">
+<a href="figures_learn.html">
+<div class="fig-emoji">📉</div>
+<h3>学ぶこと、学びすぎること <small>（Scene 5-6）</small></h3>
+<p>誤差の坂を<strong>学習率</strong>を変えて下り、モデルを複雑にして<strong>過学習</strong>が始まる瞬間を見る。L1/L2 <strong>正則化</strong>で重みが縮む・0 になる違いを比べ、判定のしきい値を動かして<strong>適合率と再現率</strong>が逆に動くのを確かめる。</p>
+<span class="fig-tag">体験</span><span class="fig-tag">過学習</span><span class="fig-tag">評価指標</span>
+</a>
+</div>
+
+<div class="fig-card">
 <a href="figures_attention.html">
 <div class="fig-emoji">✨</div>
 <h3>Self-Attention <small>（おまけ）</small></h3>
@@ -161,21 +208,9 @@ body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Int
 
 </div>
 
-<div style="max-width:800px;margin:24px auto 8px;padding:0 16px">
-<h2 style="color:#1A1A1A;font-size:18px;font-weight:700;border-bottom:1px solid #E4E1D8;padding-bottom:8px;margin-bottom:8px">プロトタイプ（評価中）</h2>
-<p style="color:#565248;font-size:13px">Self-Attention おまけを超えて Transformer の核心を体感する 3 試作。出来栄え評価後、採用なら本セクションへ統合 or Arc 2 図解パックへ。</p>
-</div>
-
-<div class="fig-grid">
-<div class="fig-card">
-<a href="prototypes/">
-<div class="fig-emoji">🧪</div>
-<h3>Transformer 深掘り図解プロトタイプ集 <small>(Phase 1)</small></h3>
-<p>① GPT パイプライン全景 ／ ④ QKᵀ→softmax→×V ステップ ／ ⑤ Multi-Head Attention 並列ヒートマップ ―― 3 本の評価用プロトタイプ。タップして詳細評価。</p>
-<span class="fig-tag">評価用</span><span class="fig-tag">3 本</span><span class="fig-tag">Phase 1</span>
-</a>
-</div>
-</div>
+<!-- ⚠ ここに「プロトタイプ（評価中）」への導線を置いていたが、試作は 3 本とも
+     暗色のままで、白い一覧から入ると突然真っ黒になっていた。読者に見せる場所ではないので
+     公開一覧から外す。Transformer の図解は白い様式で作り直して本編に入れる。 -->
 
 <div class="back-link">
 <a href="commentary.html">← 巻末解説に戻る</a>

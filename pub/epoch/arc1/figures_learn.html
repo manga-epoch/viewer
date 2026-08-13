@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学ぶこと、学びすぎること — EPOCH 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){
+  if(typeof renderMathInElement==='function'){
+    renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+  }
+}
+</script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,sans-serif;background:#FAFAF7;color:#1A1A1A;line-height:1.7}
+nav{background:#F4F2EC;padding:8px 12px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+nav select{background:#E4E1D8;color:#1A1A1A;border:1px solid #C8C4B8;border-radius:6px;padding:6px 8px;font-size:14px;flex:1;max-width:400px}
+nav button{background:#E4E1D8;color:#565248;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:14px}
+nav button:hover{background:#C8C4B8}
+.page{display:none;max-width:800px;margin:0 auto;padding:16px}
+.page.active{display:block}
+.section{background:#F4F2EC;border-radius:10px;padding:20px;margin:16px 0}
+.section h3{color:#3f6178;font-size:16px;margin-bottom:8px;border-bottom:1px solid #E4E1D8;padding-bottom:6px}
+h2{color:#5B7C99;margin-bottom:4px}
+.arc-label{color:#9A9488;font-size:13px;margin-bottom:12px}
+.formula{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:16px;margin:8px 0;font-size:14px;line-height:1.9;color:#1A1A1A;overflow-x:auto}
+.formula .katex{font-size:1.05em;color:#5B7C99}
+.formula .katex-display{margin:6px 0}
+.formula .hl{color:#5B7C99;font-weight:bold}
+.formula .note{color:#565248;font-size:12px;font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0;padding:8px;background:#FAFAF7;border-radius:6px}
+.controls label{color:#565248;font-size:13px}
+.controls input[type=range]{width:100px}
+.val{color:#5B7C99;font-weight:bold;min-width:36px;display:inline-block}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.pro,.con,.achieved,.challenge{padding:10px;border-radius:6px;font-size:13px}
+.pro{background:#e7f4ea;border:1px solid #15803d}.pro::before{content:'✓ '}
+.con{background:#f7efef;border:1px solid #b4493f}.con::before{content:'✗ '}
+.achieved{background:#F4F2EC;border:1px solid #3f6178}.achieved::before{content:'◎ '}
+.challenge{background:#f6f0e0;border:1px solid #3f6178}.challenge::before{content:'※ '}
+.breadcrumb{background:#FAFAF7;border-left:3px solid #3f6178;padding:10px 14px;margin:8px 0 16px;border-radius:4px;font-size:13px;color:#565248}
+.breadcrumb .tags{display:block;color:#9A9488;font-size:12px;margin-top:4px}
+.back-link{background:#F4F2EC;border:1px solid #E4E1D8;border-radius:8px;padding:14px 16px;margin-top:24px;text-align:center}
+.back-link a{color:#3f6178;text-decoration:none;font-size:14px}
+.back-link a:hover{text-decoration:underline}
+.ref-card{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:12px 0}
+.ref-card h4{color:#5B7C99;font-size:15px;margin-bottom:6px}
+.ref-card .ref-formula{background:#F4F2EC;border-radius:4px;padding:8px 10px;margin:8px 0;font-family:'Courier New',monospace;font-size:13px;color:#1A1A1A;overflow-x:auto}
+.ref-card .ref-meta{font-size:12px;color:#9A9488;margin-top:6px}
+.ref-card .ref-tag{display:inline-block;background:#eef1f5;color:#5B7C99;padding:2px 8px;border-radius:3px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:600px){.pros-cons{grid-template-columns:1fr}}
+
+body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; padding-bottom:64px }
+.page { display:block !important; max-width:820px; margin:0 auto; padding:14px }
+.intro { max-width:760px; margin:44px auto 8px; padding:0 20px }
+.intro h1 { color:#1A1A1A; margin-bottom:10px; font-size:clamp(1.6rem,4vw,2.05rem); font-weight:700; letter-spacing:-.02em; line-height:1.3 }
+.intro p { color:#565248; font-size:15px; line-height:1.9 }
+.fig-crumb { max-width:820px; margin:18px auto 0; padding:0 20px; font-size:12.5px; color:#9A9488 }
+.fig-crumb a { color:#3f6178; text-decoration:underline }
+.fig-crumb a:hover { color:#1A1A1A }
+.fig-stage { background:#fff; border:1px solid #E4E1D8; border-radius:14px; max-width:860px; margin:26px auto; padding:10px 6px; overflow:hidden }
+.fig-stage .page { color:#1A1A1A; margin:0 auto }
+.scene2-teaser { max-width:760px; margin:28px auto 0; padding:18px 22px; background:#F4F2EC; border:1px solid #E4E1D8; border-left:4px solid #5B7C99; border-radius:0 10px 10px 0; font-size:13.5px; line-height:1.85; color:#565248; text-align:left }
+.scene2-teaser strong { color:#1A1A1A }
+.scene2-teaser a { color:#3f6178; font-weight:700; text-decoration:underline }
+.back-link { max-width:820px; margin:36px auto 0; padding:0 20px; text-align:center }
+.back-link a { color:#1A1A1A; text-decoration:none; padding:11px 22px; background:#fff; border:1px solid #CFCBBE; border-radius:6px; display:inline-block; font-weight:600; font-size:14px }
+.back-link a:hover { background:#F4F2EC }
+.fig-topnav { max-width:820px; margin:14px auto 0; padding:0 20px }
+.fig-pager { display:flex; flex-wrap:wrap; gap:8px 10px; justify-content:center; align-items:center }
+.fig-pager a { text-decoration:none; font-size:13px; font-weight:600; padding:9px 15px; border-radius:6px; border:1px solid #E4E1D8; background:#fff; color:#1A1A1A; line-height:1.3 }
+.fig-pager a:hover { background:#F4F2EC }
+.fig-pager .fp-comm { border-color:#5B7C99; color:#3f6178; background:rgba(91,124,153,.08) }
+.fig-pager .fp-idx { color:#565248 }
+.fig-grid { max-width:820px; margin:28px auto; padding:0 20px; display:grid; grid-template-columns:1fr; gap:14px }
+.fig-card { background:#fff; border:1px solid #E4E1D8; border-radius:12px; overflow:hidden; transition:transform .15s,border-color .15s,box-shadow .15s }
+.fig-card:hover { transform:translateY(-2px); border-color:#5B7C99; box-shadow:0 8px 24px rgba(26,26,26,.08) }
+.fig-card a { display:block; padding:20px 22px; text-decoration:none; color:inherit }
+.fig-card .fig-emoji { display:none }
+.fig-card h3 { color:#1A1A1A; font-size:17px; font-weight:700; margin-bottom:6px }
+.fig-card h3 small { color:#9A9488; font-size:11px; font-weight:400; margin-left:6px }
+.fig-card p { color:#565248; font-size:13px; line-height:1.75; margin-bottom:8px }
+.fig-card .fig-tag { display:inline-block; background:#F4F2EC; color:#565248; border:1px solid #E4E1D8; padding:2px 8px; border-radius:10px; font-size:11px; margin-right:4px; margin-top:4px }
+
+
+svg .ax{stroke:#b9b9b2;stroke-width:1.4}
+svg .gl{stroke:#ececE6;stroke-width:1}
+svg .cv{fill:none;stroke:#1a1a1a;stroke-width:2.6}
+svg .cv2{fill:none;stroke:#6E7BA8;stroke-width:2.6;stroke-dasharray:6 4}
+svg .pt{fill:#1a1a1a}
+svg .pt.o{fill:#fff;stroke:#1a1a1a;stroke-width:2}
+svg .lb{font:600 12.5px var(--font-sans);fill:#565248}
+svg .vv{font:700 13px var(--font-sans);fill:#3f6178}
+.cm{border-collapse:collapse;margin:12px auto;font-size:14px}
+.cm td,.cm th{border:1px solid var(--border);padding:9px 16px;text-align:center;min-width:92px}
+.cm th{background:var(--surface);font-weight:700;font-size:12.5px;color:var(--ink-sub)}
+.cm td.hit{background:rgba(110,123,168,.14);font-weight:700}
+.metrics{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.metric{background:var(--surface);border-radius:8px;padding:10px 18px;text-align:center;min-width:104px}
+.metric b{display:block;font-size:19px;color:var(--ink)}
+.metric span{font-size:12px;color:var(--ink-sub)}
+.readout{background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13.5px;
+ color:var(--ink-sub);margin-top:10px}
+.readout b{color:var(--ink)}
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style><style class="epoch-theme">
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--surface-sunk:#EFEDE6;--border:#E4E1D8;--border-strong:#CFCBBE;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--link:#3f6178;--ok:#15803d;--bad:#b4493f;--font-sans:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;--font-serif:"Times New Roman","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;--radius:6px;--radius-lg:12px;--arc:#5B7C99;--arcrgba:91,124,153}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);
+ line-height:1.9;letter-spacing:.02em;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+a{color:var(--link)}
+h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3}
+h2{font-size:1.15rem;font-weight:700;line-height:1.4}
+h3{font-size:1.02rem;font-weight:700;line-height:1.5}
+p,li{font-size:15px}
+.intro{max-width:760px;margin:0 auto;padding:34px 20px 6px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub)}
+.fig-crumb{font-size:12.5px;color:var(--ink-muted)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;
+ max-width:880px;margin:22px auto;padding:24px 22px}
+.fig-stage h2::before{content:"";display:block;width:22px;height:3px;background:var(--arc);
+ border-radius:2px;margin-bottom:10px}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrls label{font-size:13px;color:var(--ink-sub);font-weight:600}
+input[type=range]{accent-color:var(--arc)}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:var(--radius);
+ padding:9px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.chip{border-radius:18px;border:1px solid var(--border);background:#fff;
+ padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.chip[aria-pressed=true],.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* 旧テンプレ由来の器。行間と書体が散らばっていたので土台へ寄せる */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+ padding:20px;margin:16px 0;line-height:1.9;font-family:var(--font-sans)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.formula{background:var(--surface-sunk);border:1px solid var(--border);border-radius:8px;padding:14px}
+.val{color:var(--arc);font-weight:700}
+.pro{background:#e7f4ea;border:1px solid var(--ok);border-radius:8px;padding:12px 14px}
+.con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
+.achieved,.challenge{background:var(--surface);border:1px solid var(--border);
+ border-radius:8px;padding:12px 14px}
+</style></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 学ぶこと、学びすぎること</div>
+
+<div class="intro">
+<h1>学ぶこと、学びすぎること</h1>
+<p>誤差を小さくするだけなら簡単だ。<b>手元のデータに合わせすぎない</b>ことのほうが難しい。
+Scene 5 で学んだ「坂を下りる」やり方と、Scene 6 の「学びすぎ」を、動かして確かめる。</p>
+</div>
+
+<div class="fig-stage">
+<div class="fig-stage">
+<h2>① 学習率 — 一歩の大きさ</h2>
+<p>誤差の坂を下る。一歩が小さすぎると進まず、大きすぎると谷を飛び越えて跳ね回る。</p>
+<div class="ctrls">
+  <label>学習率 <input type="range" id="lr" min="1" max="100" value="20"></label>
+  <span class="tag" id="lr-v">0.20</span>
+  <button class="btn" id="step">1 歩すすむ</button>
+  <button class="btn ghost" id="reset">最初から</button>
+</div>
+<div id="s1"></div>
+<div class="readout" id="r1"></div>
+</div>
+<div class="fig-stage">
+<h2>② 過学習と未学習 — どこで止めるか</h2>
+<p>モデルを複雑にするほど、手元のデータ（訓練）にはよく合う。
+だが見たことのないデータ（検証）では、あるところから逆に悪くなる。</p>
+<div class="ctrls">
+  <label>モデルの複雑さ <input type="range" id="cx" min="1" max="12" value="3"></label>
+  <span class="tag" id="cx-v">3 次</span>
+</div>
+<div id="s2"></div>
+<div class="readout" id="r2"></div>
+</div>
+<div class="fig-stage">
+<h2>③ 正則化 — 重みに罰則をかける</h2>
+<p>複雑さを下げる代わりに、<b>大きな重みを使いにくくする</b>という手がある。
+L2 は全体をなだらかに縮め、L1 は要らない重みを 0 にして消す。</p>
+<div class="ctrls">
+  <button class="chip on" data-reg="none">なし</button>
+  <button class="chip" data-reg="l2">L2（Ridge）</button>
+  <button class="chip" data-reg="l1">L1（Lasso）</button>
+  <label>罰則の強さ <input type="range" id="lam" min="0" max="100" value="35"></label>
+  <span class="tag" id="lam-v">0.35</span>
+</div>
+<div id="s3"></div>
+<div class="readout" id="r3"></div>
+</div>
+<div class="fig-stage">
+<h2>④ 正解率だけでは足りない — 適合率と再現率</h2>
+<p>「陽性」と判定する線をどこに引くか。厳しくすれば見逃しが増え、緩めれば誤検出が増える。
+両方を同時に良くはできない。</p>
+<div class="ctrls">
+  <label>判定のしきい値 <input type="range" id="th" min="5" max="95" value="50"></label>
+  <span class="tag" id="th-v">0.50</span>
+</div>
+<div id="s4"></div>
+<table class="cm">
+  <tr><th></th><th>予測: 陽性</th><th>予測: 陰性</th></tr>
+  <tr><th>実際: 陽性</th><td class="hit" id="tp">-</td><td id="fn">-</td></tr>
+  <tr><th>実際: 陰性</th><td id="fp">-</td><td class="hit" id="tn">-</td></tr>
+</table>
+<div class="metrics">
+  <div class="metric"><b id="m-acc">-</b><span>正解率</span></div>
+  <div class="metric"><b id="m-pre">-</b><span>適合率</span></div>
+  <div class="metric"><b id="m-rec">-</b><span>再現率</span></div>
+  <div class="metric"><b id="m-f1">-</b><span>F1</span></div>
+</div>
+<div class="readout" id="r4"></div>
+</div></div>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var NS='http://www.w3.org/2000/svg';
+  function svg(w,h,inner){return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px;display:block;margin:0 auto" xmlns="'+NS+'">'+inner+'</svg>';}
+  function path(pts,cls){return '<path class="'+cls+'" d="M'+pts.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1)}).join(' L')+'"/>';}
+
+  // ① 学習率 ─ 誤差の坂を下る
+  var W=560,H=250, x0=50,x1=520, y0=30,y1=200;
+  function loss(x){ return 0.9*Math.pow(x-0.55,2)+0.06*Math.sin(x*11)+0.05; }
+  var pos=0.06;
+  function s1(){
+    var lr=+$('#lr').value/100; $('#lr-v').textContent=lr.toFixed(2);
+    var pts=[]; for(var i=0;i<=100;i++){var t=i/100; pts.push([x0+t*(x1-x0), y1-loss(t)/0.45*(y1-y0)]);}
+    var px=x0+pos*(x1-x0), py=y1-loss(pos)/0.45*(y1-y0);
+    var g='<line class="ax" x1="'+x0+'" y1="'+y1+'" x2="'+x1+'" y2="'+y1+'"/>'+
+          '<line class="ax" x1="'+x0+'" y1="'+y1+'" x2="'+x0+'" y2="'+y0+'"/>'+
+          path(pts,'cv')+
+          '<circle class="pt" cx="'+px+'" cy="'+py+'" r="7"/>'+
+          '<text class="lb" x="'+(x1-4)+'" y="'+(y1+20)+'" text-anchor="end">重み</text>'+
+          '<text class="lb" x="'+(x0-8)+'" y="'+(y0+6)+'" text-anchor="end">誤差</text>';
+    $('#s1').innerHTML=svg(W,H,g);
+    var msg = lr<0.08 ? '一歩が小さすぎる。<b>いつまでも底に着かない</b>。'
+            : lr>0.72 ? '一歩が大きすぎる。谷を飛び越えて<b>跳ね回り、かえって遠ざかる</b>。'
+            : 'ちょうどよい大きさ。着実に底へ向かう。';
+    $('#r1').innerHTML='学習率 '+lr.toFixed(2)+' — '+msg+'　いまの誤差 <b>'+loss(pos).toFixed(3)+'</b>';
+  }
+  $('#lr').oninput=s1;
+  $('#step').onclick=function(){ var lr=+$('#lr').value/100;
+    var g=1.8*(pos-0.55)+0.66*Math.cos(pos*11);      // 勾配
+    pos=Math.max(0.02,Math.min(0.98,pos-lr*g*0.5)); s1(); };
+  $('#reset').onclick=function(){ pos=0.06; s1(); };
+
+  // ② 過学習と未学習
+  function s2(){
+    var d=+$('#cx').value; $('#cx-v').textContent=d+' 次';
+    var tr=Math.max(0.02, 0.62*Math.exp(-d*0.42)+0.03);          // 訓練誤差は下がり続ける
+    var va=Math.max(0.05, 0.60*Math.exp(-d*0.55)+0.012*Math.pow(Math.max(0,d-4),2)+0.06);
+    var pts1=[],pts2=[];
+    for(var i=1;i<=12;i++){
+      var t1=Math.max(0.02,0.62*Math.exp(-i*0.42)+0.03);
+      var t2=Math.max(0.05,0.60*Math.exp(-i*0.55)+0.012*Math.pow(Math.max(0,i-4),2)+0.06);
+      pts1.push([50+(i-1)/11*470, 200-t1/0.7*170]); pts2.push([50+(i-1)/11*470, 200-t2/0.7*170]);
+    }
+    var cx=50+(d-1)/11*470;
+    var g='<line class="ax" x1="50" y1="200" x2="520" y2="200"/><line class="ax" x1="50" y1="200" x2="50" y2="30"/>'+
+      '<line class="gl" x1="'+cx+'" y1="30" x2="'+cx+'" y2="200"/>'+
+      path(pts1,'cv')+path(pts2,'cv2')+
+      '<circle class="pt" cx="'+cx+'" cy="'+(200-tr/0.7*170)+'" r="6"/>'+
+      '<circle class="pt o" cx="'+cx+'" cy="'+(200-va/0.7*170)+'" r="6"/>'+
+      '<text class="lb" x="516" y="220" text-anchor="end">モデルの複雑さ →</text>'+
+      '<text class="lb" x="300" y="46">— 訓練データでの誤差　　- - 検証データでの誤差</text>';
+    $('#s2').innerHTML=svg(560,240,g);
+    var msg = d<=2 ? '<b>未学習</b>：単純すぎて、訓練データにも合っていない。'
+            : d>=7 ? '<b>過学習</b>：訓練誤差は下がっているのに、検証誤差が上がりはじめた。手元のデータの雑音まで覚えている。'
+            : 'ちょうどよい辺り。両方の誤差が近い。';
+    $('#r2').innerHTML=msg+'　訓練 <b>'+tr.toFixed(3)+'</b> ／ 検証 <b>'+va.toFixed(3)+'</b>';
+  }
+  $('#cx').oninput=s2;
+
+  // ③ 正則化 ─ 重みの大きさがどうなるか
+  var W0=[0.9,-0.75,0.62,-0.45,0.33,-0.22,0.14,-0.08];
+  var reg='none';
+  function s3(){
+    var lam=+$('#lam').value/100; $('#lam-v').textContent=lam.toFixed(2);
+    var w=W0.map(function(v){
+      if(reg==='l2') return v*(1-lam*0.9);
+      if(reg==='l1'){ var s=Math.sign(v), a=Math.abs(v)-lam*0.5; return a>0? s*a : 0; }
+      return v; });
+    var g='<line class="ax" x1="40" y1="110" x2="530" y2="110"/>';
+    w.forEach(function(v,i){
+      var x=60+i*60, h=v*80;
+      g+='<rect x="'+(x-17)+'" y="'+(h>0?110-h:110)+'" width="34" height="'+Math.abs(h)+'" fill="'+(v===0?'#ececE6':'#cfcfc8')+'" stroke="#1a1a1a" stroke-width="1.6"/>';
+      g+='<text class="lb" x="'+x+'" y="'+(h>0?110-h-7:110+Math.abs(h)+16)+'" text-anchor="middle">'+v.toFixed(2)+'</text>';
+      g+='<text class="lb" x="'+x+'" y="205" text-anchor="middle">w'+(i+1)+'</text>';
+    });
+    $('#s3').innerHTML=svg(560,220,g);
+    var zero=w.filter(function(v){return v===0}).length;
+    var sum=w.reduce(function(a,b){return a+Math.abs(b)},0);
+    var msg = reg==='none' ? '罰則なし。大きな重みがそのまま残る。'
+      : reg==='l2' ? '<b>L2</b>：すべての重みが一様に縮む。0 にはならず、なだらかになる。'
+      : '<b>L1</b>：小さい重みから順に <b>0 になって消える</b>（'+zero+' 本が 0）。要る特徴だけが残る＝特徴選択。';
+    $('#r3').innerHTML=msg+'　重みの合計（絶対値）<b>'+sum.toFixed(2)+'</b>';
+  }
+  $$('[data-reg]').forEach(function(b){b.onclick=function(){
+    $$('[data-reg]').forEach(function(x){x.classList.remove('on')}); b.classList.add('on');
+    reg=b.dataset.reg; s3(); }});
+  $('#lam').oninput=s3;
+
+  // ④ 適合率と再現率
+  var POS=[],NEG=[];
+  (function(){ for(var i=0;i<40;i++){ POS.push(0.30+0.62*Math.random()*Math.random()+0.08*Math.random());
+                                       NEG.push(0.05+0.55*Math.random()*Math.random()); } })();
+  function s4(){
+    var t=+$('#th').value/100; $('#th-v').textContent=t.toFixed(2);
+    var tp=POS.filter(function(v){return v>=t}).length, fn=POS.length-tp;
+    var fp=NEG.filter(function(v){return v>=t}).length, tn=NEG.length-fp;
+    var acc=(tp+tn)/(tp+tn+fp+fn), pre=tp?tp/(tp+fp):0, rec=tp/(tp+fn);
+    var f1=(pre+rec)?2*pre*rec/(pre+rec):0;
+    ['tp','fn','fp','tn'].forEach(function(k,i){ $('#'+k).textContent=[tp,fn,fp,tn][i]; });
+    [['m-acc',acc],['m-pre',pre],['m-rec',rec],['m-f1',f1]].forEach(function(p){ $('#'+p[0]).textContent=p[1].toFixed(2); });
+    var g='<line class="ax" x1="40" y1="150" x2="530" y2="150"/>';
+    NEG.forEach(function(v){ g+='<circle class="pt o" cx="'+(40+v*490)+'" cy="'+(120+Math.random()*22)+'" r="4.5"/>'; });
+    POS.forEach(function(v){ g+='<circle class="pt" cx="'+(40+v*490)+'" cy="'+(58+Math.random()*22)+'" r="4.5"/>'; });
+    g+='<line class="ax" x1="'+(40+t*490)+'" y1="30" x2="'+(40+t*490)+'" y2="160" stroke="#3f6178" stroke-width="2.4"/>';
+    g+='<text class="vv" x="'+(40+t*490)+'" y="24" text-anchor="middle">ここで切る</text>';
+    g+='<text class="lb" x="44" y="52">● 実際に陽性</text><text class="lb" x="44" y="112">○ 実際は陰性</text>';
+    g+='<text class="lb" x="526" y="172" text-anchor="end">モデルが出したスコア →</text>';
+    $('#s4').innerHTML=svg(560,185,g);
+    var msg = t>0.72 ? '線を厳しくした。<b>誤検出は減る（適合率↑）が、見逃しが増える（再現率↓）</b>。'
+            : t<0.3  ? '線を緩めた。<b>取りこぼしは減る（再現率↑）が、誤検出が増える（適合率↓）</b>。'
+            : '適合率と再現率が釣り合うあたり。F1 はこの 2 つの調和平均。';
+    $('#r4').innerHTML=msg+'　病気の見落としが怖い場面では再現率を、誤報が困る場面では適合率を優先する。';
+  }
+  $('#th').oninput=s4;
+
+  s1(); s2(); s3(); s4();
+})();
+</script>
+
+<div class="back-link">
+<a href="figures.html">← 図解一覧に戻る</a>
+</div>
+
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>

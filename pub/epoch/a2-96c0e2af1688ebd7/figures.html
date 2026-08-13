@@ -74,12 +74,50 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 .epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
 .epoch-legal-footer a{color:#3f6178;text-decoration:none}
 .epoch-legal-footer a:hover{text-decoration:underline}
+</style><style class="epoch-theme">
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--surface-sunk:#EFEDE6;--border:#E4E1D8;--border-strong:#CFCBBE;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--link:#3f6178;--ok:#15803d;--bad:#b4493f;--font-sans:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;--font-serif:"Times New Roman","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;--radius:6px;--radius-lg:12px;--arc:#6E7BA8;--arcrgba:110,123,168}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);
+ line-height:1.9;letter-spacing:.02em;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+a{color:var(--link)}
+h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3}
+h2{font-size:1.15rem;font-weight:700;line-height:1.4}
+h3{font-size:1.02rem;font-weight:700;line-height:1.5}
+p,li{font-size:15px}
+.intro{max-width:760px;margin:0 auto;padding:34px 20px 6px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub)}
+.fig-crumb{font-size:12.5px;color:var(--ink-muted)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;
+ max-width:880px;margin:22px auto;padding:24px 22px}
+.fig-stage h2::before{content:"";display:block;width:22px;height:3px;background:var(--arc);
+ border-radius:2px;margin-bottom:10px}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrls label{font-size:13px;color:var(--ink-sub);font-weight:600}
+input[type=range]{accent-color:var(--arc)}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:var(--radius);
+ padding:9px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.chip{border-radius:18px;border:1px solid var(--border);background:#fff;
+ padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.chip[aria-pressed=true],.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* 旧テンプレ由来の器。行間と書体が散らばっていたので土台へ寄せる */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+ padding:20px;margin:16px 0;line-height:1.9;font-family:var(--font-sans)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.formula{background:var(--surface-sunk);border:1px solid var(--border);border-radius:8px;padding:14px}
+.val{color:var(--arc);font-weight:700}
+.pro{background:#e7f4ea;border:1px solid var(--ok);border-radius:8px;padding:12px 14px}
+.con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
+.achieved,.challenge{background:var(--surface);border:1px solid var(--border);
+ border-radius:8px;padding:12px 14px}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="intro">
 <div class="eyebrow">EPOCH Arc 2 ・ 図解 Lab</div>
 <h1>図解一覧 — Arc 2「覚醒」</h1>
-<p>マンガで描いたディープラーニング革命 (1991-2017) の核心を、<strong>7 本の図解</strong>で「触れて」理解する。
+<p>マンガで描いたディープラーニング革命 (1991-2017) の核心を、<strong>10 本の図解</strong>で「触れて」理解する。
 ニューラルネットの土台を組み (パーセプトロン→逆伝播)、畳み込みフィルタを滑らせ (CNN)、ImageNet の誤り率の崖を辿り、残差接続で勾配消失を解き (ResNet)、
 時間を展開し (RNN/LSTM)、自己注意の重みを見て (Transformer)、探索木を育てる (AlphaGo) ―― マンガ → 解説 → 図解 の最終段階。</p>
 </div>
@@ -118,6 +156,21 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 <h3>AlphaGo と MCTS <small>(Scene 7)</small></h3>
 <p>機械が直観を見せた日。<strong>モンテカルロ木探索</strong>の 4 フェーズを 1 手ずつ進め、policy/value ネットワークが探索をどう導くかを観察する (Move 37)。</p>
 <span class="fig-tag">体験</span><span class="fig-tag">MCTS</span><span class="fig-tag">強化学習</span>
+</a></div>
+<div class="fig-card"><a href="figures_gnn.html">
+<h3>つながりを学ぶ <small>(参考・GNN)</small></h3>
+<p>画像は格子、文は列。友人関係や分子は<strong>つながり方が不規則</strong>で畳み込みが効かない。隣から集めて自分を更新する仕組みを動かし、<strong>GCN と GAT</strong> の集め方の違いを見比べ、層を重ねすぎて全員が同じ顔になる様子まで確かめる。</p>
+<span class="fig-tag">体験</span><span class="fig-tag">GNN</span><span class="fig-tag">GCN/GAT</span>
+</a></div>
+<div class="fig-card"><a href="figures_alexnet.html">
+<h3>2012 年に何が揃ったのか <small>(Scene 4)</small></h3>
+<p>構造は LeNet の延長なのに、なぜ断絶が起きたのか。<strong>逐次と並列</strong>の差を競走させ、<strong>CUDA</strong> が開いた扉を見て、<strong>Dropout</strong> でノードを落とし、<strong>BatchNorm</strong> を切って学習が暴れるのを確かめる。</p>
+<span class="fig-tag">体験</span><span class="fig-tag">GPU/CUDA</span><span class="fig-tag">Dropout</span>
+</a></div>
+<div class="fig-card"><a href="figures_detect.html">
+<h3>どこに何がある？ <small>(補講 1)</small></h3>
+<p>分類だけでは足りない。<strong>物体検出</strong>と<strong>セグメンテーション</strong>が何を出すのかを見比べ、総当たり → 領域提案 (R-CNN 系) → 一発 (YOLO) と回数が減っていく様子を辿り、NMS のしきい値を動かし、U-Net のスキップ接続を切って輪郭が甘くなるのを確かめる。</p>
+<span class="fig-tag">体験</span><span class="fig-tag">YOLO</span><span class="fig-tag">U-Net</span>
 </a></div>
 </div>
 <div class="back-link"><a href="commentary.html">← 巻末解説に戻る</a></div>
