@@ -136,7 +136,7 @@ input[type=range]{accent-color:var(--arc)}
 </style></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; MYCIN 推論チェーン</div>
-<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_perceptron.html">← 単層パーセプトロン</a><a class="fp-comm" href="commentary.html#scene3">解説 Scene 3「専門家の時代」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_cyc.html">Cyc 常識推論 →</a></nav></div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_neuron.html">← 1 個の計算点</a><a class="fp-comm" href="commentary.html#scene3">解説 Scene 3「専門家の時代」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_cyc.html">Cyc 常識推論 →</a></nav></div>
 
 <div class="intro">
 <h1>MYCIN 推論チェーン — IF-THEN ルールと確信度 (CF)</h1><p>1976 年、ファイゲンバウムとショートリフがスタンフォード大学で書いた感染症診断システム。600 個の <strong>IF-THEN ルール</strong>と <strong>確信度 (CF)</strong>を組み合わせて、医師と同等以上の正診率を出した最初のエキスパートシステム。症状をチェックすると、3 つのルールが順に発火し、確信度が掛け算で伝播する様子を観察できます ―― これが forward chaining (前向き推論) の本質。</p>
@@ -317,18 +317,12 @@ update();
 <div class="challenge">考えてみよう: 確信度 0.50 という数字、現実の医師の「6 割くらいかな」とは違う何かを表している。MYCIN の CF は<strong>独自設計の経験則</strong>であり、古典確率論ではない。だから実際に FDA は認可せず、研究用に留まった ―― だが、その発想は現代のベイジアン推論やニューラルネットの確率出力にまで生きている。</div>
 </div>
 
-<div class="section">
-<h3>次のステップ</h3>
-<div class="scene2-teaser">
-<strong>暗黙知の壁 →</strong><br>
-MYCIN は感染症で成功した。だが「自転車に乗る方法」のような暗黙知 (Tacit Knowledge, Polanyi 1966) は、どんなに頑張っても IF-THEN では書き下せなかった。次は <a href="figures_cyc.html" style="color:#5B7C99">Cyc が常識を全部書き下そうとした究極の試み</a>、そして <a href="figures_strips.html" style="color:#5B7C99">Symbolic AI の遺産が現代のロボットエージェントへ繋がる STRIPS</a> へ。
-</div>
-</div>
+
 </div></div>
 
 
 
-<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_perceptron.html">← 単層パーセプトロン</a><a class="fp-comm" href="commentary.html#scene3">解説 Scene 3「専門家の時代」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_cyc.html">Cyc 常識推論 →</a></nav></div>
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_neuron.html">← 1 個の計算点</a><a class="fp-comm" href="commentary.html#scene3">解説 Scene 3「専門家の時代」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_cyc.html">Cyc 常識推論 →</a></nav></div>
 
 <footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
 </body>

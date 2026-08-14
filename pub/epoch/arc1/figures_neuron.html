@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1 個の計算点 — EPOCH Arc 2 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+</script>
+<style>
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#5B7C99;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.9;margin:0;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+.fig-crumb{max-width:860px;margin:18px auto 0;padding:0 20px;font-size:12.5px;color:var(--ink-muted)}
+.fig-crumb a{color:var(--link);text-decoration:underline}
+.fig-crumb a:hover{color:var(--ink)}
+.intro{max-width:760px;margin:40px auto 8px;padding:0 20px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub);margin-bottom:12px}
+.intro h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:0 0 12px}
+.intro p{color:var(--ink-sub);font-size:15.5px;line-height:1.9}
+.intro strong{color:var(--ink)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;max-width:880px;margin:26px auto;padding:24px 22px}
+.fig-stage h2{font-size:1.15rem;font-weight:700;margin:6px 0 4px;letter-spacing:-.01em}
+.fig-stage h2::before{content:"";display:inline-block;width:22px;height:3px;background:var(--arc);border-radius:2px;margin-right:10px;vertical-align:middle}
+.fig-stage .lead{color:var(--ink-sub);font-size:14px;margin:2px 0 18px;line-height:1.8}
+.fig-stage h3{font-size:1.0rem;font-weight:700;margin:26px 0 8px}
+.fig-stage p{font-size:14.5px;color:#2c2924}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrl{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-sub);min-width:120px}
+.ctrl label{font-weight:700;color:var(--ink);font-size:12.5px}
+.ctrl .val{font-variant-numeric:tabular-nums;color:var(--link);font-weight:700}
+input[type=range]{accent-color:var(--arc);width:100%}
+.btn{background:var(--ink);color:var(--bg);border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.btn.ghost.on{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1px solid var(--border);background:#fff;border-radius:18px;padding:6px 14px;font-size:12.5px;color:var(--ink-sub);cursor:pointer}
+.chip.on{border-color:var(--arc);background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+.grid-wrap{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;justify-content:center;margin:10px 0}
+.gcap{text-align:center;font-size:12px;color:var(--ink-muted);margin-top:8px}
+.formula{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:15px;text-align:center}
+.note{font-size:13px;color:var(--ink-sub);line-height:1.8}
+.readout{font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0;white-space:pre-wrap}
+.kv{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-sub)}
+.kv b{color:var(--ink)}
+table.mini{border-collapse:collapse;font-size:13.5px;margin:6px auto}
+table.mini th,table.mini td{border:1px solid var(--border);padding:7px 13px;text-align:center}
+table.mini th{background:var(--surface);font-weight:700}
+table.mini td.hl{background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+svg text{font-family:"Inter","Noto Sans JP",sans-serif}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-sub);justify-content:center;margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.back-link{max-width:820px;margin:36px auto 0;padding:0 20px;text-align:center}
+.back-link a{color:var(--ink);text-decoration:none;padding:11px 22px;background:#fff;border:1px solid #CFCBBE;border-radius:6px;display:inline-block;font-weight:600;font-size:14px}
+.back-link a:hover{background:var(--surface)}
+.fig-topnav{max-width:820px;margin:14px auto 0;padding:0 20px}
+.fig-pager{display:flex;flex-wrap:wrap;gap:8px 10px;justify-content:center;align-items:center}
+.fig-pager a{text-decoration:none;font-size:13px;font-weight:600;padding:9px 15px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--ink);line-height:1.3}
+.fig-pager a:hover{background:var(--surface)}
+.fig-pager .fp-comm{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.fig-pager .fp-idx{color:var(--ink-sub)}
+.fig-grid{max-width:840px;margin:28px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fig-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s,box-shadow .15s}
+.fig-card:hover{transform:translateY(-2px);border-color:var(--arc);box-shadow:0 8px 24px rgba(26,26,26,.08)}
+.fig-card a{display:block;padding:20px 22px;text-decoration:none;color:inherit}
+.fig-card h3{font-size:16px;font-weight:700;margin:0 0 6px}
+.fig-card h3 small{color:var(--ink-muted);font-size:11px;font-weight:400;margin-left:6px}
+.fig-card p{font-size:13px;line-height:1.7;color:var(--ink-sub);margin:0 0 8px}
+.fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
+
+svg .nd{fill:#fff;stroke:#1a1a1a;stroke-width:1.8}
+svg .nd.on{fill:#1a1a1a}
+svg .ed{stroke:#b9b9b2;fill:none}
+svg .ed.pos{stroke:#5B7C99}
+svg .ed.neg{stroke:#1a1a1a;stroke-dasharray:5 4}
+svg .tx{font:600 13px var(--font-sans);fill:#1a1a1a;text-anchor:middle}
+svg .tx.on{fill:#fff}
+svg .lb{font:600 12px var(--font-sans);fill:#8c8880;
+ paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+svg .lb.c{text-anchor:middle}
+svg .pt{stroke:#1a1a1a;stroke-width:1.6}
+svg .pt.one{fill:#1a1a1a}
+svg .pt.zero{fill:#fff}
+svg .pt.bad{stroke:#b4493f;stroke-width:3}
+svg .bd{stroke:#5B7C99;stroke-width:2.6;fill:none}
+svg .ax{stroke:#e2e0d9;stroke-width:1.2}
+table.tt{border-collapse:collapse;margin:10px 0;font-size:13.5px;width:100%;max-width:460px}
+table.tt th,table.tt td{border:1px solid var(--border);padding:6px 10px;text-align:center}
+table.tt th{background:var(--surface);font-weight:700;color:var(--ink-sub)}
+table.tt td.y1{background:rgba(91,124,153,.16);font-weight:700}
+.readout{background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13.5px;
+ color:var(--ink-sub);margin-top:10px}
+.readout b{color:var(--ink)}
+.fig-legend{font-size:12.5px;color:var(--ink-muted);text-align:center;margin:2px 0 0}
+.lg-dot{display:inline-block;width:11px;height:11px;border-radius:50%;
+ border:1.6px solid #1a1a1a;background:#fff;margin:0 6px 0 16px;vertical-align:-1px}
+.lg-dot:first-child{margin-left:0}
+.lg-dot.fill{background:#1a1a1a}
+.lg-dot.bad{border-color:#b4493f;border-width:3px}
+.tag{display:inline-block;background:var(--surface);border:1px solid var(--border);
+ border-radius:14px;padding:3px 11px;font-size:12.5px;color:var(--ink-sub);margin-right:6px}
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style><style class="epoch-theme">
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--surface-sunk:#EFEDE6;--border:#E4E1D8;--border-strong:#CFCBBE;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--link:#3f6178;--ok:#15803d;--bad:#b4493f;--font-sans:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;--font-serif:"Times New Roman","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;--radius:6px;--radius-lg:12px;--arc:#5B7C99;--arcrgba:91,124,153}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);
+ line-height:1.9;letter-spacing:.02em;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+a{color:var(--link)}
+h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3}
+h2{font-size:1.15rem;font-weight:700;line-height:1.4}
+h3{font-size:1.02rem;font-weight:700;line-height:1.5}
+p,li{font-size:15px}
+.intro{max-width:760px;margin:0 auto;padding:34px 20px 6px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub)}
+.fig-crumb{font-size:12.5px;color:var(--ink-muted)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;
+ max-width:880px;margin:22px auto;padding:24px 22px}
+.fig-stage h2::before{content:"";display:block;width:22px;height:3px;background:var(--arc);
+ border-radius:2px;margin-bottom:10px}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrls label{font-size:13px;color:var(--ink-sub);font-weight:600}
+input[type=range]{accent-color:var(--arc)}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:var(--radius);
+ padding:9px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.chip{border-radius:18px;border:1px solid var(--border);background:#fff;
+ padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.chip[aria-pressed=true],.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* 旧テンプレ由来の器。行間と書体が散らばっていたので土台へ寄せる */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+ padding:20px;margin:16px 0;line-height:1.9;font-family:var(--font-sans)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.formula{background:var(--surface-sunk);border:1px solid var(--border);border-radius:8px;padding:14px}
+.val{color:var(--arc);font-weight:700}
+.pro{background:#e7f4ea;border:1px solid var(--ok);border-radius:8px;padding:12px 14px}
+.con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
+.achieved,.challenge{background:var(--surface);border:1px solid var(--border);
+ border-radius:8px;padding:12px 14px}
+</style></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 1 個の計算点</div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_turing.html">← チューリングテスト</a><a class="fp-comm" href="commentary.html#scene2">解説 Scene 2「パーセプトロンの興奮と絶望」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_mycin.html">MYCIN 推論 →</a></nav></div>
+<div class="intro">
+<div class="eyebrow">ARC 1 ／ SCENE 1-2 — 最初の人工ニューロン</div>
+<h1>1 個の計算点</h1>
+<p>1943 年、McCulloch と Pitts は神経細胞を「入力に<b>重み</b>を掛けて足し、
+<b>閾値</b>を超えたら 1 を出す」という 1 個の計算に置き換えた。
+1957 年、Rosenblatt はその重みを<b>機械自身に決めさせた</b>。
+何が変わったのか、そしてこの計算点 1 個に何ができないのかを、手を動かして確かめる。</p>
+</div>
+
+<div class="fig-stage">
+<h2>① 重みと閾値を、手で決める</h2>
+<p>入力は 0 か 1 の 2 本。それぞれに重み $w_1, w_2$ を掛けて足し、合計が閾値 $\theta$ 以上なら
+出力は 1、そうでなければ 0。<b>これで全部だ</b>。
+重みと閾値を動かすと、同じ回路が AND になったり OR になったりする。</p>
+<div class="ctrls">
+  <label>$w_1$ <input type="range" id="w1" min="-2" max="2" step="1" value="1"></label>
+  <span class="tag" id="w1v">+1</span>
+  <label>$w_2$ <input type="range" id="w2" min="-2" max="2" step="1" value="1"></label>
+  <span class="tag" id="w2v">+1</span>
+  <label>$\theta$ <input type="range" id="th" min="-2" max="3" step="1" value="2"></label>
+  <span class="tag" id="thv">2</span>
+  <button class="btn ghost" id="pAnd">AND にする</button>
+  <button class="btn ghost" id="pOr">OR にする</button>
+</div>
+<div id="v1"></div>
+<div id="t1"></div>
+<div class="readout" id="r1"></div>
+<p class="note">1943 年の時点では、この $w$ と $\theta$ を決めるのは<b>人間</b>だった。
+作りたい論理が決まっていれば手で回せる。だが「作りたいものが分かっていない問題」には使えない。</p>
+</div>
+<div class="fig-stage">
+<h2>② 重みを、機械に決めさせる</h2>
+<p>1957 年のパーセプトロンは、答えだけを与えて重みを自分で直す。
+やり方は 1 つ——<b>間違えたときだけ、間違えた分だけ重みを動かす</b>。
+出したい答えが 1 なのに 0 を出したなら重みを増やし、逆なら減らす。それを繰り返す。</p>
+<div class="ctrls">
+  <button class="btn" id="step2">▶ 1 回学習する</button>
+  <button class="btn ghost" id="auto2">できるまで回す</button>
+  <button class="btn ghost" id="reset2">重みをでたらめに戻す</button>
+  <label>教えたい論理 <select id="task2">
+    <option value="and">AND</option>
+    <option value="or">OR</option>
+  </select></label>
+</div>
+<div id="v2"></div>
+<p class="fig-legend"><span class="lg-dot fill"></span>1 を出したい<span class="lg-dot"></span>0 を出したい<span class="lg-dot bad"></span>いま間違えている</p>
+<div class="readout" id="r2"></div>
+<p class="note">人が正解の重みを知っている必要はない。<b>合っているか間違っているかを言うだけ</b>で、
+重みは勝手に決まっていく。これが「学習」と呼ばれたものの中身だ。</p>
+</div>
+<div class="fig-stage">
+<h2>③ できないこと — 直線 1 本では分けられない</h2>
+<p>計算点 1 個がやっているのは、平面に<b>直線を 1 本引いて、上と下で答えを変える</b>ことだ。
+AND も OR も直線 1 本で分けられる。では XOR（どちらか一方だけが 1 のとき 1）はどうか。
+直線を回して、4 点を正しく分けられるか試してほしい。</p>
+<div class="ctrls">
+  <label>直線の向き <input type="range" id="ang" min="0" max="179" value="45"></label>
+  <span class="tag" id="angv">45°</span>
+  <label>位置 <input type="range" id="off" min="-140" max="140" value="0"></label>
+  <button class="btn ghost" id="task3and">AND を分ける</button>
+  <button class="btn ghost" id="task3xor">XOR を分ける</button>
+</div>
+<div id="v3"></div>
+<p class="fig-legend"><span class="lg-dot fill"></span>1 を出したい<span class="lg-dot"></span>0 を出したい<span class="lg-dot bad"></span>線の反対側にある</p>
+<div class="readout" id="r3"></div>
+</div>
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_turing.html">← チューリングテスト</a><a class="fp-comm" href="commentary.html#scene2">解説 Scene 2「パーセプトロンの興奮と絶望」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_mycin.html">MYCIN 推論 →</a></nav></div>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  function svg(w,h,inner){return '<svg width="100%" viewBox="0 0 '+w+' '+h+
+    '" style="max-width:'+w+'px;display:block;margin:6px auto">'+inner+'</svg>'}
+  var IN=[[0,0],[0,1],[1,0],[1,1]];
+  function truth(f){ return IN.map(function(p){ return f(p[0],p[1]) }) }
+  var TASK={and:function(a,b){return a&&b?1:0}, or:function(a,b){return a||b?1:0},
+            xor:function(a,b){return (a?1:0)^(b?1:0)}};
+
+  /* ---------- ① 手で決める ---------- */
+  function fire(w1,w2,th,x1,x2){ return (w1*x1+w2*x2>=th)?1:0 }
+  function draw1(){
+    var w1=+$('#w1').value, w2=+$('#w2').value, th=+$('#th').value;
+    $('#w1v').textContent=(w1>0?'+':'')+w1; $('#w2v').textContent=(w2>0?'+':'')+w2;
+    $('#thv').textContent=th;
+    var g='';
+    /* 回路図 */
+    var nx=330, ny=95;
+    [[0,60,'x1'],[1,140,'x2']].forEach(function(it){
+      var w=(it[0]===0?w1:w2);
+      g+='<circle class="nd" cx="120" cy="'+it[1]+'" r="22"/>';
+      g+='<text class="tx" x="120" y="'+(it[1]+5)+'">'+(it[0]===0?'x₁':'x₂')+'</text>';
+      g+='<path class="ed '+(w<0?'neg':'pos')+'" stroke-width="'+(1+Math.abs(w)*1.5)+
+         '" d="M142 '+it[1]+' L'+(nx-26)+' '+ny+'"/>';
+      g+='<text class="lb c" x="238" y="'+(it[1]+(it[0]===0?-8:20))+'">重み '+(w>0?'+':'')+w+'</text>';
+    });
+    g+='<circle class="nd" cx="'+nx+'" cy="'+ny+'" r="30"/>';
+    g+='<text class="tx" x="'+nx+'" y="'+(ny+5)+'">≥ '+th+'</text>';
+    g+='<text class="lb c" x="'+nx+'" y="'+(ny+50)+'">合計が閾値以上なら 1</text>';
+    g+='<path class="ed pos" stroke-width="2" d="M'+(nx+32)+' '+ny+' L'+(nx+92)+' '+ny+'"/>';
+    g+='<text class="lb" x="'+(nx+100)+'" y="'+(ny+5)+'">出力 y</text>';
+    $('#v1').innerHTML=svg(500,180,g);
+    /* 真理値表 */
+    var rows=IN.map(function(p){
+      var s=w1*p[0]+w2*p[1], y=fire(w1,w2,th,p[0],p[1]);
+      return '<tr><td>'+p[0]+'</td><td>'+p[1]+'</td><td>'+s+'</td>'+
+             '<td class="'+(y?'y1':'')+'">'+y+'</td></tr>';
+    }).join('');
+    $('#t1').innerHTML='<table class="tt"><tr><th>x₁</th><th>x₂</th>'+
+      '<th>w₁x₁+w₂x₂</th><th>出力 y</th></tr>'+rows+'</table>';
+    var got=truth(function(a,b){return fire(w1,w2,th,a,b)}).join('');
+    var name=null;
+    Object.keys(TASK).forEach(function(k){ if(truth(TASK[k]).join('')===got) name=k.toUpperCase() });
+    $('#r1').innerHTML = name
+      ? 'いまの設定は <b>'+name+'</b> になっている。'+
+        (name==='XOR' ? '' : ' 重みか閾値を 1 つ変えると、別の論理に変わる。')
+      : 'いまの設定は既知の論理と一致しない（出力は '+got+'）。'+
+        ' AND は「両方 1 のときだけ」、OR は「どちらか 1 なら」。ボタンで合わせてみてほしい。';
+  }
+  ['#w1','#w2','#th'].forEach(function(s){ $(s).oninput=draw1 });
+  $('#pAnd').onclick=function(){ $('#w1').value=1;$('#w2').value=1;$('#th').value=2; draw1(); };
+  $('#pOr').onclick=function(){ $('#w1').value=1;$('#w2').value=1;$('#th').value=1; draw1(); };
+
+  /* ---------- ② 機械が決める ---------- */
+  var W=[0,0,0], epoch=0, done=false;   /* W[0]=バイアス */
+  var _seed=0;
+  function rnd(){ _seed++; return Math.round(Math.sin(_seed*12.9898+epoch*7.13)*2) }
+  function predict(x1,x2){ return (W[0]+W[1]*x1+W[2]*x2>0)?1:0 }
+  /* データ座標 (u,v) ↔ 画面座標。u,v は -0.35〜1.35 を描く */
+  var OX=150, OY=205, SC=115, LO=-0.35, HI=1.35;
+  function SX(u){ return OX+u*SC } function SY(v){ return OY-v*SC }
+  function frame(g){
+    g.push('<line class="ax" x1="'+SX(LO)+'" y1="'+SY(0)+'" x2="'+SX(HI)+'" y2="'+SY(0)+'"/>');
+    g.push('<line class="ax" x1="'+SX(0)+'" y1="'+SY(LO)+'" x2="'+SX(0)+'" y2="'+SY(HI)+'"/>');
+    g.push('<text class="lb" x="'+(SX(HI)+6)+'" y="'+(SY(0)+5)+'">x₁</text>');
+    g.push('<text class="lb c" x="'+SX(0)+'" y="'+(SY(HI)-8)+'">x₂</text>');
+  }
+  /* w0 + w1 u + w2 v = 0 を可視範囲でクリップして 1 本の線分にする */
+  function clipLine(w0,w1,w2){
+    var pts=[];
+    if(w2!==0){ [LO,HI].forEach(function(u){ var v=-(w0+w1*u)/w2;
+      if(v>=LO-1e-9&&v<=HI+1e-9) pts.push([u,v]); }); }
+    if(w1!==0){ [LO,HI].forEach(function(v){ var u=-(w0+w2*v)/w1;
+      if(u>=LO-1e-9&&u<=HI+1e-9) pts.push([u,v]); }); }
+    if(pts.length<2) return null;
+    return [pts[0], pts[pts.length-1]];
+  }
+  function draw2(msg){
+    var g=[]; frame(g);
+    var seg=clipLine(W[0],W[1],W[2]);
+    if(seg) g.push('<path class="bd" d="M'+SX(seg[0][0])+' '+SY(seg[0][1])+
+                   ' L'+SX(seg[1][0])+' '+SY(seg[1][1])+'"/>');
+    var task=TASK[$('#task2').value], wrong=0;
+    IN.forEach(function(p){
+      var want=task(p[0],p[1]), got=predict(p[0],p[1]);
+      if(want!==got) wrong++;
+      g.push('<circle class="pt '+(want?'one':'zero')+(want!==got?' bad':'')+
+             '" cx="'+SX(p[0])+'" cy="'+SY(p[1])+'" r="9"/>');
+    });
+    $('#v2').innerHTML=svg(520,250,g.join(''));
+    var ws='重み ('+W.map(function(v){return (v>0?'+':'')+v}).join(', ')+')';
+    var out=[];
+    if(msg) out.push(msg);
+    if(!seg) out.push('いまの重みでは、境界線が図の外にある（4 点すべてが同じ側）。');
+    out.push(wrong===0
+      ? '<b>4 つとも当たった。</b>学習は止まる——'+ws+'。誰も正解の重みを教えていない。'
+      : '<b>'+wrong+' 個</b>間違えている。'+ws+'。「▶ 1 回学習する」で直す。');
+    $('#r2').innerHTML=out.join(' ');
+  }
+  function learn(){
+    if(done) return false;
+    var task=TASK[$('#task2').value], changed=false;
+    for(var i=0;i<IN.length;i++){
+      var p=IN[i], want=task(p[0],p[1]), got=predict(p[0],p[1]);
+      if(want!==got){
+        var d=want-got;
+        W[0]+=d; W[1]+=d*p[0]; W[2]+=d*p[1];
+        changed=true; break;                 /* 1 回に 1 個だけ直す（見えるように） */
+      }
+    }
+    epoch++;
+    if(!changed) done=true;
+    return changed;
+  }
+  function reset2(){
+    epoch++; done=false;
+    W=[rnd(), rnd(), rnd()];
+    draw2('でたらめな重みから始める。');
+  }
+  $('#step2').onclick=function(){
+    var ch=learn();
+    draw2(ch ? '間違えた 1 つを見て、重みを直した。' : '直すところが無い＝できあがり。');
+  };
+  $('#auto2').onclick=function(){ var n=0; while(learn()&&n<200) n++;
+    draw2('<b>'+n+' 回</b>直したら、間違いが無くなった。'); };
+  $('#reset2').onclick=reset2;
+  $('#task2').onchange=function(){ done=false; draw2('教えたい論理を変えた。'); };
+
+  /* ---------- ③ 直線 1 本の限界 ---------- */
+  var task3='and';
+  function draw3(){
+    var ang=+$('#ang').value, off=+$('#off').value;
+    $('#angv').textContent=ang+'°';
+    var g=[]; frame(g);
+    /* 向き ang・オフセット off の直線を、法線形式にしてから同じクリップに掛ける */
+    var rad=ang*Math.PI/180, nx=-Math.sin(rad), ny=Math.cos(rad);
+    var w0=-(nx*0.5+ny*0.5) - off/300, w1=nx, w2=ny;
+    var seg=clipLine(w0,w1,w2);
+    if(seg) g.push('<path class="bd" d="M'+SX(seg[0][0])+' '+SY(seg[0][1])+
+                   ' L'+SX(seg[1][0])+' '+SY(seg[1][1])+'"/>');
+    var f=TASK[task3], wrong=0;
+    IN.forEach(function(p){
+      var side=(w0+w1*p[0]+w2*p[1])>0 ? 1:0;
+      var want=f(p[0],p[1]);
+      if(side!==want) wrong++;
+      g.push('<circle class="pt '+(want?'one':'zero')+(side!==want?' bad':'')+
+             '" cx="'+SX(p[0])+'" cy="'+SY(p[1])+'" r="10"/>');
+    });
+    $('#v3').innerHTML=svg(520,250,g.join(''));
+    var name=task3.toUpperCase();
+    $('#r3').innerHTML = wrong===0
+      ? '<b>'+name+' は分けられた。</b>4 点が線の正しい側にそろっている。'
+      : (task3==='xor'
+          ? '<b>まだ '+wrong+' 点</b>が反対側にある。XOR は、どう回しても・どこへ動かしても'+
+            '<b>直線 1 本では分けられない</b>——●が対角、○が対角に置かれているからだ。'+
+            ' 計算点 1 個にできることは、ここまで。'
+          : '<b>'+wrong+' 点</b>が反対側にある。角度と位置を調整すれば分けられる。');
+  }
+  $('#ang').oninput=draw3; $('#off').oninput=draw3;
+  $('#task3and').onclick=function(){ task3='and'; draw3(); };
+  $('#task3xor').onclick=function(){ task3='xor'; $('#ang').value=45; $('#off').value=0; draw3(); };
+
+  draw1(); reset2(); draw3();
+})();
+</script>
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>

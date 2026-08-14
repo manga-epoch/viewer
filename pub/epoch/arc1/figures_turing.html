@@ -136,7 +136,7 @@ input[type=range]{accent-color:var(--arc)}
 </style></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; チューリングテスト</div>
-<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures.html">← 図解一覧</a><a class="fp-comm" href="commentary.html#scene1">解説 Scene 1「ダートマスの夏」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_mp.html">MP ニューロン →</a></nav></div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures.html">← 図解一覧</a><a class="fp-comm" href="commentary.html#scene1">解説 Scene 1「ダートマスの夏」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_neuron.html">1 個の計算点 →</a></nav></div>
 
 <div class="intro">
 <h1>チューリングテスト — 知能を測る最初の物差し</h1><p>1950 年、Turing は「機械は考えるか？」という曖昧な問いを「審査員は機械と人間を見分けられるか？」という観測できる問いに置き換えました。あなたが審査員になって時代別に機械を見分け、さらに 1966 年の ELIZA のルール表を覗いて、「機械が言葉を理解するふり」の正体を確かめてみましょう。</p>
@@ -325,45 +325,11 @@ elRespond();
 </script>
 </div>
 
-<div class="section">
-<h3>解説</h3>
-<div class="pros-cons">
-<div class="achieved">1950年、Turing は「機械は考えるか」という曖昧な問いを、<strong>外から観測できる振る舞い</strong>の問いに変換した ―― AI に初めて測定可能な目標を与えた</div>
-<div class="achieved">ダートマス会議（1956）の 6 年前。この「知能とは何か」の操作的定義が、その後すべての AI 研究の出発点になった</div>
-<div class="challenge"><strong>中国語の部屋</strong>（サール, 1980）: ルール表に従って中国語を返す人は、中国語を「理解」しているのか？ → 正しく振る舞えても「理解」とは限らない、という反論</div>
-<div class="con">現代の大規模言語モデルは事実上テストを通過した。だが「賢く見える」ことは「賢い」ことと同じなのか？ 議論は今も続いている</div>
-</div>
-<div style="margin-top:12px;background:#FAFAF7;border-left:3px solid #3f6178;border-radius:4px;padding:10px 14px;font-size:13px;color:#565248">
-<strong style="color:#5B7C99">直感的に</strong>: カーテン越しに誰かと話して、相手がロボットだと気づけなければ「十分に賢い」。中身（意識があるか）は問わず、外から見える振る舞いだけで判定する ―― これがチューリングの大胆な割り切りでした。
-</div>
-</div>
-
-<div class="section">
-<h3>詳細解説</h3>
-<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
-<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">① 模倣ゲームの原型</div>
-Turing の原論文は、まず「男・女・審査員」の 3 人ゲームを示す。審査員は文字の質問だけで男女を当てる。次に「男」を機械に置き換える ―― これが模倣ゲーム。狙いは <strong>相手の正体を直接見せない</strong>こと。声や外見という先入観を排し、純粋に「知的な振る舞い」だけを評価する。
-</div>
-<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
-<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">② 時代で変わる「化け方」</div>
-<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px">
-<tr style="background:#F4F2EC"><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">機械</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">年代</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">仕組み</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">見抜きどころ</th></tr>
-<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">ELIZA</td><td style="border:1px solid #E4E1D8;padding:6px 8px">1966</td><td style="border:1px solid #E4E1D8;padding:6px 8px">言葉を質問で返す型</td><td style="border:1px solid #E4E1D8;padding:6px 8px">自分を語れない</td></tr>
-<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">PARRY / A.L.I.C.E.</td><td style="border:1px solid #E4E1D8;padding:6px 8px">1972–2000年代</td><td style="border:1px solid #E4E1D8;padding:6px 8px">パターン応答の辞書</td><td style="border:1px solid #E4E1D8;padding:6px 8px">矛盾・深掘りに弱い</td></tr>
-<tr><td style="border:1px solid #E4E1D8;padding:6px 8px">大規模言語モデル</td><td style="border:1px solid #E4E1D8;padding:6px 8px">2020年代</td><td style="border:1px solid #E4E1D8;padding:6px 8px">巨大データで次の語を予測</td><td style="border:1px solid #E4E1D8;padding:6px 8px">整いすぎ・即答すぎ</td></tr>
-</table>
-<div style="color:#5fa86f;margin-top:6px">ポイント: 70 年かけて「見抜きどころ」は、機械の弱点から人間の癖へと逆転した。</div>
-</div>
-<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
-<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">③ では、機械はどうやって賢くなる？</div>
-チューリングテストは「知能のゴール」を定めた。だが <strong>どうやってそこに到達するか</strong> は別問題。ダートマス会議では道が 2 つに分かれる ―― ルールを人間が書く <strong>記号主義</strong> と、脳のニューロンを真似る <strong>結合主義</strong>。次の図解では、その結合主義の出発点 ―― 1943年に生まれた「最初の人工ニューロン」に触れる。
-</div>
-</div>
 </div></div>
 
 
 
-<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures.html">← 図解一覧</a><a class="fp-comm" href="commentary.html#scene1">解説 Scene 1「ダートマスの夏」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_mp.html">MP ニューロン →</a></nav></div>
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures.html">← 図解一覧</a><a class="fp-comm" href="commentary.html#scene1">解説 Scene 1「ダートマスの夏」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_neuron.html">1 個の計算点 →</a></nav></div>
 
 <footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
 </body>
