@@ -134,7 +134,9 @@ input[type=range]{accent-color:var(--arc)}
 
 <div class="fig-stage">
 <h2>モンテカルロ木探索を 1 反復ずつ</h2>
-<div class="lead">各ノードは局面、数字は <strong>訪問回数 / 推定勝率</strong>。「1 反復」で <strong>選択 → 展開 → 評価 → 逆伝播</strong> が走り、有望な枝の訪問回数が増えていく。policy が初期確率 (枝の太さ)、value が評価を与える。</div>
+<div class="lead">囲碁は<b>強化学習</b>の題材だ——正解の手は誰も教えてくれず、<b>報酬</b>は勝敗として
+対局の最後にまとめて届く。その中で「どの手が良さそうか」を絞り込むのが木探索である。
+各ノードは局面、数字は <strong>訪問回数 / 推定勝率</strong>。「1 反復」で <strong>選択 → 展開 → 評価 → 逆伝播</strong> が走り、有望な枝の訪問回数が増えていく。policy が初期確率 (枝の太さ)、value が評価を与える。</div>
 <div class="ctrls">
   <button class="btn" id="iterBtn">▶ 1 反復 (select→expand→eval→backup)</button>
   <button class="btn ghost" id="iter10">10 反復</button>

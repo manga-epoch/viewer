@@ -117,7 +117,7 @@ input[type=range]{accent-color:var(--arc)}
 <div class="intro">
 <div class="eyebrow">EPOCH Arc 2 ・ 図解 Lab</div>
 <h1>図解一覧 — Arc 2「覚醒」</h1>
-<p>マンガで描いたディープラーニング革命 (1991-2017) の核心を、<strong>10 本の図解</strong>で「触れて」理解する。
+<p>マンガで描いたディープラーニング革命 (1991-2017) の核心を、<strong>12 本の図解</strong>で「触れて」理解する。
 ニューラルネットの土台を組み (パーセプトロン→逆伝播)、畳み込みフィルタを滑らせ (CNN)、ImageNet の誤り率の崖を辿り、残差接続で勾配消失を解き (ResNet)、
 時間を展開し (RNN/LSTM)、自己注意の重みを見て (Transformer)、探索木を育てる (AlphaGo) ―― マンガ → 解説 → 図解 の最終段階。</p>
 </div>
@@ -157,10 +157,26 @@ input[type=range]{accent-color:var(--arc)}
 <p>機械が直観を見せた日。<strong>モンテカルロ木探索</strong>の 4 フェーズを 1 手ずつ進め、policy/value ネットワークが探索をどう導くかを観察する (Move 37)。</p>
 <span class="fig-tag">体験</span><span class="fig-tag">MCTS</span><span class="fig-tag">強化学習</span>
 </a></div>
-<div class="fig-card"><a href="figures_gnn.html">
-<h3>つながりを学ぶ <small>(参考・GNN)</small></h3>
-<p>画像は格子、文は列。友人関係や分子は<strong>つながり方が不規則</strong>で畳み込みが効かない。隣から集めて自分を更新する仕組みを動かし、<strong>GCN と GAT</strong> の集め方の違いを見比べ、層を重ねすぎて全員が同じ顔になる様子まで確かめる。</p>
-<span class="fig-tag">体験</span><span class="fig-tag">GNN</span><span class="fig-tag">GCN/GAT</span>
+<div class="fig-card"><a href="figures_basis.html">
+<h3>何を手がかりに学ぶのか <small>(Scene 1)</small></h3>
+<p><strong>教師あり・教師なし・強化</strong>の三つで何が違うのかを見比べ、<strong>事前学習</strong>で層を一枚ずつ積んで初期値を作る様子を動かす。事前学習を切ると、深くした途端に信号が届かなくなる。</p>
+<span class="fig-tag">体験</span><span class="fig-tag">学習の三分類</span><span class="fig-tag">事前学習</span>
+</a></div>
+<div class="fig-card"><a href="figures_depth.html">
+<h3>深さの積み方 <small>(Scene 5)</small></h3>
+<p>同じ広さを見るのに <strong>7×7 を 1 枚</strong>か <strong>3×3 を 3 枚</strong>か（VGG）。<strong>Inception</strong> は大きさを選ばず並列にかけ、1×1 で厚みを削って計算量を抑える。その差を数字で確かめる。</p>
+<span class="fig-tag">体験</span><span class="fig-tag">VGG</span><span class="fig-tag">Inception</span>
+</a></div>
+<div class="fig-card"><a href="figures_classic.html">
+<h3>深層学習の前にあったもの <small>(Scene 1)</small></h3>
+<p><strong>SVM</strong> が「いちばん余裕のある境界」を選ぶ様子、直線で切れない配置を<strong>カーネル</strong>で持ち上げる様子、<strong>決定木</strong>を深くすると歪み<strong>森</strong>にすると落ち着くこと、<strong>k-means</strong> が正解なしでかたまりを見つけること。</p>
+<span class="fig-tag">体験</span><span class="fig-tag">SVM</span><span class="fig-tag">古典ML</span>
+</a></div>
+<div class="fig-card"><a href="figures_embed.html">
+<h3>言葉を、場所に変える</h3>
+<p class="fc-scene">補講 2 ／ 言葉の地図</p>
+<p>語を空間の点として置く。周りの語だけで意味が決まること（分布仮説）、
+「王 − 男 + 女」が足し引きできる理由、そして 1 語 1 ベクトルの限界までを触って確かめる。</p>
 </a></div>
 <div class="fig-card"><a href="figures_alexnet.html">
 <h3>2012 年に何が揃ったのか <small>(Scene 4)</small></h3>

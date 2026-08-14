@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>つながりを学ぶ — グラフニューラルネット — EPOCH Arc 2 図解</title>
+<title>何を手がかりに学ぶのか — EPOCH Arc 2 図解</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
@@ -73,19 +73,18 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 .fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
 @media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
 
-svg .ed{stroke:#b9b9b2;stroke-width:2}
-svg .ed.hot{stroke:#6E7BA8;stroke-width:3.2}
-svg .nd{fill:#fff;stroke:#1a1a1a;stroke-width:2.2}
-svg .nd.self{fill:#1a1a1a}
-svg .nd.h1{fill:#c9cee0}
-svg .nd.h2{fill:#e4e7ef}
-svg .nd.same{fill:#cfcfc8}
-svg .nl{font:700 13px var(--font-sans);fill:#1a1a1a;text-anchor:middle}
-svg .nl.on{fill:#fff}
+svg .dot{stroke:#1a1a1a;stroke-width:1.6}
+svg .dot.a{fill:#1a1a1a}
+svg .dot.b{fill:#fff}
+svg .dot.q{fill:#cfcfc8}
+svg .bd{fill:none;stroke:#6E7BA8;stroke-width:2.4;stroke-dasharray:6 4}
+svg .box{fill:#fff;stroke:#1a1a1a;stroke-width:2}
+svg .box.on{fill:#cfcfc8}
+svg .box.pre{fill:#dfe3ee}
+svg .ed{stroke:#b9b9b2;stroke-width:1.4}
+svg .ax{stroke:#b9b9b2;stroke-width:1.4}
 svg .lb{font:600 12.5px var(--font-sans);fill:#565248}
-.tbl{border-collapse:collapse;font-size:13px;margin:8px auto}
-.tbl td,.tbl th{border:1px solid var(--border);padding:6px 14px;text-align:center}
-.tbl th{background:var(--surface);font-weight:700;font-size:12px;color:var(--ink-sub)}
+svg .lb.c{text-anchor:middle}
 .readout{background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13.5px;
  color:var(--ink-sub);margin-top:10px}
 .readout b{color:var(--ink)}
@@ -139,153 +138,102 @@ input[type=range]{accent-color:var(--arc)}
  border-radius:8px;padding:12px 14px}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
-<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; つながりを学ぶ — グラフニューラルネット</div>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 何を手がかりに学ぶのか</div>
 <div class="intro">
-<div class="eyebrow">ARC 2 ／ 参考 — つながりを学ぶ</div>
-<h1>つながりを学ぶ — グラフニューラルネット</h1>
-<p>画像は格子、文は列。どちらも「並び方」が決まっている。
-だが友人関係も、分子も、道路網も、<b>つながり方そのものが不規則</b>だ。
-畳み込みが効かないこの形をどう学ぶのか。</p>
+<div class="eyebrow">ARC 2 ／ SCENE 1 — 冬を越えた者たち</div>
+<h1>何を手がかりに学ぶのか</h1>
+<p>「機械が学ぶ」といっても、何を手がかりにするかで種類が分かれる。
+そして 2006 年、深い網を学習させる糸口になったのが<b>答えを使わない学習</b>だった。</p>
 </div>
 
 <div class="fig-stage">
-<h2>① 表に直すと、何が失われるか</h2>
-<p>同じデータを表として見ると、行はきれいに並ぶ。だが「誰と誰がつながっているか」は列に入らない。</p>
+<h2>① 手がかりの違い — 教師あり・教師なし・強化学習</h2>
+<p>同じ点の集まりでも、何が与えられているかで、できることが変わる。
+<b>教師あり学習</b>は正解ラベルを手がかりに境界を引く。<b>教師なし学習</b>は正解を使わず、
+似たもの同士を寄せて構造を見つける。<b>強化学習</b>は正解を教わらず、行動したあとに届く
+<b>報酬</b>で方策を直す。切り替えて見比べてほしい。</p>
 <div class="ctrls">
-  <button class="chip on" data-v="graph">グラフとして見る</button>
-  <button class="chip" data-v="table">表として見る</button>
+  <button class="chip on" data-k="sup">教師あり</button>
+  <button class="chip" data-k="uns">教師なし</button>
+  <button class="chip" data-k="rl">強化学習</button>
 </div>
-<div id="s1"></div>
+<div id="k1"></div>
 <div class="readout" id="r1"></div>
 </div>
 <div class="fig-stage">
-<h2>② 隣から集めて、自分を更新する</h2>
-<p>各ノードが隣の特徴を集めて自分を書き換える。これを 1 回、2 回と繰り返すと、
-情報が届く範囲が広がっていく。A から見て何回で誰まで届くかを見てほしい。</p>
+<h2>② 事前学習 — 一枚ずつ、答えを使わずに積む</h2>
+<p>深い網をいきなり全部learnさせると、奥まで信号が届かない。
+そこで層を一枚ずつ「入力を復元できるように」訓練し、良い初期値を作ってから積み上げる。</p>
 <div class="ctrls">
-  <button class="chip on" data-hop="0">0 回（自分だけ）</button>
-  <button class="chip" data-hop="1">1 回</button>
-  <button class="chip" data-hop="2">2 回</button>
-  <button class="chip" data-hop="3">3 回</button>
+  <button class="btn" id="stack">1 枚積む</button>
+  <button class="btn ghost" id="reset1">最初から</button>
+  <button class="chip on" id="pre-btn" aria-pressed="true">事前学習あり</button>
 </div>
-<div id="s2"></div>
+<div id="k2"></div>
 <div class="readout" id="r2"></div>
-</div>
-<div class="fig-stage">
-<h2>③ 集め方の違い — GCN と GAT</h2>
-<p>隣の情報をどう混ぜるか。全員を平等に扱うか、相手ごとに重みを学ぶか。</p>
-<div class="ctrls">
-  <button class="chip on" data-agg="gcn">GCN（次数で割る）</button>
-  <button class="chip" data-agg="gat">GAT（重要度を学ぶ）</button>
-</div>
-<div id="s3"></div>
-<div class="readout" id="r3"></div>
-</div>
-<div class="fig-stage">
-<h2>④ 重ねすぎると、みんな同じ顔になる</h2>
-<p>層を深くするほど遠くの情報が届く。だが混ぜ続けると、
-どのノードも同じような特徴に落ち着いてしまい、区別がつかなくなる。</p>
-<div class="ctrls">
-  <label>層の数 <input type="range" id="depth" min="1" max="10" value="2"></label>
-  <span class="tag" id="depth-v">2 層</span>
-</div>
-<div id="s4"></div>
-<div class="readout" id="r4"></div>
 </div>
 <div class="back-link"><a href="figures.html">← 図解一覧に戻る</a></div>
 <script>
 (function(){
   var $=function(s){return document.querySelector(s)}, $$=function(s){return [].slice.call(document.querySelectorAll(s))};
   var NS='http://www.w3.org/2000/svg';
-  var N=[[300, 60, 'A'], [170, 130, 'B'], [430, 130, 'C'], [110, 250, 'D'], [250, 250, 'E'], [390, 250, 'F'], [500, 250, 'G']], E=[[0, 1], [0, 2], [1, 3], [1, 4], [2, 5], [2, 6], [4, 5], [3, 4]];
-  function svg(w,h,inner){return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px;display:block;margin:0 auto" xmlns="'+NS+'">'+inner+'</svg>';}
-  function adj(i){ var a=[]; E.forEach(function(e){ if(e[0]===i)a.push(e[1]); if(e[1]===i)a.push(e[0]); }); return a; }
-  function draw(cls, hotEdges, extra){
-    var g='';
-    E.forEach(function(e,ei){
-      g+='<line class="ed'+((hotEdges&&hotEdges.indexOf(ei)>=0)?' hot':'')+'" x1="'+N[e[0]][0]+'" y1="'+N[e[0]][1]+'" x2="'+N[e[1]][0]+'" y2="'+N[e[1]][1]+'"/>';
-    });
-    N.forEach(function(n,i){
-      var c=cls?cls(i):'';
-      g+='<circle class="nd'+(c?' '+c:'')+'" cx="'+n[0]+'" cy="'+n[1]+'" r="20"/>';
-      g+='<text class="nl'+(c==='self'?' on':'')+'" x="'+n[0]+'" y="'+(n[1]+5)+'">'+n[2]+'</text>';
-    });
-    return svg(620,300,g+(extra||''));
-  }
+  function svg(w,h,i){return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px;display:block;margin:0 auto" xmlns="'+NS+'">'+i+'</svg>';}
 
-  // ① 表 vs グラフ
-  $$('[data-v]').forEach(function(b){b.onclick=function(){
-    $$('[data-v]').forEach(function(x){x.classList.remove('on')}); b.classList.add('on');
-    if(b.dataset.v==='graph'){
-      $('#s1').innerHTML=draw(null,null);
-      $('#r1').innerHTML='つながり（辺）そのものが情報を持つ。<b>B と C は同じ「A の隣」だが、その先の顔ぶれが違う</b>。';
-    }else{
-      var rows=N.map(function(n,i){ return '<tr><td>'+n[2]+'</td><td>'+adj(i).length+'</td><td>'+(0.2+i*0.11).toFixed(2)+'</td></tr>'; }).join('');
-      $('#s1').innerHTML='<table class="tbl"><tr><th>ノード</th><th>つながりの数</th><th>特徴量</th></tr>'+rows+'</table>';
-      $('#r1').innerHTML='表に直すと行が並ぶだけで、<b>誰と誰がつながっているかは列に入らない</b>。'+
-        'つながりの数（次数）を足しても、相手が誰かは失われる。';
-    }}});
+  // ① 三分類
+  var P=[]; (function(){ for(var i=0;i<26;i++){ var g=i%2;
+    P.push({x:70+Math.random()*440, y:40+Math.random()*150, g:g}); } })();
+  var K={
+    sup:{r:'<b>教師あり学習</b>：一つ一つに正解ラベルが付いている。境界を引いて、次に来た点を仕分ける。'+
+           '画像の分類・翻訳・音声認識——Arc 2 で扱うものの多くはこれ。',
+         d:function(){ var g=''; P.forEach(function(p){ g+='<circle class="dot '+(p.g?'a':'b')+'" cx="'+p.x+'" cy="'+p.y+'" r="6"/>'; });
+           g+='<path class="bd" d="M90 200 Q300 40 520 170"/>';
+           g+='<text class="lb" x="70" y="222">● と ○ に正解が付いている → 境界を学ぶ</text>'; return g; }},
+    uns:{r:'<b>教師なし学習</b>：正解が無い。似たもの同士を寄せて<b>構造を見つける</b>。'+
+           'この章の事前学習も、答えを使わずに「入力の特徴」を掴む点でこの仲間。',
+         d:function(){ var g=''; P.forEach(function(p){ g+='<circle class="dot q" cx="'+p.x+'" cy="'+p.y+'" r="6"/>'; });
+           g+='<ellipse class="bd" cx="190" cy="100" rx="110" ry="66"/><ellipse class="bd" cx="410" cy="130" rx="110" ry="60"/>';
+           g+='<text class="lb" x="70" y="222">正解は無い。近いもの同士がかたまりに見える</text>'; return g; }},
+    rl:{r:'<b>強化学習</b>：正解は教わらない。行動して、あとから<b>報酬</b>が返る。'+
+          'その積み重ねで方策を直す。Scene 7 の AlphaGo がこれにあたる。',
+        d:function(){
+          var g='<rect class="box" x="80" y="70" width="130" height="56"/><text class="lb c" x="145" y="103">打ち手</text>'+
+                '<rect class="box" x="390" y="70" width="130" height="56"/><text class="lb c" x="455" y="103">環境（盤面）</text>'+
+                '<path class="bd" d="M212 88 L388 88" marker-end=""/><text class="lb c" x="300" y="80">行動</text>'+
+                '<path class="bd" d="M388 112 L212 112"/><text class="lb c" x="300" y="130">状態・報酬</text>'+
+                '<text class="lb" x="80" y="180">正解は無い。勝敗という報酬が、ずっと後になって返ってくる</text>';
+          return g; }}};
+  function k1(k){ $('#k1').innerHTML=svg(580,240,K[k].d()); $('#r1').innerHTML=K[k].r; }
+  $$('[data-k]').forEach(function(b){b.onclick=function(){
+    $$('[data-k]').forEach(function(x){x.classList.remove('on')}); b.classList.add('on'); k1(b.dataset.k); }});
 
-  // ② メッセージパッシング
-  function hop(k){
-    var reach={0:0}, frontier=[0];
-    for(var d=1; d<=k; d++){
-      var nx=[]; frontier.forEach(function(i){ adj(i).forEach(function(j){ if(!(j in reach)){reach[j]=d; nx.push(j);} }); });
-      frontier=nx;
+  // ② 事前学習
+  var n=0;
+  function k2(){
+    var pre=$('#pre-btn').getAttribute('aria-pressed')==='true';
+    var g='', W=560, base=210;
+    for(var i=0;i<4;i++){
+      var built=i<n, y=base-i*44;
+      var cls = !built ? 'box' : (pre?'box pre':'box on');
+      g+='<rect class="'+cls+'" x="150" y="'+y+'" width="260" height="30"/>';
+      g+='<text class="lb c" x="280" y="'+(y+20)+'">第 '+(i+1)+' 層</text>';
+      if(built && pre) g+='<text class="lb" x="424" y="'+(y+20)+'">初期値ができた</text>';
     }
-    var hotE=[]; E.forEach(function(e,ei){ if((e[0] in reach)&&(e[1] in reach)&&Math.abs(reach[e[0]]-reach[e[1]])===1) hotE.push(ei); });
-    $('#s2').innerHTML=draw(function(i){ return i===0?'self':(reach[i]===1?'h1':(reach[i]>=2?'h2':'')); }, hotE);
-    var cnt=Object.keys(reach).length;
-    var names=Object.keys(reach).filter(function(i){return +i!==0}).map(function(i){return N[i][2]}).join('・');
-    $('#r2').innerHTML = k===0
-      ? 'まだ自分の特徴だけ。'
-      : k+' 回くり返すと <b>'+k+' ホップ先</b>まで届く。A が知るのは '+names+' の '+(cnt-1)+' 個。'+
-        (cnt===N.length? ' <b>グラフ全体に届いた</b>。':'');
+    g+='<text class="lb c" x="280" y="'+(base+52)+'">入力</text>';
+    $('#k2').innerHTML=svg(W,270,g);
+    var deep = n>=3;
+    $('#r2').innerHTML = pre
+      ? (n===0 ? '「1 枚積む」を押すと、層を 1 枚ずつ<b>答えを使わずに</b>訓練して初期値を作る。'
+         : n+' 枚ぶんの初期値ができた。'+(deep?'ここまで積んでから全体を微調整すると、<b>奥の層まで学習が届く</b>。これが 2006 年の突破口。':''))
+      : '事前学習なしでいきなり深く積むと、'+(deep?'<b>誤差の信号が奥へ届く前に消える</b>（勾配消失）。当時これが壁だった。'
+                                                :'まだ浅いので学習できる。もっと積んでみてほしい。');
   }
-  $$('[data-hop]').forEach(function(b){b.onclick=function(){
-    $$('[data-hop]').forEach(function(x){x.classList.remove('on')}); b.classList.add('on'); hop(+b.dataset.hop); }});
+  $('#stack').onclick=function(){ n=Math.min(4,n+1); k2(); };
+  $('#reset1').onclick=function(){ n=0; k2(); };
+  $('#pre-btn').onclick=function(){ var on=this.getAttribute('aria-pressed')==='true';
+    this.setAttribute('aria-pressed',!on); this.classList.toggle('on',!on);
+    this.textContent='事前学習'+(!on?'あり':'なし'); k2(); };
 
-  // ③ GCN vs GAT
-  function agg(kind){
-    var i=0, nb=adj(i), extra='', w;
-    if(kind==='gcn'){
-      w=nb.map(function(j){ return 1/Math.sqrt((adj(i).length+1)*(adj(j).length+1)); });
-    }else{
-      var raw=nb.map(function(j,k){ return Math.exp([1.6,0.5][k]||0.8); });
-      var s=raw.reduce(function(a,b){return a+b},0); w=raw.map(function(v){return v/s});
-    }
-    nb.forEach(function(j,k){
-      var mx=(N[i][0]+N[j][0])/2, my=(N[i][1]+N[j][1])/2;
-      extra+='<rect x="'+(mx-24)+'" y="'+(my-12)+'" width="48" height="20" rx="6" fill="#fff" stroke="#6E7BA8"/>'+
-             '<text class="lb" x="'+mx+'" y="'+(my+3)+'" text-anchor="middle" fill="#3f6178">'+w[k].toFixed(2)+'</text>';
-    });
-    var hotE=[]; E.forEach(function(e,ei){ if(e[0]===i||e[1]===i) hotE.push(ei); });
-    $('#s3').innerHTML=draw(function(x){ return x===i?'self':(nb.indexOf(x)>=0?'h1':''); }, hotE, extra);
-    $('#r3').innerHTML = kind==='gcn'
-      ? '<b>GCN</b>：重みは<b>つながりの数だけ</b>で決まる（次数で割って正規化）。学習しない。'+
-        'friend が多いノードの声は薄まる。'
-      : '<b>GAT</b>：相手ごとの<b>重要度を学習</b>する（Attention）。同じ隣でも重みが違う。'+
-        'Transformer の自己注意を、並びの決まっていないグラフに持ち込んだ形。';
-  }
-  $$('[data-agg]').forEach(function(b){b.onclick=function(){
-    $$('[data-agg]').forEach(function(x){x.classList.remove('on')}); b.classList.add('on'); agg(b.dataset.agg); }});
-
-  // ④ over-smoothing
-  function smooth(){
-    var d=+$('#depth').value; $('#depth-v').textContent=d+' 層';
-    var sim=1-Math.exp(-d*0.42);                       // 全ノードが似ていく度合い
-    $('#s4').innerHTML=draw(function(i){ return sim>0.82?'same':(i===0?'self':(sim>0.5?'h2':'')); });
-    $('#r4').innerHTML = d<=2
-      ? '近くの情報だけを見ている。<b>ノードごとの個性が残っている</b>。'
-      : d<=5 ? 'ほどよく混ざっている。ふつうの GNN はこのくらい（2〜4 層）で止める。'
-      : '混ぜすぎて<b>どのノードも同じ特徴に落ち着いた</b>（over-smoothing）。'+
-        'これが GNN を深くしにくい理由で、残差接続や Jumping Knowledge で緩和する。';
-  }
-  $('#depth').oninput=smooth;
-
-  $('#s1').innerHTML=draw(null,null);
-  $('#r1').innerHTML='つながり（辺）そのものが情報を持つ。<b>B と C は同じ「A の隣」だが、その先の顔ぶれが違う</b>。';
-  hop(0); agg('gcn'); smooth();
+  k1('sup'); k2();
 })();
 </script>
 <footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>

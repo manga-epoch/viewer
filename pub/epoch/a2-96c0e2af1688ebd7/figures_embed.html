@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>言葉を、場所に変える — EPOCH Arc 2 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+</script>
+<style>
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.9;margin:0;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+.fig-crumb{max-width:860px;margin:18px auto 0;padding:0 20px;font-size:12.5px;color:var(--ink-muted)}
+.fig-crumb a{color:var(--link);text-decoration:underline}
+.fig-crumb a:hover{color:var(--ink)}
+.intro{max-width:760px;margin:40px auto 8px;padding:0 20px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub);margin-bottom:12px}
+.intro h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:0 0 12px}
+.intro p{color:var(--ink-sub);font-size:15.5px;line-height:1.9}
+.intro strong{color:var(--ink)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;max-width:880px;margin:26px auto;padding:24px 22px}
+.fig-stage h2{font-size:1.15rem;font-weight:700;margin:6px 0 4px;letter-spacing:-.01em}
+.fig-stage h2::before{content:"";display:inline-block;width:22px;height:3px;background:var(--arc);border-radius:2px;margin-right:10px;vertical-align:middle}
+.fig-stage .lead{color:var(--ink-sub);font-size:14px;margin:2px 0 18px;line-height:1.8}
+.fig-stage h3{font-size:1.0rem;font-weight:700;margin:26px 0 8px}
+.fig-stage p{font-size:14.5px;color:#2c2924}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrl{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-sub);min-width:120px}
+.ctrl label{font-weight:700;color:var(--ink);font-size:12.5px}
+.ctrl .val{font-variant-numeric:tabular-nums;color:var(--link);font-weight:700}
+input[type=range]{accent-color:var(--arc);width:100%}
+.btn{background:var(--ink);color:var(--bg);border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.btn.ghost.on{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1px solid var(--border);background:#fff;border-radius:18px;padding:6px 14px;font-size:12.5px;color:var(--ink-sub);cursor:pointer}
+.chip.on{border-color:var(--arc);background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+.grid-wrap{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;justify-content:center;margin:10px 0}
+.gcap{text-align:center;font-size:12px;color:var(--ink-muted);margin-top:8px}
+.formula{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:15px;text-align:center}
+.note{font-size:13px;color:var(--ink-sub);line-height:1.8}
+.readout{font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0;white-space:pre-wrap}
+.kv{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-sub)}
+.kv b{color:var(--ink)}
+table.mini{border-collapse:collapse;font-size:13.5px;margin:6px auto}
+table.mini th,table.mini td{border:1px solid var(--border);padding:7px 13px;text-align:center}
+table.mini th{background:var(--surface);font-weight:700}
+table.mini td.hl{background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+svg text{font-family:"Inter","Noto Sans JP",sans-serif}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-sub);justify-content:center;margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.back-link{max-width:820px;margin:36px auto 0;padding:0 20px;text-align:center}
+.back-link a{color:var(--ink);text-decoration:none;padding:11px 22px;background:#fff;border:1px solid #CFCBBE;border-radius:6px;display:inline-block;font-weight:600;font-size:14px}
+.back-link a:hover{background:var(--surface)}
+.fig-topnav{max-width:820px;margin:14px auto 0;padding:0 20px}
+.fig-pager{display:flex;flex-wrap:wrap;gap:8px 10px;justify-content:center;align-items:center}
+.fig-pager a{text-decoration:none;font-size:13px;font-weight:600;padding:9px 15px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--ink);line-height:1.3}
+.fig-pager a:hover{background:var(--surface)}
+.fig-pager .fp-comm{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.fig-pager .fp-idx{color:var(--ink-sub)}
+.fig-grid{max-width:840px;margin:28px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fig-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s,box-shadow .15s}
+.fig-card:hover{transform:translateY(-2px);border-color:var(--arc);box-shadow:0 8px 24px rgba(26,26,26,.08)}
+.fig-card a{display:block;padding:20px 22px;text-decoration:none;color:inherit}
+.fig-card h3{font-size:16px;font-weight:700;margin:0 0 6px}
+.fig-card h3 small{color:var(--ink-muted);font-size:11px;font-weight:400;margin-left:6px}
+.fig-card p{font-size:13px;line-height:1.7;color:var(--ink-sub);margin:0 0 8px}
+.fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
+
+svg .wd{font:600 13px var(--font-sans);fill:#1a1a1a;text-anchor:middle;
+ paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+svg .wd.dim{fill:#a8a49c}
+svg .wd.hit{fill:#6E7BA8}
+svg .dot{fill:#1a1a1a}
+svg .dot.dim{fill:#cfccc4}
+svg .dot.hit{fill:#6E7BA8}
+svg .arw{stroke:#6E7BA8;stroke-width:2.4;fill:none}
+svg .arw.g{stroke:#b9b9b2;stroke-width:1.6;stroke-dasharray:5 4}
+svg .ax{stroke:#e2e0d9;stroke-width:1.2}
+svg .lb{font:600 12px var(--font-sans);fill:#8c8880;
+ paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+svg .lb.c{text-anchor:middle}
+svg .box{fill:#fff;stroke:#1a1a1a;stroke-width:1.6}
+svg .box.win{fill:rgba(110,123,168,.14);stroke:#6E7BA8;stroke-width:2.2}
+svg .box.ctr{fill:#1a1a1a}
+svg .tk{font:600 13.5px var(--font-sans);fill:#1a1a1a;text-anchor:middle}
+svg .tk.ctr{fill:#fff}
+svg .bar{fill:#6E7BA8}
+svg .bar.o{fill:#d8d5cd}
+.readout{background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13.5px;
+ color:var(--ink-sub);margin-top:10px}
+.readout b{color:var(--ink)}
+.tag{display:inline-block;background:var(--surface);border:1px solid var(--border);
+ border-radius:14px;padding:3px 11px;font-size:12.5px;color:var(--ink-sub);margin-right:6px}
+.caveat{border-left:3px solid var(--border);padding:2px 0 2px 12px;color:var(--ink-sub);
+ font-size:13px;margin:12px 0 0}
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style><style class="epoch-theme">
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--surface-sunk:#EFEDE6;--border:#E4E1D8;--border-strong:#CFCBBE;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--link:#3f6178;--ok:#15803d;--bad:#b4493f;--font-sans:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;--font-serif:"Times New Roman","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;--radius:6px;--radius-lg:12px;--arc:#6E7BA8;--arcrgba:110,123,168}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);
+ line-height:1.9;letter-spacing:.02em;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+a{color:var(--link)}
+h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3}
+h2{font-size:1.15rem;font-weight:700;line-height:1.4}
+h3{font-size:1.02rem;font-weight:700;line-height:1.5}
+p,li{font-size:15px}
+.intro{max-width:760px;margin:0 auto;padding:34px 20px 6px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub)}
+.fig-crumb{font-size:12.5px;color:var(--ink-muted)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;
+ max-width:880px;margin:22px auto;padding:24px 22px}
+.fig-stage h2::before{content:"";display:block;width:22px;height:3px;background:var(--arc);
+ border-radius:2px;margin-bottom:10px}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrls label{font-size:13px;color:var(--ink-sub);font-weight:600}
+input[type=range]{accent-color:var(--arc)}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:var(--radius);
+ padding:9px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.chip{border-radius:18px;border:1px solid var(--border);background:#fff;
+ padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.chip[aria-pressed=true],.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* 旧テンプレ由来の器。行間と書体が散らばっていたので土台へ寄せる */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+ padding:20px;margin:16px 0;line-height:1.9;font-family:var(--font-sans)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.formula{background:var(--surface-sunk);border:1px solid var(--border);border-radius:8px;padding:14px}
+.val{color:var(--arc);font-weight:700}
+.pro{background:#e7f4ea;border:1px solid var(--ok);border-radius:8px;padding:12px 14px}
+.con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
+.achieved,.challenge{background:var(--surface);border:1px solid var(--border);
+ border-radius:8px;padding:12px 14px}
+</style><meta name="robots" content="noindex,nofollow"></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 言葉を、場所に変える</div>
+<div class="intro">
+<div class="eyebrow">ARC 2 ／ 補講 2 — 言葉の地図</div>
+<h1>言葉を、場所に変える</h1>
+<p>コンピュータは文字を読めない。数にするしかない。
+だが「りんご = 1、みかん = 2」と番号を振っても、その数どうしの近さには意味がない。
+<b>Word2Vec</b> (2013) がやったのは、意味の近い語が近くに来るように、
+語を<b>空間の点</b>として置き直すことだった。ここでは、その置き方と、置いた後にできることを触って確かめる。</p>
+</div>
+
+<div class="fig-stage">
+<h2>① 分布仮説 — 意味は「周りの語」が決める</h2>
+<p>「その語が何を意味するか」を辞書から教えるのではない。
+<b>どんな語と一緒に出てくるか</b>だけを大量の文から数える。
+周りの顔ぶれが似ていれば、意味も似ている——これが分布仮説だ。
+窓を端まで進めて、下の表がどう埋まるか見てほしい。</p>
+<div class="ctrls">
+  <button class="btn" id="slide">▶ 窓を 1 つ進める</button>
+  <button class="btn ghost" id="sauto">この文を最後まで</button>
+  <button class="btn ghost" id="sreset">数え直す</button>
+  <label>文 <select id="sent">
+    <option value="0">猫 が 縁側 で 眠る</option>
+    <option value="1">犬 が 縁側 で 眠る</option>
+  </select></label>
+</div>
+<div id="v1"></div>
+<div class="readout" id="r1"></div>
+</div>
+<div class="fig-stage">
+<h2>② 王 − 男 + 女 = ？ — 意味の差が「向き」になる</h2>
+<p>置き方がうまくいくと、不思議なことが起きる。
+「王」から「男」を引いて「女」を足すと、<b>「女王」のあたりに着く</b>。
+意味の差（身分の差・性別の差）が、空間の中の<b>一定の向き</b>として現れるからだ。
+足し引きを選んで、どこに着くか見てほしい。</p>
+<div class="ctrls">
+  <label><select id="a"></select></label>
+  <span class="tag">−</span>
+  <label><select id="b"></select></label>
+  <span class="tag">＋</span>
+  <label><select id="c"></select></label>
+  <button class="btn" id="go">計算する</button>
+</div>
+<div id="v2"></div>
+<div class="readout" id="r2"></div>
+<p class="caveat">この平面は説明のために作った模式で、実際の学習結果ではない。
+本物のベクトルは 200〜300 次元あり、紙には収まらない。
+また、この足し引きは<b>いつでも決まるわけではない</b>——うまくいく組と、そうでない組がある。</p>
+</div>
+<div class="fig-stage">
+<h2>③ 限界 — 1 語につき、1 つの場所しか持てない</h2>
+<p>Word2Vec は語ごとにベクトルを 1 本だけ持つ。
+だから「はし」（橋・箸）のように意味が複数ある語は、<b>どちらの意味の場所にも置けない</b>。
+学習が終わると、その語は両方の平均——どちらでもない場所に落ち着く。
+文脈に応じて置き場所を変える仕組み（BERT）は、ここから先の話になる。</p>
+<div class="ctrls">
+  <button class="btn" id="mSep">意味ごとに置ければ</button>
+  <button class="btn ghost" id="mAvg">実際の Word2Vec</button>
+</div>
+<div id="v3"></div>
+<div class="readout" id="r3"></div>
+</div>
+<div class="back-link"><a href="figures.html">← 図解一覧に戻る</a></div>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  function svg(w,h,inner){return '<svg width="100%" viewBox="0 0 '+w+' '+h+
+    '" style="max-width:'+w+'px;display:block;margin:6px auto">'+inner+'</svg>'}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+  /* ---------- ① 分布仮説 ---------- */
+  var SENTS=[['猫','が','縁側','で','眠る'],['犬','が','縁側','で','眠る']];
+  var COLS=['が','縁側','で','眠る'], ROWS=['猫','犬'];
+  var si=0, pos=-1, done=[false,false], CO={'猫':{},'犬':{}};
+  function addWin(toks,i){
+    var lo=Math.max(0,i-2), hi=Math.min(toks.length-1,i+2), c=toks[i];
+    for(var k=lo;k<=hi;k++){
+      if(k===i) continue;
+      /* 表に出す行（猫・犬）だけ数える */
+      if(CO[c]) CO[c][toks[k]]=(CO[c][toks[k]]||0)+1;
+      if(CO[toks[k]]) CO[toks[k]][c]=(CO[toks[k]][c]||0)+1;
+    }
+  }
+  function draw1(){
+    var toks=SENTS[si], g='', x0=56, w=104, y=44;
+    var lo=Math.max(0,pos-2), hi=Math.min(toks.length-1,pos+2);
+    g+='<text class="lb" x="20" y="24">窓のなかの語だけを数える（前後 2 語）</text>';
+    for(var i=0;i<toks.length;i++){
+      var x=x0+i*w, inw=(pos>=0&&i>=lo&&i<=hi), ctr=(i===pos);
+      g+='<rect class="box'+(ctr?' ctr':(inw?' win':''))+'" x="'+x+'" y="'+y+
+         '" width="92" height="44" rx="7"/>';
+      g+='<text class="tk'+(ctr?' ctr':'')+'" x="'+(x+46)+'" y="'+(y+29)+'">'+esc(toks[i])+'</text>';
+    }
+    if(pos>=0) g+='<text class="lb c" x="'+(x0+pos*w+46)+'" y="'+(y+62)+'">中心の語</text>';
+    /* 共起表 */
+    var ty=140, cw=104, cx0=x0+52;
+    g+='<text class="lb" x="20" y="'+(ty-8)+'">数えた回数（いま何と一緒に出たか）</text>';
+    COLS.forEach(function(c,j){
+      g+='<text class="lb c" x="'+(cx0+j*cw)+'" y="'+(ty+14)+'">'+esc(c)+'</text>';
+    });
+    var same=true;
+    ROWS.forEach(function(r,i){
+      var yy=ty+44+i*36;
+      g+='<text class="wd" x="'+(x0-16)+'" y="'+(yy+5)+'" style="text-anchor:start">'+esc(r)+'</text>';
+      COLS.forEach(function(c,j){
+        var v=(CO[r][c]||0);
+        if((CO[ROWS[0]][c]||0)!==(CO[ROWS[1]][c]||0)) same=false;
+        g+='<rect x="'+(cx0+j*cw-30)+'" y="'+(yy-16)+'" width="60" height="26" rx="5" fill="'+
+           (v?'rgba(110,123,168,'+Math.min(0.14+v*0.16,0.62)+')':'#fff')+'" stroke="#e2e0d9"/>';
+        g+='<text class="lb c" x="'+(cx0+j*cw)+'" y="'+(yy+3)+'" style="fill:'+(v?'#1a1a1a':'#cfccc4')+
+           '">'+v+'</text>';
+      });
+    });
+    var any=ROWS.some(function(r){return COLS.some(function(c){return CO[r][c]})});
+    $('#v1').innerHTML=svg(620,262,g);
+    var bothDone=done[0]&&done[1];
+    var msg;
+    if(pos<0) msg='まだ数えていない。「▶ 窓を 1 つ進める」で、窓を左から動かす。';
+    else if(!done[si]) msg='中心は <b>'+esc(toks[pos])+'</b>。窓のなかの語との共起を 1 ずつ足した。';
+    else if(!bothDone) msg='この文は数え終えた。上のプルダウンで<b>もう一方の文</b>に切り替えて、'+
+      '同じように数えてみてほしい。';
+    else if(same&&any) msg='2 つの文を数え終えた。<b>「猫」の行と「犬」の行が完全に同じ</b>になった——'+
+      'この 2 語は<b>周りの顔ぶれが区別できない</b>。だから空間の近くに置かれる。'+
+      '猫と犬が似ていると、誰も教えていないのに。';
+    else msg='2 つの文を数え終えた。行を見比べてほしい。';
+    $('#r1').innerHTML=msg;
+  }
+  function stepOne(){
+    var toks=SENTS[si];
+    if(pos>=toks.length-1){ done[si]=true; draw1(); return false; }
+    pos++; addWin(toks,pos);
+    if(pos===toks.length-1) done[si]=true;
+    draw1(); return true;
+  }
+  $('#slide').onclick=function(){ stepOne(); };
+  $('#sauto').onclick=function(){ while(stepOne()){} };
+  $('#sreset').onclick=function(){ CO={'猫':{},'犬':{}}; done=[false,false]; pos=-1; draw1(); };
+  $('#sent').onchange=function(){ si=+this.value; pos=-1; draw1(); };
+
+  /* ---------- ② ベクトル演算 ---------- */
+  /* 説明用に並べ直した模式座標。X=身分、Y=性別 */
+  var W={'男':[100,60],'女':[100,180],'王':[300,60],'女王':[300,180],
+         '少年':[60,26],'少女':[60,214],'王子':[262,26],'姫':[262,214],
+         '父':[152,46],'母':[152,194]};
+  var NAMES=Object.keys(W);
+  ['#a','#b','#c'].forEach(function(sel,k){
+    $(sel).innerHTML=NAMES.map(function(n){return '<option>'+esc(n)+'</option>'}).join('');
+    $(sel).value=['王','男','女'][k];
+  });
+  function P(p){ return [40+p[0]*1.55, 250-p[1]*0.86]; }
+  function draw2(res){
+    var g='';
+    g+='<line class="ax" x1="40" y1="252" x2="600" y2="252"/>';
+    g+='<line class="ax" x1="40" y1="252" x2="40" y2="24"/>';
+    g+='<text class="lb" x="404" y="272">地位が高い →</text>';
+    g+='<text class="lb" x="6" y="238">男性寄り</text>';
+    g+='<text class="lb" x="6" y="34">女性寄り</text>';
+    if(res){
+      var pa=P(W[res.a]), pb=P(W[res.b]), pc=P(W[res.c]), pr=P(res.v);
+      /* a − b の向きを、c から生やす */
+      g+='<path class="arw g" d="M'+pb[0]+' '+pb[1]+' L'+pa[0]+' '+pa[1]+'"/>';
+      g+='<path class="arw" d="M'+pc[0]+' '+pc[1]+' L'+pr[0]+' '+pr[1]+'"/>';
+      var at=function(u,v,t){return [u[0]+(v[0]-u[0])*t, u[1]+(v[1]-u[1])*t]};
+      var mb=at(pb,pa,0.34), mc=at(pc,pr,0.34);
+      g+='<text class="lb c" x="'+mb[0]+'" y="'+(mb[1]+20)+'">この向きを取り出して</text>';
+      g+='<text class="lb c" x="'+mc[0]+'" y="'+(mc[1]-14)+'">同じだけ動かす</text>';
+      g+='<circle class="dot hit" cx="'+pr[0]+'" cy="'+pr[1]+'" r="7"/>';
+      g+='<text class="lb c" x="'+pr[0]+'" y="'+(pr[1]+22)+'">着地点</text>';
+    }
+    NAMES.forEach(function(n){
+      var p=P(W[n]), hit=res&&res.near===n, dim=res&&!hit&&n!==res.a&&n!==res.b&&n!==res.c;
+      g+='<circle class="dot'+(hit?' hit':(dim?' dim':''))+'" cx="'+p[0]+'" cy="'+p[1]+'" r="'+(hit?6:4.5)+'"/>';
+      var lx=p[0]; if(hit) lx=p[0]-2;
+      g+='<text class="wd'+(hit?' hit':(dim?' dim':''))+'" x="'+lx+'" y="'+(p[1]-13)+'">'+esc(n)+'</text>';
+    });
+    $('#v2').innerHTML=svg(620,290,g);
+  }
+  $('#go').onclick=function(){
+    var a=$('#a').value,b=$('#b').value,c=$('#c').value;
+    var v=[W[a][0]-W[b][0]+W[c][0], W[a][1]-W[b][1]+W[c][1]];
+    var best=null,bd=1e9;
+    NAMES.forEach(function(n){
+      if(n===a||n===b||n===c) return;
+      var d=Math.hypot(W[n][0]-v[0],W[n][1]-v[1]);
+      if(d<bd){bd=d;best=n;}
+    });
+    draw2({a:a,b:b,c:c,v:v,near:best});
+    $('#r2').innerHTML='<b>'+esc(a)+' − '+esc(b)+' ＋ '+esc(c)+'</b> の着地点にいちばん近いのは <b>'+
+      esc(best)+'</b>（ずれ '+bd.toFixed(0)+'）。'+
+      (bd<8 ? ' ほぼ真上に乗った。「'+esc(b)+' → '+esc(a)+'」の向きと、「'+esc(c)+' → '+esc(best)+
+              '」の向きが<b>同じ</b>だということだ。'
+            : bd<60 ? ' 少しずれたが、いちばん近いのはこの語だった。'
+                    : ' かなり離れた。<b>どんな組でも成り立つわけではない</b>。');
+  };
+
+  /* ---------- ③ 多義語 ---------- */
+  function draw3(mode){
+    var g='', items;
+    if(mode==='sep'){
+      items=[['川',96,150],['渡る',166,118],['はし（橋）',232,132],
+             ['ごはん',428,150],['茶碗',498,118],['はし（箸）',356,132]];
+    } else {
+      items=[['川',96,150],['渡る',166,118],['ごはん',428,150],['茶碗',498,118],
+             ['はし',300,132]];
+    }
+    g+='<rect x="60" y="86" width="200" height="104" rx="12" fill="rgba(110,123,168,.10)" stroke="#e2e0d9"/>';
+    g+='<rect x="360" y="86" width="200" height="104" rx="12" fill="rgba(110,123,168,.10)" stroke="#e2e0d9"/>';
+    g+='<text class="lb c" x="160" y="76">川をわたる話</text>';
+    g+='<text class="lb c" x="460" y="76">ごはんの話</text>';
+    items.forEach(function(it){
+      var hit=it[0].indexOf('はし')===0;
+      g+='<circle class="dot'+(hit?' hit':'')+'" cx="'+it[1]+'" cy="'+it[2]+'" r="'+(hit?6.5:4.5)+'"/>';
+      g+='<text class="wd'+(hit?' hit':'')+'" x="'+it[1]+'" y="'+(it[2]-13)+'">'+esc(it[0])+'</text>';
+    });
+    if(mode!=='sep'){
+      g+='<path class="arw g" d="M262 132 L210 132"/>';
+      g+='<path class="arw g" d="M338 132 L390 132"/>';
+      g+='<text class="lb c" x="300" y="216">どちらの話からも引かれて、真ん中</text>';
+    } else {
+      g+='<text class="lb c" x="300" y="216">意味ごとに 2 つの点を持てるなら、こう置ける</text>';
+    }
+    $('#v3').innerHTML=svg(620,232,g);
+    $('#r3').innerHTML = mode==='sep'
+      ? '意味ごとに別の点を持てるなら、「はし」は<b>2 か所</b>に置ける。'+
+        'これは<b>Word2Vec にはできない</b>——語は 1 本のベクトルしか持たないからだ。'
+      : '実際には「はし」は 1 本しかない。川の文でも食事の文でも同じ点が引っぱられ、'+
+        '最後は<b>橋でも箸でもない真ん中</b>に落ち着く。'+
+        '文脈を見てから置き場所を決める仕組みが要る——それが次の一手になる。';
+  }
+  $('#mSep').onclick=function(){ draw3('sep'); };
+  $('#mAvg').onclick=function(){ draw3('avg'); };
+
+  draw1(); $('#go').click(); draw3('avg');
+})();
+</script>
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>

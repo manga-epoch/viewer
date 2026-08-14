@@ -163,6 +163,27 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
 <p class="note">セル状態の更新: $C_t = f\odot C_{t-1} + i\odot \tilde{C}_t$。$f$ が掛け算でなく「ほぼ 1」を選べるため、記憶が長く保たれ勾配も消えにくい。2014-2016 年の機械翻訳 (seq2seq) はこの LSTM が主役だった。</p>
 </div>
 
+<div class="fig-stage">
+<h2>seq2seq — 文を 1 本のベクトルに畳んで、開き直す</h2>
+<div class="lead">翻訳では、入力の語数と出力の語数が合わない。そこで <strong>seq2seq</strong> (2014) は、
+読む側と書く側を分けた。<strong>エンコーダ</strong>が入力文を最後まで読み、その時点の内部状態を
+<strong>1 本の固定長ベクトル（文脈ベクトル）</strong>として渡す。<strong>デコーダ</strong>はそれだけを
+頼りに、出力を 1 語ずつ生む。文を長くすると、この 1 本がどうなるか見てほしい。</div>
+<div class="ctrls">
+  <button class="btn" id="s2sStep">▶ 1 語進める</button>
+  <button class="btn ghost" id="s2sAuto">最後まで</button>
+  <button class="btn ghost" id="s2sReset">最初へ</button>
+  <label>入力文 <input type="range" id="s2sLen" min="0" max="3" value="1"></label>
+  <span class="pill" id="s2sLenV">4 語</span>
+</div>
+<svg id="s2sSvg" width="100%" viewBox="0 0 800 268" style="max-width:800px;display:block;margin:6px auto"></svg>
+<p class="note" id="s2sOut"></p>
+<p class="note">中央のバーが<strong>文脈ベクトル</strong>で、その幅は<strong>文の長さによらず一定</strong>だ。
+入力文が伸びると、1 語あたりの取り分（区切りの幅）はその分だけ細くなる。
+長い文ほど頭のほうが押し出される——これが seq2seq の<strong>ボトルネック</strong>で、
+次の一手を呼び込むことになる。（区切りの幅は仕組みを示すための模式で、実測値ではない。）</p>
+</div>
+
 <div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_resnet.html">← 残差接続・ResNet</a><a class="fp-comm" href="commentary.html#scene6">解説 Scene 6「言葉と時間」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_alphago.html">AlphaGo・MCTS →</a></nav></div>
 
 <script>
@@ -224,6 +245,92 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
   function bind(id,vid,set){document.getElementById(id).addEventListener('input',function(e){var v=+e.target.value/100;set(v);document.getElementById(vid).textContent=v.toFixed(1);C=0;drawLstm();});}
   bind('fg','fV',function(v){f=v;});bind('ig','iV',function(v){ig=v;});bind('og','oV',function(v){o=v;});
   drawLstm();
+})();
+</script>
+<script>
+(function(){
+  /* 長さの違う「同じ内容の文」を用意する。どの状態も文として成立させる。 */
+  var PAIRS=[
+    [['猫','が','眠る'],                              ['The','cat','sleeps']],
+    [['黒い','猫','が','眠る'],                        ['The','black','cat','sleeps']],
+    [['黒い','猫','が','縁側','で','眠る'],             ['The','black','cat','sleeps','on','the','porch']],
+    [['昨日','黒い','猫','が','縁側','で','ずっと','眠っ','て','いた'],
+     ['The','black','cat','slept','on','the','porch','yesterday']]
+  ];
+  var pi=1, step=0;
+  function $(i){return document.getElementById(i)}
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function box(x,y,w,h,fill,stroke){
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="6" fill="'+fill+
+           '" stroke="'+stroke+'" stroke-width="1.6"/>';
+  }
+  function maxStep(){ return PAIRS[pi][0].length + PAIRS[pi][1].length; }
+  function draw(){
+    var src=PAIRS[pi][0], dst=PAIRS[pi][1];
+    var read=Math.min(step,src.length), wrote=Math.max(0,step-src.length);
+    var g='', W=760, L=20;
+    /* --- エンコーダ（上段）: 語数が増えると横に伸びる --- */
+    var ew=Math.min(78,(W-L*2)/src.length-6);
+    var ex0=L+((W-L*2)-(src.length*(ew+6)-6))/2;
+    g+='<text x="'+L+'" y="20" style="font:600 12px sans-serif;fill:#8c8880">エンコーダ（読む）</text>';
+    for(var i=0;i<src.length;i++){
+      var on=i<read, x=ex0+i*(ew+6);
+      g+=box(x,30,ew,34,on?'#1a1a1a':'#fff','#1a1a1a');
+      g+='<text x="'+(x+ew/2)+'" y="52" text-anchor="middle" style="font:600 12.5px sans-serif;fill:'+
+         (on?'#fff':'#1a1a1a')+'">'+esc(src[i])+'</text>';
+    }
+    /* --- 文脈ベクトル（中央）: 幅は常に一定。語数で分割する --- */
+    var bw=300, bx=(W-bw)/2, by=104, seg=bw/src.length;
+    g+='<text x="'+bx+'" y="96" style="font:600 12px sans-serif;fill:#8c8880">文脈ベクトル（固定長 — どの文でも同じ幅）</text>';
+    for(var i=0;i<src.length;i++){
+      g+='<rect x="'+(bx+i*seg)+'" y="'+by+'" width="'+seg+'" height="34" fill="'+
+         (i<read?'#6E7BA8':'#fff')+'" stroke="#fff" stroke-width="1"/>';
+    }
+    g+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="34" rx="5" fill="none" stroke="#6E7BA8" stroke-width="2.2"/>';
+    g+='<path d="M'+(W/2)+' 68 L'+(W/2)+' '+(by-4)+'" stroke="#6E7BA8" stroke-width="2.2" fill="none"/>';
+    g+='<path d="M'+(W/2-5)+' '+(by-10)+' L'+(W/2)+' '+(by-2)+' L'+(W/2+5)+' '+(by-10)+'" fill="#6E7BA8"/>';
+    g+='<text x="'+(bx+bw+10)+'" y="'+(by+22)+'" style="font:600 12px sans-serif;fill:#565248">'+
+       '1 語 '+(bw/src.length).toFixed(0)+'px 分</text>';
+    if(step>=src.length){
+      g+='<path d="M'+(W/2)+' '+(by+34)+' L'+(W/2)+' 176" stroke="#6E7BA8" stroke-width="2.2" fill="none"/>';
+      g+='<path d="M'+(W/2-5)+' 170 L'+(W/2)+' 178 L'+(W/2+5)+' 170" fill="#6E7BA8"/>';
+    }
+    /* --- デコーダ（下段） --- */
+    var dw=Math.min(84,(W-L*2)/dst.length-6);
+    var dx0=L+((W-L*2)-(dst.length*(dw+6)-6))/2;
+    g+='<text x="'+L+'" y="204" style="font:600 12px sans-serif;fill:#8c8880">デコーダ（書く）</text>';
+    for(var j=0;j<dst.length;j++){
+      var on2=j<wrote, x=dx0+j*(dw+6);
+      g+=box(x,214,dw,34,on2?'#6E7BA8':'#fff',on2?'#6E7BA8':'#d8d5cd');
+      g+='<text x="'+(x+dw/2)+'" y="236" text-anchor="middle" style="font:600 12px sans-serif;fill:'+
+         (on2?'#fff':'#cfccc4')+'">'+esc(dst[j])+'</text>';
+    }
+    $('s2sSvg').innerHTML=g;
+    var msg;
+    if(step===0) msg='まだ何も読んでいない。「▶ 1 語進める」で 1 語ずつ読み込む。';
+    else if(step<src.length) msg='<b>'+read+' / '+src.length+' 語</b>を読み込んだ。'+
+      '読むたびに、文脈ベクトルの区画が 1 つずつ埋まっていく。';
+    else if(step===src.length) msg='入力を読み終えた。ここで<b>入力文はもう見られない</b>——'+
+      'デコーダが使えるのは、この 1 本のベクトルだけだ。';
+    else if(wrote<dst.length) msg='出力を <b>'+wrote+' / '+dst.length+' 語</b>まで生成した。'+
+      '1 語書くごとに、次に何を書くかを同じ 1 本から決めていく。';
+    else {
+      var shortest=PAIRS[0][0].length, segNow=Math.round(300/src.length), segMin=Math.round(300/shortest);
+      msg='訳し終えた。入力 '+src.length+' 語 → 出力 '+dst.length+' 語。'+
+        (src.length!==dst.length
+          ? '<b>語数が違っても訳せる</b>のが seq2seq の要点だ。'
+          : 'ここでは偶然そろったが、語数がそろう必要はない。')+
+        ' このとき 1 語あたりの区画は <b>'+segNow+'px</b>——'+shortest+' 語の文なら '+segMin+
+        'px だった。<b>バー全体の幅は一度も変わっていない</b>。';
+    }
+    $('s2sOut').innerHTML=msg;
+  }
+  $('s2sStep').onclick=function(){ if(step<maxStep()) step++; draw(); };
+  $('s2sAuto').onclick=function(){ step=maxStep(); draw(); };
+  $('s2sReset').onclick=function(){ step=0; draw(); };
+  $('s2sLen').oninput=function(){ pi=+this.value; step=0;
+    $('s2sLenV').textContent=PAIRS[pi][0].length+' 語'; draw(); };
+  draw();
 })();
 </script>
 
