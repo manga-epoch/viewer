@@ -1983,7 +1983,225 @@ YOLOは画像全体を1回のCNNで処理し、
 <strong>生成AI</strong>の世界に入る。</p>
 <p>GPT が「文章を生成」し、GAN と拡散モデルが「画像を創造」し、
 マルチモーダル AI が「見て聞いて考える」。</p>
-<p>→ Arc 3: <em>「生成AIとLLMの時代」</em></p><div class="scene-flow"><div class="sf-done">補講 2「言葉の地図 — Word2Vec からBERT へ」 読了</div></div></section><div class="final-flow"><div class="ff-done">Arc 2「覚醒」読了 — ディープラーニング革命を走破！</div><div class="ff-figs"><a href="figures_nn.html">NN の土台 →</a><a href="figures_cnn.html">CNN・畳み込み →</a><a href="figures_imagenet.html">ImageNet 誤り率 →</a><a href="figures_resnet.html">ResNet・勾配消失 →</a><a href="figures_rnn.html">RNN/LSTM →</a><a href="figures_attention.html">Self-Attention →</a><a href="figures_alphago.html">AlphaGo・MCTS →</a></div><a class="ff-next" href="figures.html">図解 Lab 一覧へ →</a><a class="ff-gk" href="gken.html"><b>G 検定対策</b> — Arc 2 対応模試（第3/5/6章・用語クリック付き・無料）→</a></div>
+<p>→ Arc 3: <em>「生成AIとLLMの時代」</em></p><div class="scene-flow"><div class="sf-done">補講 2「言葉の地図 — Word2Vec からBERT へ」 読了</div></div></section>
+<section id="extra3"><h2>補講 3: 学びすぎる機械 — 過学習と、良し悪しの測り方</h2>
+<p><strong>所要時間</strong>: 約9分（読み物7分 + 確認問題2分）</p>
+<h3>前章のふりかえり</h3>
+<p>この補講の問い: <strong>学習データでは 100% 近い正解率なのに、
+新しいデータではまるでダメ。なぜこんなことが起こるのか？</strong></p>
+<p>Arc 2 では、この問題が何度も顔を出した。AlexNet は Dropout でこれを抑え、
+VGG も ResNet も「深くすると起きること」としてこれと戦っている。
+ここでその正体をまとめて片づけておく。</p>
+<p>出発点は、多層ニューラルネットの万能近似定理だ:
+「十分なニューロンがあれば、任意の関数を近似できる」。</p>
+<p>ここに落とし穴がある。
+<strong>「任意の関数を近似できる」は「正しい関数を見つけられる」とは違う。</strong></p>
+<h3>テストで100点だが本番で0点の生徒</h3>
+<p>こんな生徒がいたら、どう思うだろうか:</p>
+<pre><code>  過去問10年分: 全問正解（100点）
+  模擬試験:     全問正解（100点）
+
+  しかし:
+  本番試験:     30点（惨敗）
+</code></pre>
+<p>この生徒は何をしたのか？
+<strong>過去問の答えを「丸暗記」した。</strong>
+問題の本質を理解していないから、少しでも形を変えられるとお手上げ。</p>
+<p>ニューラルネットでも、全く同じことが起こる。</p>
+<h3>なぜ過学習が最重要課題なのか</h3>
+<p>過学習は「モデルが強すぎること」から起こる。</p>
+<pre><code>  適切なモデル:                過学習したモデル:
+
+  x₂                          x₂
+  ↑    ● ●                    ↑    ● ●
+  │   ●  ╱                    │   ●╱╲
+  │  ● ╱ × ×                  │  ●╱  ╲× ×
+  │   ╱ ×                     │  ╱╲  ╱×
+  │  ╱  ×                     │ ╱  ╲╱ ×
+  └──────────► x₁             └──────────► x₁
+
+  シンプルな境界線              データ点を全て通る複雑な曲線
+  → 未知データにも通用          → 学習データだけに過剰適合
+  → これが「汎化」             → これが「過学習」
+</code></pre>
+<p>機械学習の真の目的は<strong>学習データの正解率を上げること</strong>ではない。
+<strong>未知のデータに対して正しく予測できること</strong>——これを<strong>汎化（generalization）</strong>という。</p>
+<p>過学習 vs 汎化は、機械学習で最も重要なトレードオフであり、
+でも繰り返し問われるテーマだ。</p>
+<h3>先に考えてみる（答えられなくてOK）</h3>
+<p><strong>Q: 過学習を検知するには、学習データとは別のデータを使って
+性能を測る必要がある。では「テストデータ」と「検証データ」は
+何が違うのだろうか？</strong></p>
+<p>→ 考えたら次へ。</p>
+<h3>過学習の検知・防止・評価</h3>
+<div class="fig-inline"><span class="fi-label">手を動かして確かめる</span><span class="fi-links"><a href="figures_learn.html">過学習と評価指標を動かす →</a></span></div>
+<h4>データの分割：3つの役割</h4>
+<pre><code>  全データ
+  ┌──────────────────────────────────────────────────┐
+  │                                                  │
+  │  ┌──────────────┐ ┌──────────┐ ┌──────────┐     │
+  │  │ 学習データ    │ │ 検証データ │ │テストデータ│     │
+  │  │ (Training)   │ │(Validation)│ │ (Test)    │     │
+  │  │              │ │          │ │          │     │
+  │  │  60-80%      │ │  10-20%  │ │  10-20%  │     │
+  │  └──────────────┘ └──────────┘ └──────────┘     │
+  │                                                  │
+  │  モデルを学習     ハイパーパラ    最終的な性能     │
+  │  するために使う    メータ調整     評価（1回だけ）  │
+  │                  に使う                          │
+  └──────────────────────────────────────────────────┘
+</code></pre>
+<p>重要な区別:
+- <strong>検証データ</strong>: 学習中に「過学習してないか？」をチェックするために使う。
+  何度も見て、モデルの構造や設定（ハイパーパラメータ）を調整する。
+- <strong>テストデータ</strong>: 最終評価にだけ使う。「本番試験」。
+  何度も使うと、テストデータに過学習してしまう。</p>
+<h4>過学習の検知</h4>
+<pre><code>  誤差
+  ↑
+  │ ╲
+  │  ╲  ←─── テスト誤差（ここが上がり始めたら過学習）
+  │   ╲     ╱────────
+  │    ╲   ╱
+  │     ╲ ╱
+  │      ╳
+  │     ╱ ╲
+  │    ╱   ╲─────────── ← 学習誤差（下がり続ける）
+  │   ╱
+  └────────────────────────► 学習回数（エポック）
+       ↑
+    ここで止めるのがベスト
+    = 早期終了（Early Stopping）
+</code></pre>
+<p>学習誤差は下がり続ける。しかしテスト誤差はある時点から上がり始める。
+この差が開いたら過学習。<strong>Early Stopping</strong>（ちょうどいいところで止める）が最も基本的な対策。</p>
+<h4>過学習を防ぐ主な手法</h4>
+<pre><code>  ┌────────────────────┬────────────────────────────────────┐
+  │  手法              │  やっていること                      │
+  ├────────────────────┼────────────────────────────────────┤
+  │  正則化            │  重みが大きくなりすぎないよう罰則を   │
+  │  (Regularization)  │  加える。L1正則化、L2正則化          │
+  │                    │  L = 元の損失 + λΣ|wᵢ|²            │
+  ├────────────────────┼────────────────────────────────────┤
+  │  ドロップアウト      │  学習時にランダムにニューロンを      │
+  │  (Dropout)         │  無効化。特定ニューロンへの依存を防ぐ │
+  ├────────────────────┼────────────────────────────────────┤
+  │  データ拡張         │  学習データを水増し（画像の回転、     │
+  │  (Data Augmentation)│ 反転、ノイズ追加など）              │
+  ├────────────────────┼────────────────────────────────────┤
+  │  早期終了           │  検証誤差が上がり始めたら学習停止    │
+  │  (Early Stopping)  │                                    │
+  ├────────────────────┼────────────────────────────────────┤
+  │  バッチ正規化       │  各層の出力を正規化。学習を安定化    │
+  │  (Batch Norm.)     │                                    │
+  └────────────────────┴────────────────────────────────────┘
+</code></pre>
+<h4>最適化手法（Optimizer）</h4>
+<p>誤差逆伝播で勾配が計算できたら、次は「どう重みを更新するか」。
+これが<strong>最適化手法</strong>の領域だ。</p>
+<pre><code>  損失関数 L(w) の「谷底」を見つけたい:
+
+  L(w)
+  ↑
+  │╲              ╱╲
+  │ ╲    局所解  ╱  ╲
+  │  ╲   ╱╲   ╱    ╲
+  │   ╲ ╱  ╲ ╱      ╲
+  │    ╳    ╳   最適解 ╲
+  │         ↑            ╲
+  │       ここで止まると NG
+  └────────────────────────► w
+</code></pre>
+<p>主な最適化手法の進化:</p>
+<pre><code>  SGD（確率的勾配降下法）
+  │  w ← w − η · ∂L/∂w
+  │  シンプルだが、学習率の調整が難しい
+  ↓
+  Momentum
+  │  「慣性」を加える。坂道を転がるボールのように。
+  │  局所解から抜け出しやすくなる
+  ↓
+  AdaGrad / RMSProp
+  │  パラメータごとに学習率を自動調整
+  ↓
+  Adam（2015） 現在の標準
+     Momentum + RMSProp の組み合わせ
+     ほとんどの場合でうまく動く
+</code></pre>
+<h4>評価指標：モデルの良し悪しを測る</h4>
+<p>「正解率（Accuracy）」だけでは不十分な場合がある:</p>
+<pre><code>  例: 病気の検出（1000人中10人が病気）
+
+  「全員健康」と予測するモデル:
+  正解率 = 990/1000 = 99.0%   ← 高い！
+  しかし病気の人を1人も見つけられていない ← 最悪
+</code></pre>
+<p>そこで、より精密な指標が必要:</p>
+<pre><code>                        予測
+                   陽性        陰性
+              ┌──────────┬──────────┐
+  実際  陽性  │ TP        │ FN        │
+        (病気)│ 真陽性    │ 偽陰性    │
+              │ (正しく   │ (見逃し)  │
+              │  検出)    │          │
+              ├──────────┼──────────┤
+        陰性  │ FP        │ TN        │
+        (健康)│ 偽陽性    │ 真陰性    │
+              │ (誤検出)  │ (正しく   │
+              │          │  除外)    │
+              └──────────┴──────────┘
+
+  適合率（Precision）= TP / (TP + FP)
+    「陽性と予測したもの」のうち、本当に陽性の割合
+    → 誤検出を減らしたい時に重視
+
+  再現率（Recall）= TP / (TP + FN)
+    「実際に陽性のもの」のうち、正しく検出できた割合
+    → 見逃しを減らしたい時に重視
+
+  F値（F1-score）= 2 × (Precision × Recall) / (Precision + Recall)
+    精度と再現率の調和平均。バランスの良い指標
+</code></pre>
+<p><strong>で頻出</strong>: 混同行列（上の表）、精度・再現率・F値は必ず出る。</p>
+<h3>ここまでの道具が、全部つながる</h3>
+<p>過学習と評価は、Arc 2 のどの章にも顔を出していた:</p>
+<pre><code>  Scene 1: 事前学習    → 層ごとに積んで、深い網を学習できるようにした
+  Scene 4: AlexNet     → Dropout で「学びすぎ」を抑えた
+  Scene 5: より深く     → Batch Normalization で学習を安定させた
+  補講 3: 正しく学ぶ    → 過学習・正則化・評価指標 ← 今ここ
+</code></pre>
+<p>ここまでで、ディープラーニングを支える<strong>部品</strong>が出そろった:</p>
+<pre><code>  ┌─────────────────────────────────────────────┐
+  │  ニューラルネット（多層）                      │
+  │    + 活性化関数（ReLU）                       │
+  │    + 誤差逆伝播（chain rule）                 │
+  │    + 最適化（Adam）                           │
+  │    + 正則化（Dropout, Early Stopping）        │
+  │    + 評価（精度, 再現率, F値）                 │
+  │                                              │
+  │    = ディープラーニングの基盤                   │
+  │                                              │
+  │    これを画像に応用 → CNN（Scene 2）           │
+  │    これを時系列に応用 → RNN・LSTM（Scene 6）    │
+  │    これを言語に応用 → Transformer（Scene 8）    │
+  └─────────────────────────────────────────────┘
+</code></pre>
+<div class="quizset"><div class="quiz-head">理解度チェック</div><div class="quiz-q" data-correct="b"><div class="q-head"><span class="q-num">Q1</span></div><div class="q-text">以下のグラフで過学習が起きているのはどれですか？ ``` (A)               (B)               (C) 誤差              誤差              誤差 ↑ ╲              ↑╲      ╱──      ↑ ╲──────── │  ╲──── 学習    │ ╲    ╱ テスト   │  ╲──── テスト │   ╲─── テスト  │  ╲──╱          │   ╲─── 学習 └──────► epoch   └──────► epoch   └──────► epoch ```</div><ul class="q-opts"><li data-opt="a"><span class="opt-k">a</span><span class="opt-t">A（両方下がっている）</span></li><li data-opt="b"><span class="opt-k">b</span><span class="opt-t">B（テスト誤差が途中から上がっている）</span></li><li data-opt="c"><span class="opt-k">c</span><span class="opt-t">C（テスト誤差が高いまま）</span></li><li data-opt="d"><span class="opt-k">d</span><span class="opt-t">AとC</span></li></ul><details class="q-ans"><summary>答えを見る</summary><div class="q-correct">正解 — b</div><div class="q-exp">Bだけが過学習。学習誤差は下がり続けるが、
+テスト誤差が途中から上昇する＝未知データへの性能が悪化。
+Aは両方下がっており正常。Cは両方高止まりで、
+これは<strong>未学習（underfitting）</strong>——モデルの表現力不足。</div></details></div><div class="quiz-q" data-correct="b"><div class="q-head"><span class="q-num">Q2</span></div><div class="q-text">「病気の見逃しを最小限にしたい」場合、重視すべき指標は？</div><ul class="q-opts"><li data-opt="a"><span class="opt-k">a</span><span class="opt-t">適合率（Precision）</span></li><li data-opt="b"><span class="opt-k">b</span><span class="opt-t">再現率（Recall）</span></li><li data-opt="c"><span class="opt-k">c</span><span class="opt-t">正解率（Accuracy）</span></li><li data-opt="d"><span class="opt-k">d</span><span class="opt-t">F値（F1-score）</span></li></ul><details class="q-ans"><summary>答えを見る</summary><div class="q-correct">正解 — b</div><div class="q-exp">再現率（Recall）= 実際の陽性のうち正しく検出できた割合。
+見逃し（FN）を最小化する指標。
+医療では「見逃し」のコストが高いので Recall 重視が一般的。</div></details></div><div class="quiz-q" data-correct="b"><div class="q-head"><span class="q-num">Q3</span><span class="q-qual">接続問題</span></div><div class="q-text">Scene 1 で復習した単層のパーセプトロンは過学習するか？</div><ul class="q-opts"><li data-opt="a"><span class="opt-k">a</span><span class="opt-t">する。パラメータが多すぎるから</span></li><li data-opt="b"><span class="opt-k">b</span><span class="opt-t">しない。表現力が低すぎるから（むしろ未学習）</span></li><li data-opt="c"><span class="opt-k">c</span><span class="opt-t">データ量による</span></li><li data-opt="d"><span class="opt-k">d</span><span class="opt-t">活性化関数による</span></li></ul><details class="q-ans"><summary>答えを見る</summary><div class="q-correct">正解 — b</div><div class="q-exp">パーセプトロンは直線1本しか引けない。
+表現力が低すぎるため、複雑なデータを学習しきれない（underfitting）。
+過学習は「モデルが強すぎる」ときに起こる。
+これは <strong>バイアス-バリアンストレードオフ</strong> と呼ばれ、
+モデルの複雑さの「ちょうどいい塩梅」を見つけることが重要。</div></details></div></div>
+<h3>ここまでの位置づけ</h3>
+<p>過学習・正則化・評価指標は、特定の時代の道具ではない。
+Arc 2 に出てきたどの手法も、最後はこの物差しで良し悪しを測られている。</p>
+<p>Dropout（Scene 4）も Batch Normalization（Scene 5）も、
+「学びすぎ」を別の角度から抑える手だてだった。
+どちらが効くかは、ここで見た検証データの曲線が決める。</p><div class="scene-flow"><div class="sf-done">補講 3「学びすぎる機械 — 過学習と、良し悪しの測り方」 読了</div></div></section><div class="final-flow"><div class="ff-done">Arc 2「覚醒」読了 — ディープラーニング革命を走破！</div><div class="ff-figs"><a href="figures_nn.html">NN の土台 →</a><a href="figures_cnn.html">CNN・畳み込み →</a><a href="figures_imagenet.html">ImageNet 誤り率 →</a><a href="figures_resnet.html">ResNet・勾配消失 →</a><a href="figures_rnn.html">RNN/LSTM →</a><a href="figures_attention.html">Self-Attention →</a><a href="figures_alphago.html">AlphaGo・MCTS →</a></div><a class="ff-next" href="figures.html">図解 Lab 一覧へ →</a><a class="ff-gk" href="gken.html"><b>G 検定対策</b> — Arc 2 対応模試（第3/5/6章・用語クリック付き・無料）→</a></div>
 <div class="footer-note">
 <strong>図解 Lab で手を動かす:</strong> <a href="figures.html">CNN・ImageNet・ResNet・RNN/LSTM・Attention・AlphaGo の図解を体験する →</a>
 <p>マンガで描いた「機械が見た」「より深く」「注意こそ、すべて」の核心を、スライダーやヒートマップで触れて確かめられます。畳み込みフィルタを滑らせ、残差接続で勾配消失を解き、QKᵀ softmax で自己注意の重みを見てみましょう。</p>

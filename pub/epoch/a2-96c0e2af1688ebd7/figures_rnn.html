@@ -118,6 +118,16 @@ input[type=range]{accent-color:var(--arc)}
 .con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
 .achieved,.challenge{background:var(--surface);border:1px solid var(--border);
  border-radius:8px;padding:12px 14px}
+</style><style class="epoch-theme-toc">
+.fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px}
+.fig-toc .ft-label{font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--ink-muted);
+ text-transform:uppercase;display:block;margin-bottom:8px}
+.fig-toc ol{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px}
+.fig-toc a{display:inline-block;padding:6px 13px;background:#fff;border:1px solid var(--border);
+ border-radius:16px;font-size:13px;text-decoration:none;color:var(--ink)}
+.fig-toc a:hover{border-color:var(--arc)}
+.fig-stage{scroll-margin-top:16px}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; RNN/LSTM</div>
@@ -132,7 +142,8 @@ RNN (再帰型ニューラルネット) は、前の時刻の <strong>隠れ状�
 出入りを制御する <strong>3 つのゲート</strong>を導入してこれを解いた。下で時間展開とゲートの働きを見よう。</p>
 </div>
 
-<div class="fig-stage">
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">RNN を時間方向に展開する</a></li><li><a href="#sec2">seq2seq</a></li></ol></nav>
+<div class="fig-stage" id="sec1">
 <h2>RNN を時間方向に展開する</h2>
 <div class="lead">同じセルが時刻ごとにコピーされ、隠れ状態 $h$ が左から右へ受け継がれていく。「1 ステップ進める」で系列を読み進める。</div>
 <svg id="unrollSvg" width="100%" viewBox="0 0 800 180" style="max-width:800px;display:block;margin:6px auto"></svg>
@@ -163,7 +174,7 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
 <p class="note">セル状態の更新: $C_t = f\odot C_{t-1} + i\odot \tilde{C}_t$。$f$ が掛け算でなく「ほぼ 1」を選べるため、記憶が長く保たれ勾配も消えにくい。2014-2016 年の機械翻訳 (seq2seq) はこの LSTM が主役だった。</p>
 </div>
 
-<div class="fig-stage">
+<div class="fig-stage" id="sec2">
 <h2>seq2seq — 文を 1 本のベクトルに畳んで、開き直す</h2>
 <div class="lead">翻訳では、入力の語数と出力の語数が合わない。そこで <strong>seq2seq</strong> (2014) は、
 読む側と書く側を分けた。<strong>エンコーダ</strong>が入力文を最後まで読み、その時点の内部状態を

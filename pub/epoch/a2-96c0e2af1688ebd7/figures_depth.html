@@ -136,6 +136,16 @@ input[type=range]{accent-color:var(--arc)}
 .con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
 .achieved,.challenge{background:var(--surface);border:1px solid var(--border);
  border-radius:8px;padding:12px 14px}
+</style><style class="epoch-theme-toc">
+.fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px}
+.fig-toc .ft-label{font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--ink-muted);
+ text-transform:uppercase;display:block;margin-bottom:8px}
+.fig-toc ol{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px}
+.fig-toc a{display:inline-block;padding:6px 13px;background:#fff;border:1px solid var(--border);
+ border-radius:16px;font-size:13px;text-decoration:none;color:var(--ink)}
+.fig-toc a:hover{border-color:var(--arc)}
+.fig-stage{scroll-margin-top:16px}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 深さの積み方 — VGG と Inception</div>
@@ -146,8 +156,9 @@ input[type=range]{accent-color:var(--arc)}
 2014 年、二つの答えが出た——<b>小さく揃えて縦に積む</b>か、<b>いろんな大きさを横に並べる</b>か。</p>
 </div>
 
-<div class="fig-stage">
-<h2>① 大きな 1 枚 か、小さいのを重ねる か（VGG）</h2>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">大きな 1 枚 か、小さいのを重ねる か（VGG）</a></li><li><a href="#sec2">大きさを選ばず、全部やる（Inception）</a></li><li><a href="#sec3">Batch Normalization</a></li></ol></nav>
+<div class="fig-stage" id="sec1">
+<h2>大きな 1 枚 か、小さいのを重ねる か（VGG）</h2>
 <p>同じ広さを見るのに、7×7 を 1 枚使うか、3×3 を 3 枚重ねるか。見える範囲は同じでも中身が違う。</p>
 <div class="ctrls">
   <label>3×3 を何枚重ねるか <input type="range" id="vgg" min="1" max="5" value="3"></label>
@@ -157,8 +168,8 @@ input[type=range]{accent-color:var(--arc)}
 <div class="readout" id="rv"></div>
 </div>
 
-<div class="fig-stage">
-<h2>② 大きさを選ばず、全部やる（Inception）</h2>
+<div class="fig-stage" id="sec2">
+<h2>大きさを選ばず、全部やる（Inception）</h2>
 <p>どの大きさのフィルタが効くかは、場所によって違う。なら並べて全部かけ、出てきたものを繋げばいい。
 ただしそのままでは計算量が爆発するので、1×1 で厚みを削ってから通す。</p>
 <div class="ctrls">
@@ -169,8 +180,8 @@ input[type=range]{accent-color:var(--arc)}
 <div id="v2"></div>
 <div class="readout" id="ri"></div>
 </div>
-<div class="fig-stage">
-<h2>③ Batch Normalization — 層ごとに目盛りを揃える</h2>
+<div class="fig-stage" id="sec3">
+<h2>Batch Normalization — 層ごとに目盛りを揃える</h2>
 <p>層を通るたびに値の散らばりがずれていくと、学習率を上げた途端に壊れる。
 各層で平均 0・分散 1 に直してから次へ渡すと、大きい歩幅でも安定する。</p>
 <div class="ctrls">

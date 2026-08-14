@@ -459,11 +459,11 @@ ntRender();
 <div class="section">
 <h3>おまけ詳細</h3>
 <div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
-<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">① QKV の比喩 ―― 図書館検索</div>
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">QKV の比喩 ―― 図書館検索</div>
 キーワード検索を想像する。「<strong>本</strong>」というクエリ ($Q$) を投げ、図書館の各本の <strong>背表紙</strong> ($K$ = キー) と照合する。一致度が高い本ほど中身 ($V$ = 値) を多く引き出す。Self-Attention はこれを文中のすべての単語で同時に行う。$Q, K, V$ は同じ単語ベクトルから 3 通りに線形変換した別の側面 ―― 「問いの自分」「答える側の自分」「中身としての自分」。
 </div>
 <div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
-<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">② Scene 1 の重みと何が違うか</div>
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">Scene 1 の重みと何が違うか</div>
 <table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px">
 <tr style="background:#F4F2EC"><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">機構</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">年</th><th style="border:1px solid #E4E1D8;padding:6px 8px;color:#5B7C99">重みの性質</th></tr>
 <tr><td style="border:1px solid #E4E1D8;padding:6px 8px">MP ニューロン</td><td style="border:1px solid #E4E1D8;padding:6px 8px">1943</td><td style="border:1px solid #E4E1D8;padding:6px 8px"><strong>静的</strong> — 人間が手で設計</td></tr>
@@ -473,12 +473,12 @@ ntRender();
 <div style="color:#5fa86f;margin-top:6px">重みが「静的 → 学習 → 動的」と進化してきた歴史。Scene 1 のニューロンは、その出発点。</div>
 </div>
 <div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
-<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">③ なぜ softmax か</div>
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">なぜ softmax か</div>
 内積 $QK^\top$ はバラバラの大小値（負も無限大もありうる）。これを <strong>softmax</strong> に通すと「合計 1 の確率分布」になり、「注意の総量は 1」と決まる。MP の「閾値で発火 / 非発火を 2 値判定」が、Self-Attention では「文中のすべての単語へ、確率的に注意を配分する」に進化したと見れる。<br>
 <span class="note">$\sqrt{d}$ で割るのは、内積が次元 $d$ に比例して大きくなるのを抑える正規化（gradient が消えないように）</span>
 </div>
 <div style="background:linear-gradient(135deg,#F4F2EC,#eef1f5);border:1px solid #C8C4B8;border-radius:8px;padding:14px;margin:10px 0;font-size:13px;line-height:1.9">
-<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">④ Arc 2「覚醒」への橋</div>
+<div style="color:#5B7C99;font-weight:bold;margin-bottom:6px">Arc 2「覚醒」への橋</div>
 ここで触れた Self-Attention は、Arc 2 Scene 8「注意こそ、すべて」で本格的に物語化されます。Arc 1 で蒔かれた「重み」「閾値」「softmax」の種が、いつ・なぜ・どのように <strong>Transformer</strong> に結実したか ―― 1991 年の冬を越えた者たちから、2017 年「Attention Is All You Need」までの 26 年の物語。続きは Arc 2 で。
 </div>
 </div>

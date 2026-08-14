@@ -132,6 +132,16 @@ input[type=range]{accent-color:var(--arc)}
 .con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
 .achieved,.challenge{background:var(--surface);border:1px solid var(--border);
  border-radius:8px;padding:12px 14px}
+</style><style class="epoch-theme-toc">
+.fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px}
+.fig-toc .ft-label{font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--ink-muted);
+ text-transform:uppercase;display:block;margin-bottom:8px}
+.fig-toc ol{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px}
+.fig-toc a{display:inline-block;padding:6px 13px;background:#fff;border:1px solid var(--border);
+ border-radius:16px;font-size:13px;text-decoration:none;color:var(--ink)}
+.fig-toc a:hover{border-color:var(--arc)}
+.fig-stage{scroll-margin-top:16px}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; どこに何がある？ — 検出とセグメンテーション</div>
@@ -142,8 +152,9 @@ input[type=range]{accent-color:var(--arc)}
 <b>どこに</b> あるかを知らないと動けない。出力の形が変わると、やり方も変わる。</p>
 </div>
 
-<div class="fig-stage">
-<h2>① 何を出力するのか — 三段階</h2>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">何を出力するのか</a></li><li><a href="#sec2">検出のやり方は「何回 CNN に通すか」で変わった</a></li><li><a href="#sec3">重なった候補を削る</a></li><li><a href="#sec4">縮めて広げる、だけでは輪郭が戻らない</a></li></ol></nav>
+<div class="fig-stage" id="sec1">
+<h2>何を出力するのか — 三段階</h2>
 <p>同じ 1 枚の画像に対して、答えの形が違う。切り替えて見比べてほしい。</p>
 <div class="ctrls">
   <button class="chip on" data-task="cls">分類</button>
@@ -171,8 +182,8 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 <div class="readout" id="r1"><b>分類</b>：画像 1 枚につき答えは 1 つ。位置は分からない。</div>
 </div>
-<div class="fig-stage">
-<h2>② 検出のやり方は「何回 CNN に通すか」で変わった</h2>
+<div class="fig-stage" id="sec2">
+<h2>検出のやり方は「何回 CNN に通すか」で変わった</h2>
 <p>素朴にやると、あらゆる大きさの窓をあらゆる位置で切り出して分類することになる。
 その回数をどう減らすかが、この 3 年の歴史だ。</p>
 <div class="ctrls">
@@ -192,8 +203,8 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 <div class="readout" id="r2"></div>
 </div>
-<div class="fig-stage">
-<h2>③ 重なった候補を削る — NMS</h2>
+<div class="fig-stage" id="sec3">
+<h2>重なった候補を削る — NMS</h2>
 <p>1 つの物体に何本も枠が出る。確信度の高い枠を残し、それと重なりすぎる枠を消す。
 どこまでを「重なりすぎ」とするかがしきい値だ。</p>
 <div class="ctrls">
@@ -212,8 +223,8 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 <div class="readout" id="r3"></div>
 </div>
-<div class="fig-stage">
-<h2>④ 縮めて広げる、だけでは輪郭が戻らない — U-Net</h2>
+<div class="fig-stage" id="sec4">
+<h2>縮めて広げる、だけでは輪郭が戻らない — U-Net</h2>
 <p>特徴を掴むには縮める必要がある。でも縮めた時点で「どこ」の情報は失われる。
 そこで縮める前の層から同じ大きさの層へ横に渡す（スキップ接続）。</p>
 <div class="ctrls">

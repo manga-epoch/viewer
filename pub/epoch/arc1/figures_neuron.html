@@ -150,6 +150,16 @@ input[type=range]{accent-color:var(--arc)}
 .con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
 .achieved,.challenge{background:var(--surface);border:1px solid var(--border);
  border-radius:8px;padding:12px 14px}
+</style><style class="epoch-theme-toc">
+.fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px}
+.fig-toc .ft-label{font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--ink-muted);
+ text-transform:uppercase;display:block;margin-bottom:8px}
+.fig-toc ol{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px}
+.fig-toc a{display:inline-block;padding:6px 13px;background:#fff;border:1px solid var(--border);
+ border-radius:16px;font-size:13px;text-decoration:none;color:var(--ink)}
+.fig-toc a:hover{border-color:var(--arc)}
+.fig-stage{scroll-margin-top:16px}
 </style></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 1 個の計算点</div>
@@ -163,8 +173,9 @@ input[type=range]{accent-color:var(--arc)}
 何が変わったのか、そしてこの計算点 1 個に何ができないのかを、手を動かして確かめる。</p>
 </div>
 
-<div class="fig-stage">
-<h2>① 重みと閾値を、手で決める</h2>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">重みと閾値を、手で決める</a></li><li><a href="#sec2">重みを、機械に決めさせる</a></li><li><a href="#sec3">できないこと</a></li></ol></nav>
+<div class="fig-stage" id="sec1">
+<h2>重みと閾値を、手で決める</h2>
 <p>入力は 0 か 1 の 2 本。それぞれに重み $w_1, w_2$ を掛けて足し、合計が閾値 $\theta$ 以上なら
 出力は 1、そうでなければ 0。<b>これで全部だ</b>。
 重みと閾値を動かすと、同じ回路が AND になったり OR になったりする。</p>
@@ -184,8 +195,8 @@ input[type=range]{accent-color:var(--arc)}
 <p class="note">1943 年の時点では、この $w$ と $\theta$ を決めるのは<b>人間</b>だった。
 作りたい論理が決まっていれば手で回せる。だが「作りたいものが分かっていない問題」には使えない。</p>
 </div>
-<div class="fig-stage">
-<h2>② 重みを、機械に決めさせる</h2>
+<div class="fig-stage" id="sec2">
+<h2>重みを、機械に決めさせる</h2>
 <p>1957 年のパーセプトロンは、答えだけを与えて重みを自分で直す。
 やり方は 1 つ——<b>間違えたときだけ、間違えた分だけ重みを動かす</b>。
 出したい答えが 1 なのに 0 を出したなら重みを増やし、逆なら減らす。それを繰り返す。</p>
@@ -204,8 +215,8 @@ input[type=range]{accent-color:var(--arc)}
 <p class="note">人が正解の重みを知っている必要はない。<b>合っているか間違っているかを言うだけ</b>で、
 重みは勝手に決まっていく。これが「学習」と呼ばれたものの中身だ。</p>
 </div>
-<div class="fig-stage">
-<h2>③ できないこと — 直線 1 本では分けられない</h2>
+<div class="fig-stage" id="sec3">
+<h2>できないこと — 直線 1 本では分けられない</h2>
 <p>計算点 1 個がやっているのは、平面に<b>直線を 1 本引いて、上と下で答えを変える</b>ことだ。
 AND も OR も直線 1 本で分けられる。では XOR（どちらか一方だけが 1 のとき 1）はどうか。
 直線を回して、4 点を正しく分けられるか試してほしい。</p>

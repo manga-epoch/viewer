@@ -146,6 +146,16 @@ input[type=range]{accent-color:var(--arc)}
 .con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
 .achieved,.challenge{background:var(--surface);border:1px solid var(--border);
  border-radius:8px;padding:12px 14px}
+</style><style class="epoch-theme-toc">
+.fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px}
+.fig-toc .ft-label{font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--ink-muted);
+ text-transform:uppercase;display:block;margin-bottom:8px}
+.fig-toc ol{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px}
+.fig-toc a{display:inline-block;padding:6px 13px;background:#fff;border:1px solid var(--border);
+ border-radius:16px;font-size:13px;text-decoration:none;color:var(--ink)}
+.fig-toc a:hover{border-color:var(--arc)}
+.fig-stage{scroll-margin-top:16px}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 言葉を、場所に変える</div>
@@ -158,8 +168,9 @@ input[type=range]{accent-color:var(--arc)}
 語を<b>空間の点</b>として置き直すことだった。ここでは、その置き方と、置いた後にできることを触って確かめる。</p>
 </div>
 
-<div class="fig-stage">
-<h2>① 分布仮説 — 意味は「周りの語」が決める</h2>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">分布仮説</a></li><li><a href="#sec2">王 − 男 + 女 = ？</a></li><li><a href="#sec3">限界</a></li></ol></nav>
+<div class="fig-stage" id="sec1">
+<h2>分布仮説 — 意味は「周りの語」が決める</h2>
 <p>「その語が何を意味するか」を辞書から教えるのではない。
 <b>どんな語と一緒に出てくるか</b>だけを大量の文から数える。
 周りの顔ぶれが似ていれば、意味も似ている——これが分布仮説だ。
@@ -176,8 +187,8 @@ input[type=range]{accent-color:var(--arc)}
 <div id="v1"></div>
 <div class="readout" id="r1"></div>
 </div>
-<div class="fig-stage">
-<h2>② 王 − 男 + 女 = ？ — 意味の差が「向き」になる</h2>
+<div class="fig-stage" id="sec2">
+<h2>王 − 男 + 女 = ？ — 意味の差が「向き」になる</h2>
 <p>置き方がうまくいくと、不思議なことが起きる。
 「王」から「男」を引いて「女」を足すと、<b>「女王」のあたりに着く</b>。
 意味の差（身分の差・性別の差）が、空間の中の<b>一定の向き</b>として現れるからだ。
@@ -196,8 +207,8 @@ input[type=range]{accent-color:var(--arc)}
 本物のベクトルは 200〜300 次元あり、紙には収まらない。
 また、この足し引きは<b>いつでも決まるわけではない</b>——うまくいく組と、そうでない組がある。</p>
 </div>
-<div class="fig-stage">
-<h2>③ 限界 — 1 語につき、1 つの場所しか持てない</h2>
+<div class="fig-stage" id="sec3">
+<h2>限界 — 1 語につき、1 つの場所しか持てない</h2>
 <p>Word2Vec は語ごとにベクトルを 1 本だけ持つ。
 だから「はし」（橋・箸）のように意味が複数ある語は、<b>どちらの意味の場所にも置けない</b>。
 学習が終わると、その語は両方の平均——どちらでもない場所に落ち着く。
