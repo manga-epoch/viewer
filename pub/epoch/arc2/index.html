@@ -240,9 +240,11 @@ const STORAGE_KEY = 'epoch-arc2-scene1-notes';
 const DIALOGUE_KEY = 'epoch-arc2-scene1-dialogue-edits';
 const SPEAKER_KEY = 'epoch-arc2-scene1-speaker-edits';
 let idx = 0;
-{ const ph = location.hash.match(/p(\d+)/), sh = location.hash.match(/s(\d+)/);
+{ const SSTART = [2, 14, 27, 39, 51, 63, 75, 87];
+  const ph = location.hash.match(/p(\d+)/), sh = location.hash.match(/s(\d+)/);
   if (ph) idx = Math.min(+ph[1], PAGES.length - 1);
-  else if (sh && SCENES[+sh[1] - 1]) idx = SCENES[+sh[1] - 1].start; }
+  else if (sh && SSTART[+sh[1] - 1] != null)
+    idx = Math.min(SSTART[+sh[1] - 1], PAGES.length - 1); }
 let notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 let dialogueEdits = JSON.parse(localStorage.getItem(DIALOGUE_KEY) || '{}');
 let speakerEdits = JSON.parse(localStorage.getItem(SPEAKER_KEY) || '{}');
