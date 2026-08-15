@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Transformer の全体像 — EPOCH Arc 2 図解</title>
+<title>Transformer — EPOCH Arc 2 図解</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
@@ -174,24 +174,24 @@ input[type=range]{accent-color:var(--arc)}
 .fig-stage{scroll-margin-top:16px}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
-<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; Transformer の全体像</div>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; Transformer</div>
 <div class="intro">
 <div class="eyebrow">ARC 2 ／ SCENE 8 — 注意こそ、すべて</div>
-<h1>Transformer — 1文が入って、次の1語が出るまでの地図</h1>
-<p>ここは<b>地図</b>であって、部屋の中身までは持たない。自己注意（Self-Attention）そのものの
-中身は <a href="figures_attention.html">figures_attention.html</a> が受け持つ。ここで追うのは、
-文が入ってから次の1語が出るまでの<b>全体の通り道</b>と、なぜ同じブロックを12回もくり返すのか、
-という「地図」側の疑問だ。</p>
+<h1>Transformer</h1>
+<p>Transformer の全体の仕組みを図解する。文が入ってから次の1語が出るまでに何をどの順で
+通るのか、そしてなぜ同じブロックを12回もくり返すのかを追う。
+Self-Attention そのものの中身は
+<a href="figures_attention.html">別の図解</a>が受け持つ。</p>
 <p>Transformer は2017年の論文で登場した構造で、いまの GPT・Llama・Gemini はどれもこれを土台に
-している。やっていることは、突き詰めれば<b>次の1語を当てる</b>ことだけ。その肝が自己注意――
+している。やっていることは、突き詰めれば<b>次の1語を当てる</b>ことだけ。その肝が Self-Attention――
 文中の全部の語を一度に見て、どの語をどれだけ参照するかを、モデル自身が決める――にある。</p>
 <p>ここで見るのは GPT-2 small（パラメータ1億2400万・ブロック12段・埋め込み768次元）。
 埋め込みの中身と、出力の作り方まで、文を1つ通しで追いかける。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">全体の通り道</a></li><li><a href="#sec2">Embedding</a></li><li><a href="#sec3">なぜ12回くり返すのか</a></li><li><a href="#sec4">出力</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">全体のフロー</a></li><li><a href="#sec2">Embedding</a></li><li><a href="#sec3">なぜ12回くり返すのか</a></li><li><a href="#sec4">出力</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>全体の通り道</h2>
+<h2>全体のフロー</h2>
 <p>文が入ってから次の1語が出るまで、何をどの順で通るのか。よくある描き方に合わせて描いた。
 箱や⊕を選ぶと、そこで何が起きるかと、そこでのデータの<b>形</b>が読み上げに出る。</p>
 <div class="stepbar" id="steps"></div>
@@ -286,7 +286,7 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
   var N=D.tokens.length, DIM=D.dim, HEADS=D.heads, HEAD_DIM=D.headDim, FFN=D.ffn,
       VOCAB=D.vocab, BLOCKS=D.blocks;
 
-  /* ==================== 節1: 全体の通り道 ==================== */
+  /* ==================== 節1: 全体のフロー ==================== */
   var cur=0;
   window.__selStep1=function(k){
     for(var i=0;i<STEPS1.length;i++){ if(STEPS1[i][0]===k){ cur=i; break; } }
@@ -319,19 +319,32 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
     g+='</g>';
     return g;
   }
-  function residual(xC,y1,y2,off){
-    var x=xC-off;
-    return '<path class="res" d="M'+xC+' '+y1+' L'+x+' '+y1+' L'+x+' '+y2+' L'+xC+' '+y2+'"/>';
+  /* 残差＝その部品を迂回して、出た先の ⊕ に足し戻す配線。
+     ※ 3 つ直した:
+       (1) 終端を横から水平に差すと ⊕ の丸に重なって「どこへ入ったか」が読めない
+           （読者指摘）→ ⊕ の**真上から垂直に**入れる。
+       (2) 迂回線を箱の辺と同じ高さで折り返すと辺に潜る → 箱の**外側**を上下に通す。
+       (3) 起点を箱の上辺と同じ高さに置くと、横へ伸ばす区間が箱に覆われて起点が消え、
+           線が途中から生えて見える → 起点は箱の**手前の矢印の途中**にとり、
+           そこに小さな分岐点を打つ。 */
+  function residual(xC,yFrom,yTo,off,boxBottom){
+    var x=xC-off;                      // 縦に降りる位置（ブロックの点線枠より外）
+    var yMid=(boxBottom+yTo)/2;        // 箱の下辺と ⊕ の中間で内側へ折り返す
+    return '<circle cx="'+xC+'" cy="'+yFrom+'" r="2.6" fill="#6E7BA8"/>'+
+           '<path class="res" d="M'+xC+' '+yFrom+' L'+x+' '+yFrom+' L'+x+' '+yMid+
+           ' L'+xC+' '+yMid+' L'+xC+' '+(yTo-10)+'"/>'+
+           '<path d="M'+(xC-4.5)+' '+(yTo-15)+' L'+xC+' '+(yTo-8)+' L'+(xC+4.5)+' '+(yTo-15)+
+           '" fill="none" stroke="#6E7BA8" stroke-width="1.8"/>';
   }
   function draw1(){
-    var W=680, BW=260, BX=190, xC=BX+BW/2;
+    var W=780, BW=260, BX=250, xC=BX+BW/2;   // 左は残差の迂回線ぶん、右は注記ぶんの余白
     var yInput=20, hBox=42;
     var yEmbed=88;
-    var yAttn=168, hAttn=58;
+    var yAttn=176, hAttn=58;
     var yAdd1=yAttn+hAttn+23;
-    var yMlp=yAttn+hAttn+46, hMlp=42;
+    var yMlp=yAdd1+35, hMlp=42;        // ⊕ と MLP の間は残差の分岐点が入るぶん空ける
     var yAdd2=yMlp+hMlp+23;
-    var blockTop=yAttn-18, blockBottom=yMlp+hMlp+46+14;
+    var blockTop=yAttn-26, blockBottom=yAdd2+30;   // 上辺と箱の間も同じ理由で空ける
     var yOut=blockBottom+40, hOut=42;
     var H=yOut+hOut+30;
     var g='';
@@ -353,13 +366,13 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
     g+='<a href="figures_attention.html"><text class="lbl2" x="'+xC+'" y="'+(yAttn+hAttn-8)+
        '">この中身を見る →</text></a>';
     g+=mkArrow(xC,yAttn+hAttn,yAdd1-8,sel('attn')||sel('add1'));
-    g+=residual(xC,yAttn,yAdd1,BW/2+18);   // 箱の外を回す（内側を横切ると配線に見えない）
+    g+=residual(xC,yAttn-13,yAdd1,BW/2+56,yAttn+hAttn);
     g+=mkAddNorm('add1',xC,yAdd1,sel('add1'));
     g+=mkArrow(xC,yAdd1+8,yMlp,sel('add1')||sel('mlp'));
 
     g+=mkBox('mlp',BX,yMlp,BW,hMlp,['MLP（Feed Forward）'],sel('mlp'));
     g+=mkArrow(xC,yMlp+hMlp,yAdd2-8,sel('mlp')||sel('add2'));
-    g+=residual(xC,yMlp,yAdd2,BW/2+42);   // 2 本目はさらに外側（重ならないように）
+    g+=residual(xC,yMlp-13,yAdd2,BW/2+92,yMlp+hMlp);
     g+=mkAddNorm('add2',xC,yAdd2,sel('add2'));
     g+=mkArrow(xC,yAdd2+8,yOut,sel('add2')||sel('out'));
 
@@ -369,7 +382,7 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
     var shapeH={input:hBox,embed:hBox,attn:hAttn,mlp:hMlp,out:hOut};
     ['input','embed','attn','mlp','out'].forEach(function(k){
       var st=STEPS1[stepIdx(k)];
-      g+='<text class="shape" x="'+(BX+BW+16)+'" y="'+(shapeY[k]+shapeH[k]/2+4)+
+      g+='<text class="shape" x="'+(BX+BW+34)+'" y="'+(shapeY[k]+shapeH[k]/2+4)+
          '" style="text-anchor:start">'+esc(st[3])+'</text>';
     });
 

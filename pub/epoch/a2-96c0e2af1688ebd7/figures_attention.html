@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>自己注意のしくみ — EPOCH Arc 2 図解</title>
+<title>Self-Attention のしくみ — EPOCH Arc 2 図解</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
@@ -171,19 +171,19 @@ input[type=range]{accent-color:var(--arc)}
 .fig-stage{scroll-margin-top:16px}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
-<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 自己注意のしくみ</div>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; Self-Attention のしくみ</div>
 <div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_alphago.html">← AlphaGo・MCTS</a><a class="fp-comm" href="commentary.html#scene8">解説 Scene 8「注意こそ、すべて」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="commentary.html#extra1">補講へ →</a></nav></div>
 <div class="intro">
 <div class="eyebrow">ARC 2 ／ SCENE 8 — 注意こそ、すべて</div>
-<h1>注意のしくみを、本物の数値で見る</h1>
-<p>2017 年の Transformer は、再帰をやめて<b>自己注意 (Self-Attention)</b> だけで文を処理する。
+<h1>Self-Attention のしくみを、本物の数値で見る</h1>
+<p>2017 年の Transformer は、再帰をやめて<b>Self-Attention</b> だけで文を処理する。
 各語が自分の<b>クエリ</b>と全語の<b>キー</b>を照らし合わせ、
 「どの語をどれだけ参照するか」の重みを決める。
 ここで見る数値は説明用の作りものではなく、<b>実際に GPT-2 が計算した値</b>だ。</p>
 <p>この図解が扱うのは、Transformer ブロックの中にある<b>Masked Multi-Head Self-Attention</b>という
-1 つの部品の中身だけだ。文が入って次の 1 語が出るまでの全体の通り道（トークン化 → 埋め込み →
-［自己注意 → MLP］× 12 → 出力）は<a href="figures_transformer.html">Transformer の全体像</a>にある。
-ここではその中の「自己注意」の 1 段を、Q・K・V が生まれるところから出力になるところまで、順に追う。</p>
+1 つの部品の中身だけだ。文が入って次の 1 語が出るまでの全体のフロー（トークン化 → 埋め込み →
+［Self-Attention → MLP］× 12 → 出力）は<a href="figures_transformer.html">Transformer</a>にある。
+ここではその中の Self-Attention の 1 段を、Q・K・V が生まれるところから出力になるところまで、順に追う。</p>
 <div class="prompt-line">読ませた文: <b>Data visualization empowers users to</b><br>
 <span style="color:var(--ink-sub)">（データ可視化は、ユーザーが〜することを可能にする）</span></div>
 </div>
@@ -258,7 +258,7 @@ $W^Q,\,W^K,\,W^V$ は<b>学習で決まる</b>重み行列。同じ $X$ から�
 </div>
 <div class="fig-stage" id="sec4">
 <h2>12 のヘッド — 同じ文でも、見ている場所が違う</h2>
-<p>自己注意は 1 組ではない。GPT-2 small は同じ計算を <b>12 組</b>並べ、
+<p>Self-Attention は 1 組ではない。GPT-2 small は同じ計算を <b>12 組</b>並べ、
 それぞれ別の重み行列で Q・K・V を作る。結果、ヘッドごとに<b>見ている関係が違う</b>。
 番号を切り替えて、いちばん濃い升がどこへ動くか見てほしい。</p>
 <div class="headgrid" id="heads"></div>
