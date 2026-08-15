@@ -142,11 +142,12 @@ RNN (再帰型ニューラルネット) は、前の時刻の <strong>隠れ状�
 出入りを制御する <strong>3 つのゲート</strong>を導入してこれを解いた。下で時間展開とゲートの働きを見よう。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">RNN を時間方向に展開する</a></li><li><a href="#sec2">seq2seq</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">RNN を時間方向に展開する</a></li><li><a href="#sec2">LSTM の 3 つのゲート</a></li><li><a href="#sec3">seq2seq</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>RNN を時間方向に展開する</h2>
 <div class="lead">同じセルが時刻ごとにコピーされ、隠れ状態 $h$ が左から右へ受け継がれていく。「1 ステップ進める」で系列を読み進める。</div>
 <svg id="unrollSvg" width="100%" viewBox="0 0 800 180" style="max-width:800px;display:block;margin:6px auto"></svg>
+<div class="readout" id="rout">まだ 1 語も読んでいない。「▶ 1 ステップ進める」で読み進める。</div>
 <div class="ctrls">
   <button class="btn" id="stepBtn">▶ 1 ステップ進める</button>
   <button class="btn ghost" id="resetBtn">最初へ</button>
@@ -156,15 +157,28 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
 <div class="note" style="margin-top:8px">$h_t$ は「これまで読んだ文の要約」。$h_{t-1}$ を繰り返し掛けるため、長い系列では勾配が $W^t$ で消失/爆発しやすい。</div>
 </div>
 
-<h2 style="margin-top:34px">LSTM の 3 つのゲート</h2>
-<div class="lead">セル状態 $C$ (上の太い線 = 記憶のハイウェイ) に、ゲートが情報を出し入れする。各スライダーを動かすと、ゲートの開き具合で記憶がどう更新されるかが変わる。</div>
+<h3>同じ係数を繰り返し掛けると、何が起きるか</h3>
+<div class="lead">$h_t$ の勾配には $W$ が $t$ 回掛かる。$|W|<1$ ならその積は指数的に 0 に近づく——これが<strong>勾配消失</strong>だ。ここでは分かりやすく係数 $0.8$ を例に取る。</div>
+<svg id="rnnDecaySvg" width="100%" viewBox="0 0 700 130" style="max-width:700px;display:block;margin:6px auto"></svg>
+<p class="note">$0.8$ を 10 回掛けると $0.8^{10}\approx0.107$——最初の 1 割ほどしか残らない。実際の RNN では $W$ はベクトル/行列で値も学習されるが、「係数を繰り返し掛けると縮む」という力学は同じだ。LSTM がこれをどう避けるかは次のセクションで見る。</p>
+
+</div>
+
+<div class="fig-stage" id="sec2">
+<h2>LSTM の 3 つのゲート</h2>
+<div class="lead">セル状態 $C$ (上の太い線 = 記憶のハイウェイ) に、ゲートが情報を出し入れする。ゲートを設定してから「1 ステップ進める」を繰り返し押し、$C_t$ が前のステップの $C_{t-1}$ を受け継ぎながらどう積み上がる/落ち着くかを見よう。候補値 $\tilde{C}$ は $0.80$ に固定する。</div>
 <div class="ctrls">
   <div class="ctrl"><label>忘却ゲート $f$ <span class="val" id="fV">0.9</span></label><input type="range" id="fg" min="0" max="100" value="90"></div>
   <div class="ctrl"><label>入力ゲート $i$ <span class="val" id="iV">0.6</span></label><input type="range" id="ig" min="0" max="100" value="60"></div>
   <div class="ctrl"><label>出力ゲート $o$ <span class="val" id="oV">0.7</span></label><input type="range" id="og" min="0" max="100" value="70"></div>
 </div>
+<div class="ctrls">
+  <button class="btn" id="lstmStep">▶ 1 ステップ進める</button>
+  <button class="btn ghost" id="lstmReset">リセット (t=0 から)</button>
+  <div class="ctrl" style="margin-left:auto"><label>経過ステップ <span class="val" id="lstmT">0</span></label></div>
+</div>
 <svg id="lstmSvg" width="100%" viewBox="0 0 800 240" style="max-width:800px;display:block;margin:6px auto"></svg>
-<div class="readout" id="lout"></div>
+<div class="readout" id="lout">ゲートを設定し、「1 ステップ進める」を押してください（C は 0 から始まります。候補値 C̃ は 0.80 に固定）。</div>
 <table class="mini" style="margin-top:14px">
 <tr><th>ゲート</th><th>式</th><th>役割</th></tr>
 <tr><td>忘却 $f$</td><td>$\sigma(W_f[h_{t-1},x_t])$</td><td>古い記憶を<strong>どれだけ残す</strong>か</td></tr>
@@ -172,14 +186,22 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
 <tr><td>出力 $o$</td><td>$\sigma(W_o[h_{t-1},x_t])$</td><td>記憶から<strong>何を出力</strong>するか</td></tr>
 </table>
 <p class="note">セル状態の更新: $C_t = f\odot C_{t-1} + i\odot \tilde{C}_t$。$f$ が掛け算でなく「ほぼ 1」を選べるため、記憶が長く保たれ勾配も消えにくい。2014-2016 年の機械翻訳 (seq2seq) はこの LSTM が主役だった。</p>
+
+<h3>$f$ を何度も掛け続けると</h3>
+<div class="lead">前段の RNN は $W$ を $t$ 回掛けるたびに消えていった。LSTM の忘却ゲート $f$ がほぼ $1$ なら、同じ「$t$ 回掛ける」操作でもほとんど縮まない——これが長い記憶を保てる理由だ。スライダーの $f$ を動かすと下のグラフも連動する。</div>
+<svg id="lstmDecaySvg" width="100%" viewBox="0 0 700 130" style="max-width:700px;display:block;margin:6px auto"></svg>
 </div>
 
-<div class="fig-stage" id="sec2">
+<div class="fig-stage" id="sec3">
 <h2>seq2seq — 文を 1 本のベクトルに畳んで、開き直す</h2>
 <div class="lead">翻訳では、入力の語数と出力の語数が合わない。そこで <strong>seq2seq</strong> (2014) は、
 読む側と書く側を分けた。<strong>エンコーダ</strong>が入力文を最後まで読み、その時点の内部状態を
 <strong>1 本の固定長ベクトル（文脈ベクトル）</strong>として渡す。<strong>デコーダ</strong>はそれだけを
 頼りに、出力を 1 語ずつ生む。文を長くすると、この 1 本がどうなるか見てほしい。</div>
+<div class="formula">
+$c = h_T$
+<div class="note" style="margin-top:8px">エンコーダの最後の隠れ状態 $h_T$ をそのまま文脈ベクトル $c$ とする。デコーダは $p(y_t \mid y_{&lt;t}, c)$ ——つまり<b>自分がここまでに書いた語 $y_{&lt;t}$</b> と<b>この 1 本の $c$</b> だけから、次の語 $y_t$ の確率を計算する。原文の他の語は直接には見えない。</div>
+</div>
 <div class="ctrls">
   <button class="btn" id="s2sStep">▶ 1 語進める</button>
   <button class="btn ghost" id="s2sAuto">最後まで</button>
@@ -220,20 +242,44 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
     }
     var defs=el(svg,'defs',{});var m=el(defs,'marker',{id:'ar',markerWidth:8,markerHeight:8,refX:6,refY:3,orient:'auto'});
     el(m,'path',{d:'M0,0 L6,3 L0,6',fill:'#9A9488'});
+    // 図だけでは「今どこまで進んだか」が伝わらない。押すたびに実際の状態を言葉にする
+    var rout=document.getElementById('rout');
+    if(step===0){
+      rout.textContent='まだ 1 語も読んでいない。「▶ 1 ステップ進める」で読み進める。';
+    }else if(step<n){
+      rout.textContent=step+' 語目「'+SEQ[step-1]+'」を読み込み、h'+step+' に「ここまでの要約」を書き込んだ。h'+step+' は次のセルへ渡される。';
+    }else{
+      rout.textContent=n+' 語すべて読み終えた。最後の h'+n+' がこの文全体の要約になる。';
+    }
   }
   document.getElementById('stepBtn').addEventListener('click',function(){if(step<SEQ.length)step++;drawUnroll();});
   document.getElementById('resetBtn').addEventListener('click',function(){step=0;drawUnroll();});
   drawUnroll();
-  // --- LSTM gates ---
-  var f=0.9,ig=0.6,o=0.7,C=0.0;
-  function drawLstm(){
+  // --- 勾配消失: 同じ係数を繰り返し掛けると 0 に近づく様子を棒グラフで見せる (RNN/LSTM 共用) ---
+  function drawDecayBars(svgId,base,label){
+    var svg=document.getElementById(svgId);svg.innerHTML='';
+    var W=700,H=130,padL=34,padR=10,padB=28,padT=16,n=11;
+    var slot=(W-padL-padR)/n,barW=slot-6;
+    for(var k=0;k<n;k++){
+      var v=Math.pow(base,k);
+      var x=padL+k*slot,h2=(H-padB-padT)*v,y=H-padB-h2;
+      el(svg,'rect',{x:x,y:y,width:barW,height:Math.max(h2,1),rx:2,fill:ARC,opacity:.15+.75*v});
+      if(k%2===0||k===n-1) el(svg,'text',{x:x+barW/2,y:H-padB+16,'text-anchor':'middle','font-size':10,fill:'#9A9488'},'t='+k);
+    }
+    el(svg,'line',{x1:padL,y1:H-padB,x2:W-padR,y2:H-padB,stroke:'#E4E1D8'});
+    el(svg,'text',{x:padL,y:padT-4,'font-size':10,fill:'#9A9488'},label);
+  }
+  drawDecayBars('rnnDecaySvg',0.8,'0.8^t の残存率(RNN の勾配イメージ) — 掛けるほど 0 に近づく');
+  // --- LSTM gates: 時間を導入し、C_{t-1} → C_t を「1 ステップ進める」ボタンで反復して受け継ぐ ---
+  // (旧版はスライダーを動かすたびに C を 0 にリセットしていたため、f をどう変えても
+  //  表示される数値が同じになるバグがあった。ここでは C をステップ間で保持する)
+  var f=0.9,ig=0.6,o=0.7,C=0.0,tstep=0,CTIL=0.80;
+  function drawLstm(prevC,prevH){
     var svg=document.getElementById('lstmSvg');svg.innerHTML='';
     // highway line for C
     el(svg,'line',{x1:30,y1:50,x2:770,y2:50,stroke:ARC,'stroke-width':5,opacity:.5});
-    el(svg,'text',{x:30,y:38,'font-size':12,fill:'#565248'},'セル状態 C (記憶のハイウェイ)');
-    var Cnew=f*C + ig*0.8; // tilde C ~0.8 new candidate
-    var h=o*Math.tanh(Cnew);
-    // gate boxes
+    el(svg,'text',{x:30,y:38,'font-size':12,fill:'#565248'},'セル状態 C (記憶のハイウェイ)　t='+tstep);
+    // gate boxes (このステップでは f・i・o は固定のまま C だけが動く)
     var gates=[['忘却 f',f,180],['入力 i',ig,400],['出力 o',o,620]];
     gates.forEach(function(g){
       var x=g[2],val=g[1];
@@ -246,16 +292,38 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
       // connect to highway
       el(svg,'line',{x1:x,y1:120,x2:x,y2:55,stroke:'#CFCBBE','stroke-width':1.4,'stroke-dasharray':'3 3'});
     });
-    el(svg,'text',{x:770,y:38,'text-anchor':'end','font-size':12,fill:ARC,'font-weight':700},'C_t = '+Cnew.toFixed(2));
-    document.getElementById('lout').textContent=
-      '更新: C_t = f·C_{t-1} + i·C̃  =  '+f.toFixed(2)+'×'+C.toFixed(2)+' + '+ig.toFixed(2)+'×0.80  =  '+Cnew.toFixed(2)+
-      '   出力 h_t = o·tanh(C_t) = '+h.toFixed(2)+
-      (f>0.8?'   ← 忘却ゲートが開き、古い記憶をよく保持している。':(f<0.3?'   ← 忘却ゲートが閉じ、記憶をリセット気味。':''));
-    C=Cnew;
+    el(svg,'text',{x:770,y:38,'text-anchor':'end','font-size':12,fill:ARC,'font-weight':700},'C_t = '+C.toFixed(2));
+    var lout=document.getElementById('lout');
+    if(tstep===0){
+      lout.textContent='ゲートを設定し、「1 ステップ進める」を押してください（C は 0 から始まります。候補値 C̃ は 0.80 に固定）。';
+    }else{
+      var steady=ig*CTIL/(1-f); // f<1 のとき C が近づいていく定常値
+      lout.textContent=
+        't='+tstep+': C_{t-1}='+prevC.toFixed(2)+' → C_t = f·C_{t-1} + i·C̃ = '+f.toFixed(2)+'×'+prevC.toFixed(2)+' + '+ig.toFixed(2)+'×'+CTIL.toFixed(2)+' = '+C.toFixed(2)+
+        '   h_t = o·tanh(C_t) = '+prevH.toFixed(2)+
+        '　このまま f='+f.toFixed(2)+' で進め続けると C は '+(isFinite(steady)?steady.toFixed(2):'∞')+' 付近で頭打ちになる'+
+        (f>=0.8?'——高い f は過去の値の影響を長く引きずる。':(f<=0.3?'——低い f だと直近の入力にすぐ支配され、古い値はもう残っていない。':'。'));
+    }
+    drawDecayBars('lstmDecaySvg',f,'f^t の残存率(現在 f='+f.toFixed(2)+') — 1 に近いほど長く残る');
   }
-  function bind(id,vid,set){document.getElementById(id).addEventListener('input',function(e){var v=+e.target.value/100;set(v);document.getElementById(vid).textContent=v.toFixed(1);C=0;drawLstm();});}
+  function stepLstm(){
+    var prevC=C;
+    C=f*C+ig*CTIL;
+    var h=o*Math.tanh(C);
+    tstep++;
+    document.getElementById('lstmT').textContent=tstep;
+    drawLstm(prevC,h);
+  }
+  function resetLstm(){
+    C=0;tstep=0;
+    document.getElementById('lstmT').textContent=0;
+    drawLstm(0,0);
+  }
+  function bind(id,vid,set){document.getElementById(id).addEventListener('input',function(e){var v=+e.target.value/100;set(v);document.getElementById(vid).textContent=v.toFixed(1);resetLstm();});}
   bind('fg','fV',function(v){f=v;});bind('ig','iV',function(v){ig=v;});bind('og','oV',function(v){o=v;});
-  drawLstm();
+  document.getElementById('lstmStep').addEventListener('click',stepLstm);
+  document.getElementById('lstmReset').addEventListener('click',resetLstm);
+  drawLstm(0,0);
 })();
 </script>
 <script>
@@ -292,7 +360,9 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
     }
     /* --- 文脈ベクトル（中央）: 幅は常に一定。語数で分割する --- */
     var bw=300, bx=(W-bw)/2, by=104, seg=bw/src.length;
-    g+='<text x="'+bx+'" y="96" style="font:600 12px sans-serif;fill:#8c8880">文脈ベクトル（固定長 — どの文でも同じ幅）</text>';
+    /* 中央上部(タイトル行)に置く。旧位置(y=96)はエンコーダ→文脈ベクトルの矢印と同じ高さで、
+       文字が矢印の上に重なって潰れていたため、矢印より上の見出し行へ移した */
+    g+='<text x="'+(bx+bw/2)+'" y="18" text-anchor="middle" style="font:600 12px sans-serif;fill:#8c8880">文脈ベクトル（固定長 — どの文でも同じ幅）</text>';
     for(var i=0;i<src.length;i++){
       g+='<rect x="'+(bx+i*seg)+'" y="'+by+'" width="'+seg+'" height="34" fill="'+
          (i<read?'#6E7BA8':'#fff')+'" stroke="#fff" stroke-width="1"/>';

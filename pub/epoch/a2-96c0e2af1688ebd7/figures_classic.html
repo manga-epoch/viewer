@@ -77,6 +77,9 @@ svg .pt{stroke:#1a1a1a;stroke-width:1.6}
 svg .pt.a{fill:#1a1a1a}
 svg .pt.b{fill:#fff}
 svg .pt.sv{stroke:#6E7BA8;stroke-width:3}
+svg .pt.new{stroke-width:2}
+svg .pt.new.ok{stroke:#15803d;fill:none}
+svg .pt.new.miss{stroke:#b4493f;fill:#b4493f}
 svg .bd{stroke:#1a1a1a;stroke-width:2.6;fill:none}
 svg .mg{fill:rgba(110,123,168,.16);stroke:#6E7BA8;stroke-width:1.4;stroke-dasharray:5 4}
 svg .cell{stroke:#fff;stroke-width:1}
@@ -154,6 +157,8 @@ input[type=range]{accent-color:var(--arc)}
 <p>2000 年代、ニューラルネットは停滞していた。その間に実務を支えていたのが、
 <b>理屈が明快で、少ないデータでも安定する</b>道具たちだ。
 何が強くて、何ができなかったのかを触って確かめる。</p>
+<p class="note">下の点はすべて、仕組みを確かめるために生成した<b>模式データ</b>（実データではない）。
+マージン・正解率・収束判定などの数値は、そのデータに対して実際に計算している。</p>
 </div>
 
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">SVM</a></li><li><a href="#sec2">直線で分けられないとき</a></li><li><a href="#sec3">決定木と、その集まり</a></li><li><a href="#sec4">k-means</a></li></ol></nav>
@@ -165,9 +170,13 @@ SVM は<b>両側にいちばん広く空きが取れる線</b>を選ぶ。だか
   <label>境界の傾き <input type="range" id="ang" min="-40" max="40" value="0"></label>
   <span class="tag" id="ang-v">0°</span>
   <button class="btn" id="best">いちばん余裕のある線へ</button>
+  <button class="btn ghost" id="drop">新しい点を 1 つ落とす</button>
 </div>
 <div id="v1"></div>
 <div class="readout" id="r1"></div>
+<div class="formula">
+$\displaystyle w\cdot x + b = 0$ が境界。マージン $\displaystyle 2/\lVert w\rVert$ を最大にする $w,b$ を選ぶ。
+</div>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>直線で分けられないとき — 持ち上げる（カーネル）</h2>
@@ -179,11 +188,15 @@ SVM は<b>両側にいちばん広く空きが取れる線</b>を選ぶ。だか
 </div>
 <div id="v2"></div>
 <div class="readout" id="r2"></div>
+<div class="formula">
+$\displaystyle \phi(x) = (x,\ \lVert x\rVert^2)$ ―― 持ち上げる高さ＝原点からの距離の 2 乗<br>
+$\displaystyle K(x,x') = \phi(x)\cdot\phi(x')$ ―― 実際にはこの座標を作らず、内積だけで同じ効果を出す（カーネル法）
+</div>
 </div>
 <div class="fig-stage" id="sec3">
 <h2>決定木と、その集まり</h2>
-<p>質問を重ねて領域を切り分けるのが決定木。深くするほど訓練データに合うが、
-境界が細かく歪んで<b>新しいデータで外す</b>。たくさん作って多数決を取るのがランダムフォレスト。</p>
+<p>質問を重ねて軸に平行な線で領域を切り分けるのが決定木。深くするほど訓練データに合うが、
+雑音の点まで囲い込んで<b>新しいデータで外す</b>（過学習）。たくさん作って多数決を取るのがランダムフォレスト。</p>
 <div class="ctrls">
   <label>木の深さ <input type="range" id="depth" min="1" max="8" value="3"></label>
   <span class="tag" id="depth-v">3</span>
@@ -192,6 +205,9 @@ SVM は<b>両側にいちばん広く空きが取れる線</b>を選ぶ。だか
 </div>
 <div id="v3"></div>
 <div class="readout" id="r3"></div>
+<div class="formula">
+$\displaystyle \mathrm{Gini} = 1-\sum_k p_k^2$ ―― 分割ごとに、2 グループの Gini（不純度）の加重平均が最も下がる軸としきい値を選ぶ
+</div>
 </div>
 <div class="fig-stage" id="sec4">
 <h2>k-means — 正解を使わずに寄せる</h2>
@@ -205,6 +221,10 @@ SVM は<b>両側にいちばん広く空きが取れる線</b>を選ぶ。だか
 </div>
 <div id="v4"></div>
 <div class="readout" id="r4"></div>
+<div class="formula">
+$\displaystyle c(x_i)=\arg\min_j \lVert x_i-\mu_j\rVert^2$ ―― 割り当て：各点を最も近い代表へ<br>
+$\displaystyle \mu_j \leftarrow \frac{1}{|C_j|}\sum_{x_i\in C_j} x_i$ ―― 更新：代表をその重心へ動かす
+</div>
 </div>
 <div class="back-link"><a href="figures.html">← 図解一覧に戻る</a></div>
 <script>
@@ -213,12 +233,15 @@ SVM は<b>両側にいちばん広く空きが取れる線</b>を選ぶ。だか
   var NS='http://www.w3.org/2000/svg';
   function svg(w,h,i){return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px;display:block;margin:0 auto" xmlns="'+NS+'">'+i+'</svg>';}
   function rnd(seed){ var x=Math.sin(seed)*10000; return x-Math.floor(x); }
+  // ① と ③ で共用: 新しい点（正解/不正解）を示す小さな三角形
+  function triPath(cx,cy,r){ return 'M'+cx+' '+(cy-r)+' L'+(cx+r*0.87)+' '+(cy+r*0.5)+' L'+(cx-r*0.87)+' '+(cy+r*0.5)+' Z'; }
 
   // ① SVM
   var A=[],B=[];
   (function(){ for(var i=0;i<12;i++){
     A.push({x:90+rnd(i*1.7)*150, y:60+rnd(i*3.1)*110});
     B.push({x:320+rnd(i*2.3)*150, y:80+rnd(i*4.7)*110}); } })();
+  var SVM_DROPS=[];   // 「新しい点を落とす」で増える held-out 点。角度を変えても消えない＝同じ点で線を比べられる
   function svm(){
     var a=+$('#ang').value; $('#ang-v').textContent=a+'°';
     var cx=290, cy=130, rad=a*Math.PI/180;
@@ -237,10 +260,17 @@ SVM は<b>両側にいちばん広く空きが取れる線</b>を選ぶ。だか
     [[A,'a'],[B,'b']].forEach(function(pr){ pr[0].forEach(function(p){
       var sv=Math.abs(Math.abs(dist(p))-margin)<3.5;
       g+='<circle class="pt '+pr[1]+(sv?' sv':'')+'" cx="'+p.x+'" cy="'+p.y+'" r="7"/>'; }); });
+    var missCount=0;
+    SVM_DROPS.forEach(function(p){
+      var side=dist(p)<0?'a':'b', ok=(side===p.cls);   // 生成元のクラスと、今の境界での判定側が一致するか
+      if(!ok) missCount++;
+      g+='<path class="pt new '+(ok?'ok':'miss')+'" d="'+triPath(p.x,p.y,6)+'"/>';
+    });
     $('#v1').innerHTML=svg(580,260,g);
     $('#r1').innerHTML='両側の空き（マージン）は <b>'+margin.toFixed(0)+' px</b>。'+
       (margin>31 ? ' 余裕が最大に近い。<b>この線を選ぶのが SVM</b>。境界に接する数点（青い縁）だけが線を決めていて、これをサポートベクターと呼ぶ。'
-                 : ' もっと余裕を取れる角度がある。余裕が狭いほど、新しい点が来たときに間違えやすい。');
+                 : ' もっと余裕を取れる角度がある。余裕が狭いほど、新しい点が来たときに間違えやすい。')+
+      (SVM_DROPS.length ? ' 新しい点を <b>'+SVM_DROPS.length+' 個</b>落として、外したのは <b>'+missCount+' 個</b>（▲赤＝外した）。マージンが広い線ほど外さない。' : '');
   }
   $('#ang').oninput=svm;
   $('#best').onclick=function(){ var best=0,bv=-1;
@@ -250,6 +280,14 @@ SVM は<b>両側にいちばん広く空きが取れる線</b>を選ぶ。だか
       var m=Math.min(Math.min.apply(null,A.map(f)),Math.min.apply(null,B.map(f)));
       if(m>bv){bv=m;best=a;} }
     $('#ang').value=best; svm(); };
+  $('#drop').onclick=function(){
+    var i=SVM_DROPS.length, isA=(i%2===0);
+    // 学習点と同じ生成分布から、別の乱数域（+2000）で新しく引く＝held-out データの模式
+    var pt = isA
+      ? {x:90+rnd((i+2000)*1.7)*150, y:60+rnd((i+2000)*3.1)*110, cls:'a'}
+      : {x:320+rnd((i+2000)*2.3)*150, y:80+rnd((i+2000)*4.7)*110, cls:'b'};
+    SVM_DROPS.push(pt); svm();
+  };
 
   // ② カーネル
   var RING=[]; (function(){ for(var i=0;i<40;i++){
@@ -257,88 +295,169 @@ SVM は<b>両側にいちばん広く空きが取れる線</b>を選ぶ。だか
     RING.push({t:t,r:r,inner:inner}); } })();
   function kernel(){
     var L=+$('#lift').value/100; $('#lift-v').textContent=Math.round(L*100)+'%';
-    var cx=290, cy=150, g='<rect x="20" y="20" width="540" height="230" fill="#fff" stroke="#e4e1d8"/>';
+    var cx=290, cy=150, top=26, g='<rect x="20" y="20" width="540" height="230" fill="#fff" stroke="#e4e1d8"/>';
     RING.forEach(function(p){
       var x=cx+Math.cos(p.t)*p.r, y=cy+Math.sin(p.t)*p.r*0.62;
-      y -= L*(p.r*p.r)/58;                                  // 距離の 2 乗ぶん持ち上げる
+      y -= L*(p.r*p.r)/90;                                  // 距離の 2 乗ぶん持ち上げる
+      if(y<top) y=top;                                      // 100% 持ち上げてもプロット枠の外へ出ないよう clip
       g+='<circle class="pt '+(p.inner?'a':'b')+'" cx="'+x+'" cy="'+y+'" r="6"/>';
     });
     if(L>0.45) g+='<line class="bd" x1="60" y1="'+(cy-52*L*1.3)+'" x2="520" y2="'+(cy-52*L*1.3)+'"/>';
     $('#v2').innerHTML=svg(580,270,g);
     $('#r2').innerHTML = L<0.15
       ? '平面のままでは、内側（●）と外側（○）を 1 本の直線で切れない。'
-      : (L<0.45 ? '持ち上げ中。外側ほど高く上がっていく。'
+      : (L<0.45 ? '持ち上げ中。外側ほど高く上がっていく（持ち上げる高さ＝原点からの距離の 2 乗）。'
         : '外側が持ち上がり、<b>水平な 1 本の線で切れる</b>ようになった。'+
           '実際に座標を作らず、内積だけで同じ効果を出す技を<b>カーネル法</b>と呼ぶ。');
   }
   $('#lift').oninput=kernel;
 
-  // ③ 決定木 / ランダムフォレスト
-  var PTS=[]; (function(){ for(var i=0;i<90;i++){
-    var x=rnd(i*1.3), y=rnd(i*2.7);
-    var lab=(y > 0.45+0.25*Math.sin(x*6.1))?1:0;
-    if(rnd(i*7.7)<0.12) lab=1-lab;                          // 雑音
-    PTS.push({x:x,y:y,l:lab}); } })();
+  // ③ 決定木 / ランダムフォレスト —— 軸平行の再帰分割を実際に行う（見た目だけの階段状ではない）
+  function genPts(offset,count){ var out=[];
+    for(var i=0;i<count;i++){
+      var x=rnd((i+offset)*1.3), y=rnd((i+offset)*2.7);
+      var lab=(y > 0.45+0.25*Math.sin(x*6.1))?1:0;
+      if(rnd((i+offset)*7.7)<0.12) lab=1-lab;               // 雑音
+      out.push({x:x,y:y,l:lab});
+    } return out; }
+  var TRAIN_PTS=genPts(0,90);
+  var TEST_PTS=genPts(5000,60);                             // 学習に使わない held-out（同じ分布・別の乱数域）
+  function gini(labels){
+    if(!labels.length) return 0;
+    var p1=labels.reduce(function(a,v){return a+v},0)/labels.length;
+    return 1-p1*p1-(1-p1)*(1-p1);
+  }
+  function buildTree(pts, depth, maxDepth){
+    var labels=pts.map(function(p){return p.l});
+    var p1=labels.length?labels.reduce(function(a,v){return a+v},0)/labels.length:0;
+    var node={pred:p1>=0.5?1:0};
+    if(depth>=maxDepth || pts.length<=1 || gini(labels)===0){ node.leaf=true; return node; }
+    var best=null;
+    ['x','y'].forEach(function(axis){
+      var vals=pts.map(function(p){return p[axis]}).sort(function(a,b){return a-b});
+      for(var i=1;i<vals.length;i++){
+        if(vals[i]===vals[i-1]) continue;
+        var t=(vals[i-1]+vals[i])/2, left=[], right=[];
+        pts.forEach(function(p){ (p[axis]<t?left:right).push(p); });
+        if(!left.length||!right.length) continue;
+        var g=(left.length*gini(left.map(function(p){return p.l}))+right.length*gini(right.map(function(p){return p.l})))/pts.length;
+        if(!best||g<best.g) best={axis:axis,t:t,g:g,left:left,right:right};
+      }
+    });
+    if(!best){ node.leaf=true; return node; }
+    node.axis=best.axis; node.t=best.t;
+    node.left=buildTree(best.left,depth+1,maxDepth);
+    node.right=buildTree(best.right,depth+1,maxDepth);
+    return node;
+  }
+  function predictOne(node,p){
+    while(!node.leaf){ node = (p[node.axis]<node.t) ? node.left : node.right; }
+    return node.pred;
+  }
+  function bootstrap(pts,seedBase){                          // 復元抽出（ブートストラップ）—— 木ごとに違うデータを見せる
+    var out=[];
+    for(var i=0;i<pts.length;i++){
+      var idx=Math.floor(rnd(seedBase+i*3.7)*pts.length);
+      if(idx>=pts.length) idx=pts.length-1;
+      out.push(pts[idx]);
+    } return out;
+  }
   function forest(){
     var d=+$('#depth').value, n=+$('#trees').value;
     $('#depth-v').textContent=d; $('#trees-v').textContent=n+' 本';
-    var N=26, g='', cell=520/N;
-    for(var i=0;i<N;i++) for(var j=0;j<13;j++){
-      var x=(i+0.5)/N, y=(j+0.5)/13, vote=0;
-      for(var t=0;t<n;t++){
-        var jitter=(rnd(t*9.1)-0.5)*0.28/Math.max(1,Math.sqrt(n));
-        var boundary=0.45+0.25*Math.sin(x*6.1)+jitter;
-        var step=Math.round(x*d)/d;                          // 深さで階段状に粗くなる
-        boundary=0.45+0.25*Math.sin(step*6.1)+jitter;
-        vote += (y>boundary)?1:0;
-      }
-      var p=vote/n;
-      var c=Math.round(255-(255-160)*p);
-      g+='<rect class="cell" x="'+(30+i*cell)+'" y="'+(20+j*13.6)+'" width="'+cell+'" height="13.6" fill="rgb('+c+','+c+','+(c-8)+')"/>';
+    var TREES=[];
+    for(var t=0;t<n;t++){
+      var sample=(n===1)?TRAIN_PTS:bootstrap(TRAIN_PTS,t*137.9+11);
+      TREES.push(buildTree(sample,0,d));
     }
-    PTS.forEach(function(p){ g+='<circle class="pt '+(p.l?'a':'b')+'" cx="'+(30+p.x*520)+'" cy="'+(20+p.y*177)+'" r="4"/>'; });
-    $('#v3').innerHTML=svg(580,215,g);
-    $('#r3').innerHTML = (n===1
-      ? (d<=2 ? '木が浅いので境界がおおざっぱ。取りこぼしが多い（未学習）。'
-        : d>=6 ? '木を深くすると<b>雑音まで覚えて境界がギザギザ</b>になる（過学習）。'
-               : '深さがほどよい。')
-      : '<b>'+n+' 本の木で多数決</b>を取ると、1 本ごとの歪みが打ち消しあって境界がなめらかになる。'+
-        'これがランダムフォレスト —— 弱い学習器を束ねる（アンサンブル）考え方。');
+    function vote(p){ var v=0; TREES.forEach(function(tr){v+=predictOne(tr,p)}); return v/TREES.length; }
+    var N=40, R=18, g='', cell=520/N, rh=180/R;
+    for(var i=0;i<N;i++) for(var j=0;j<R;j++){
+      var x=(i+0.5)/N, y=(j+0.5)/R, p=vote({x:x,y:y});
+      var cc=Math.round(255-(255-160)*p);
+      g+='<rect class="cell" x="'+(30+i*cell)+'" y="'+(20+j*rh)+'" width="'+cell+'" height="'+rh+'" fill="rgb('+cc+','+cc+','+(cc-8)+')"/>';
+    }
+    TRAIN_PTS.forEach(function(p){ g+='<circle class="pt '+(p.l?'a':'b')+'" cx="'+(30+p.x*520)+'" cy="'+(20+p.y*180)+'" r="4"/>'; });
+    var trainCorrect=0, testCorrect=0;
+    TRAIN_PTS.forEach(function(p){ if((vote(p)>=0.5?1:0)===p.l) trainCorrect++; });
+    TEST_PTS.forEach(function(p){
+      var ok=((vote(p)>=0.5?1:0)===p.l);
+      if(ok) testCorrect++;
+      g+='<path class="pt new '+(ok?'ok':'miss')+'" d="'+triPath(30+p.x*520,20+p.y*180,5)+'"/>';
+    });
+    $('#v3').innerHTML=svg(580,220,g);
+    var trainAcc=trainCorrect/TRAIN_PTS.length, testAcc=testCorrect/TEST_PTS.length;
+    var stat='訓練データの正解率 <b>'+Math.round(trainAcc*100)+'%</b>・新データ（別に生成した '+TEST_PTS.length+' 点、▲）の正解率 <b>'+Math.round(testAcc*100)+'%</b>。';
+    var msg;
+    if(n===1){
+      if(trainAcc-testAcc>0.08) msg='訓練ではよく当たるのに新データで正解率が下がった。<b>雑音の点まで境界で囲い込んで過学習</b>している（グリッドに小さな島が見えるはず）。';
+      else if(trainAcc<0.72) msg='木が浅く、訓練データすら十分に当てられない（未学習）。';
+      else msg='深さがほどよく、訓練と新データの正解率が近い。';
+    } else {
+      msg='<b>'+n+' 本の木をブートストラップで作り多数決</b>を取ると、1 本ごとの島が別の木の投票で埋まり、打ち消しあって消える —— これがランダムフォレスト。';
+    }
+    $('#r3').innerHTML=stat+msg;
   }
   $('#depth').oninput=forest; $('#trees').oninput=forest;
 
   // ④ k-means
-  var KP=[], CT=[], step=0;
+  var KP=[], CT=[], step=0, lastMove=0, converged=false, resetSeed=1;
+  var EPS=0.003;                                              // 収束判定: 代表の最大移動量がこれ未満なら止める
   (function(){ var cs=[[0.25,0.3],[0.72,0.35],[0.5,0.78]];
     for(var i=0;i<66;i++){ var c=cs[i%3];
       KP.push({x:c[0]+(rnd(i*1.9)-0.5)*0.26, y:c[1]+(rnd(i*3.3)-0.5)*0.26}); } })();
   function place(){ var k=+$('#k').value; CT=[];
     for(var i=0;i<k;i++) CT.push({x:0.15+rnd(i*8.1+step)*0.7, y:0.15+rnd(i*4.4+step)*0.7});
-    step=0; }
-  function kmeans(draw){
+    step=0; lastMove=0; converged=false; }
+  function assign(){ return KP.map(function(p){ var b=0,bd=9;
+    CT.forEach(function(c,i){ var d=(p.x-c.x)*(p.x-c.x)+(p.y-c.y)*(p.y-c.y); if(d<bd){bd=d;b=i;} }); return b; }); }
+  function splitDetect(asg){
+    // 生成時の真の群れ（KP の index % 3）が、複数の代表にまたがって割り当てられていないかを群れごとに数える
+    var groups={};
+    KP.forEach(function(p,i){ var gid=i%3; groups[gid]=groups[gid]||{}; var c=asg[i]; groups[gid][c]=(groups[gid][c]||0)+1; });
+    var splitCount=0;
+    Object.keys(groups).forEach(function(gid){
+      var counts=groups[gid], total=0; Object.keys(counts).forEach(function(c){total+=counts[c];});
+      var major=0; Object.keys(counts).forEach(function(c){ if(counts[c]/total>=0.2) major++; });
+      if(major>=2) splitCount++;
+    });
+    return splitCount;   // 割れた真の群れの個数（0〜3）
+  }
+  function kmeans(){
     var k=+$('#k').value; $('#k-v').textContent=k;
     if(CT.length!==k) place();
     var COL=['#1a1a1a','#6E7BA8','#9A9488','#b4493f','#15803d'];
-    var asg=KP.map(function(p){ var b=0,bd=9;
-      CT.forEach(function(c,i){ var d=(p.x-c.x)*(p.x-c.x)+(p.y-c.y)*(p.y-c.y); if(d<bd){bd=d;b=i;} }); return b; });
+    var asg=assign();
     var g='<rect x="20" y="16" width="540" height="200" fill="#fff" stroke="#e4e1d8"/>';
     KP.forEach(function(p,i){ g+='<circle cx="'+(30+p.x*520)+'" cy="'+(24+p.y*184)+'" r="5" fill="'+COL[asg[i]]+'" opacity=".55"/>'; });
     CT.forEach(function(c,i){ g+='<rect x="'+(30+c.x*520-8)+'" y="'+(24+c.y*184-8)+'" width="16" height="16" fill="'+COL[i]+'" stroke="#fff" stroke-width="2"/>'; });
     $('#v4').innerHTML=svg(580,230,g);
+    var splitCount=splitDetect(asg);
     $('#r4').innerHTML='代表点を '+k+' 個。<b>'+step+' 回</b>まわした。'+
       (step===0 ? ' 「1 回まわす」を押すと、各点をいちばん近い代表へ割り当て、代表をその重心へ動かす。'
-       : step<3 ? ' 代表が群れの中心へ寄っていく。'
-                : ' もう動かなくなった＝収束。<b>正解ラベルを 1 つも使っていない</b>のに、かたまりが見つかった。');
+       : !converged ? ' 代表が動いた量（最大 <b>'+lastMove.toFixed(4)+'</b>）。まだ動いている。'
+       : (splitCount>0 ? ' 移動量がしきい値未満になった＝収束。ただし本来 3 つの群れのうち <b>'+splitCount+' つ</b>が<b>割れてしまっている</b>。k をいくつにするかも人間が決める仕事で、正解ラベルの無いこのやり方は自動では教えてくれない。'
+                : ' 移動量がしきい値未満になった＝収束（<b>'+lastMove.toFixed(4)+'</b>）。<b>正解ラベルを 1 つも使っていない</b>のに、かたまりが見つかった。'));
   }
   $('#iter').onclick=function(){
-    var asg=KP.map(function(p){ var b=0,bd=9;
-      CT.forEach(function(c,i){ var d=(p.x-c.x)*(p.x-c.x)+(p.y-c.y)*(p.y-c.y); if(d<bd){bd=d;b=i;} }); return b; });
+    var asg=assign(), maxMove=0;
     CT.forEach(function(c,i){
       var mine=KP.filter(function(_,j){return asg[j]===i});
-      if(mine.length){ c.x=mine.reduce(function(a,p){return a+p.x},0)/mine.length;
-                       c.y=mine.reduce(function(a,p){return a+p.y},0)/mine.length; } });
-    step++; kmeans(); };
-  $('#reset4').onclick=function(){ step=Math.floor(Math.random()*90)+1; place(); step=0; kmeans(); };
+      if(mine.length){
+        var nx=mine.reduce(function(a,p){return a+p.x},0)/mine.length;
+        var ny=mine.reduce(function(a,p){return a+p.y},0)/mine.length;
+        var mv=Math.sqrt((nx-c.x)*(nx-c.x)+(ny-c.y)*(ny-c.y));
+        if(mv>maxMove) maxMove=mv;
+        c.x=nx; c.y=ny;
+      }
+    });
+    step++; lastMove=maxMove; converged=(maxMove<EPS);
+    kmeans();
+  };
+  $('#reset4').onclick=function(){
+    resetSeed++; step=Math.floor(rnd(resetSeed*13.7)*90)+1;   // 決定論的にシードを進めて初期位置を変える（Math.random は使わない）
+    place(); kmeans();
+  };
   $('#k').oninput=function(){ place(); kmeans(); };
 
   svm(); kernel(); forest(); kmeans();

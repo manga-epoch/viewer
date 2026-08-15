@@ -133,7 +133,8 @@ input[type=range]{accent-color:var(--arc)}
 
 <div class="fig-stage">
 <h2>深さと勾配の関係を見る</h2>
-<div class="lead">層数を増やすと、出力側 (右) から入力側 (左) へ伝わる勾配の大きさが各層でどう変化するかを棒で表す。skip 接続を切ると勾配は左へ行くほど消えていく。入れると素通りして生き残る。</div>
+<div class="lead">層数を増やすと、出力側 (右) から入力側 (左) へ伝わる勾配の大きさが各層でどう変化するかを棒で表す。縦軸は<strong>対数</strong>――1 目盛りで 10 倍変わるので、skip 無しがどれだけ急に潰れるか、skip 有りがそれと比べてどれだけ緩やかかが桁で見える。</div>
+<p class="note">「各層の勾配係数」は、残差ブロックの中身 $\mathcal{F}$ 自身の局所勾配 $\mathcal{F}'$ の大きさに相当する模式的な値。棒グラフは、その値で各層を掛け合わせていくシミュレーション計算であり、実測の勾配ではない。</p>
 
 <div class="ctrls">
   <div class="ctrl" style="flex:1;min-width:200px">
@@ -141,15 +142,15 @@ input[type=range]{accent-color:var(--arc)}
     <input type="range" id="depth" min="4" max="100" step="2" value="28">
   </div>
   <div class="ctrl" style="flex:1;min-width:200px">
-    <label>各層の勾配係数 <span class="val" id="gainV">0.80</span></label>
-    <input type="range" id="gain" min="50" max="105" step="1" value="80">
+    <label>各層の勾配係数 $\mathcal{F}'$ <span class="val" id="gainV">0.15</span></label>
+    <input type="range" id="gain" min="0" max="105" step="1" value="15">
   </div>
   <button class="btn ghost on" id="skipBtn">skip 接続: ON</button>
 </div>
 
-<svg id="gradSvg" width="100%" viewBox="0 0 840 240" style="max-width:840px;display:block;margin:6px auto"></svg>
+<svg id="gradSvg" width="100%" viewBox="0 0 840 260" style="max-width:840px;display:block;margin:6px auto"></svg>
 <div class="legend">
-  <span><i style="background:__ARC__"></i>skip あり (残差接続)</span>
+  <span><i style="background:var(--arc)"></i>skip あり (残差接続)</span>
   <span><i style="background:#b4493f"></i>skip なし (勾配消失)</span>
 </div>
 <div class="readout" id="rout"></div>
@@ -157,17 +158,8 @@ input[type=range]{accent-color:var(--arc)}
 <div class="formula">
 残差ブロック: $\quad \mathbf{y} = \mathcal{F}(\mathbf{x}, W) + \mathbf{x}$
 <div class="note" style="margin-top:8px">勾配は $\dfrac{\partial \mathbf{y}}{\partial \mathbf{x}} = \mathcal{F}'(\cdot) + 1$。
-この <strong>+1</strong> が、何層重ねても勾配を 1 の周辺に保ち、消失を防ぐ ―― 「足し算」一つが革命だった。</div>
+この <strong>+1</strong> があるおかげで、各層の勾配係数がどんなに小さくても、層を重ねた積がゼロへ潰れることはない (消失を防ぐ)。ただし +1 より大きい値が積み重なれば増幅方向にも振れる ―― 残差接続は消失を防ぐ仕組みであって、あらゆる不安定さを消す魔法ではない。</div>
 </div>
-
-<h3>深さの系譜 (ILSVRC)</h3>
-<table class="mini">
-<tr><th>モデル</th><th>年</th><th>層数</th><th>top-5 誤り</th></tr>
-<tr><td>AlexNet</td><td>2012</td><td>8</td><td>15.3%</td></tr>
-<tr><td>VGG-16</td><td>2014</td><td>16</td><td>7.3%</td></tr>
-<tr><td>GoogLeNet</td><td>2014</td><td>22</td><td>6.7%</td></tr>
-<tr><td>ResNet-152</td><td>2015</td><td class="hl">152</td><td class="hl">3.57%</td></tr>
-</table>
 </div>
 
 <div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_imagenet.html">← ImageNet 誤り率</a><a class="fp-comm" href="commentary.html#scene5">解説 Scene 5「より深く」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_rnn.html">RNN/LSTM →</a></nav></div>
@@ -175,36 +167,58 @@ input[type=range]{accent-color:var(--arc)}
 <script>
 (function(){
   var ARC="#6E7BA8";
-  var depth=28, gain=0.80, skip=true;
+  var depth=28, gain=0.15, skip=true;
+  // 対数軸の表示範囲。爆発 (>1e12) も消失 (<1e-12) もこの中に収まる想定で余裕を取る
+  var LOGMIN=-12, LOGMAX=12;
+  function fmt(v){
+    // 「0.000 なのに生き残る」のような自己矛盾を避けるため、極端に小さい/大きい値は指数表記にする
+    if(v===0)return'0';
+    if(v>=1e-3&&v<1e4)return v.toFixed(v<1?4:3);
+    return v.toExponential(2);
+  }
   function draw(){
     var svg=document.getElementById('gradSvg');svg.innerHTML='';
-    var W=840,H=240,padL=20,padR=20,padB=40,padT=20,n=depth;
+    var W=840,H=260,padL=54,padR=20,padB=40,padT=20,n=depth;
     var bw=(W-padL-padR)/n;
-    // gradient magnitude from output(=1) backward to input
+    // 出力側 (勾配=1) から入力側へ、各層を通るたびに勾配係数を掛けていく
+    // ―― 表示している式 ∂y/∂x = F'+1 と一致させる: skip 無しは F' そのもの、skip 有りは (F'+1)
     var g=1, mags=[];
-    for(var i=0;i<n;i++){ if(skip){ g = g*(gain*0.6 + 0.4); } else { g = g*gain; } mags.push(g); }
-    // mags[0] near output ... draw left=input so reverse
+    for(var i=0;i<n;i++){ g = skip ? g*Math.abs(gain+1) : g*gain; mags.push(g); }
     var SVGNS="http://www.w3.org/2000/svg";
     function el(t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
-    // baseline
-    svg.appendChild(el('line',{x1:padL,y1:H-padB,x2:W-padR,y2:H-padB,stroke:'#E4E1D8','stroke-width':1}));
-    var maxH=H-padB-padT;
+    var y0=H-padB,y1=padT;
+    function toY(m){
+      var lv = m>0 ? Math.log(m)/Math.LN10 : LOGMIN;
+      lv=Math.max(LOGMIN,Math.min(LOGMAX,lv));
+      return y0-(lv-LOGMIN)/(LOGMAX-LOGMIN)*(y0-y1);
+    }
+    // 目盛り (10 の累乗) と、勾配=1 (理想: 入力までそのまま届く) の基準線
+    [-9,-6,-3,0,3,6,9].forEach(function(p){
+      var yy=toY(Math.pow(10,p));
+      svg.appendChild(el('line',{x1:padL,y1:yy,x2:W-padR,y2:yy,stroke:p===0?'#CFCBBE':'#EFEDE5','stroke-width':p===0?1.4:1}));
+      svg.appendChild(el('text',{x:padL-8,y:yy+4,'text-anchor':'end','font-size':10,fill:'#9A9488'},
+        p===0?'1':'10^'+p));
+    });
     for(var i=0;i<n;i++){
-      var m=mags[n-1-i]; // input side (i=0) = most-attenuated
-      var h=Math.max(1.5,m*maxH);
-      svg.appendChild(el('rect',{x:padL+i*bw+1,y:H-padB-h,width:Math.max(1,bw-2),height:h,
+      var m=mags[n-1-i]; // i=0 (左端) = 入力側 = 最も減衰/増幅が進んだ値
+      var yTop=toY(m);
+      svg.appendChild(el('rect',{x:padL+i*bw+1,y:Math.min(yTop,y0),width:Math.max(1,bw-2),height:Math.max(1.5,Math.abs(y0-yTop)),
         fill: skip?ARC:'#b4493f', opacity: skip?0.85:0.8, rx:1}));
     }
     svg.appendChild(el('text',{x:padL,y:H-12,'font-size':12,fill:'#9A9488'},'入力側 (浅い層)'));
     svg.appendChild(el('text',{x:W-padR,y:H-12,'font-size':12,fill:'#9A9488','text-anchor':'end'},'出力側 (損失)'));
-    svg.appendChild(el('text',{x:padL,y:padT+2,'font-size':12,fill:'#565248'},'勾配の大きさ →'));
+    svg.appendChild(el('text',{x:padL,y:padT-4,'font-size':12,fill:'#565248'},'勾配の大きさ (対数軸) →'));
+
+    // 読み上げは実際に計算した値から分岐する (skip の ON/OFF で文言を固定しない) ―― でないと
+    // 「0.000 なのに生き残る」のような、値と説明が矛盾する表示を生んでしまう
     var inputGrad=mags[n-1];
+    var label;
+    if(inputGrad>100){ label='勾配爆発 ―― 層を経るごとに値が指数的に増大している'; }
+    else if(inputGrad<0.01){ label='勾配消失 ―― 層を経るごとに値が指数的に潰れている'; }
+    else { label='1 の周辺に保たれている ―― 学習に使える大きさが入力側まで届く'; }
     var ro=document.getElementById('rout');
-    if(skip){
-      ro.textContent='skip 接続 ON ・ '+depth+'層: 入力層に届く勾配 ≈ '+inputGrad.toFixed(3)+'  →  深くても勾配が生き残り、全層が学習できる。';
-    } else {
-      ro.textContent='skip 接続 OFF ・ '+depth+'層: 入力層に届く勾配 ≈ '+inputGrad.toExponential(2)+'  →  ほぼ 0。浅い層は更新されず「勾配消失」。';
-    }
+    ro.textContent = 'skip 接続 '+(skip?'ON':'OFF')+' ・ '+depth+'層 ・ 勾配係数 '+gain.toFixed(2)+
+      ' → 入力層に届く勾配の大きさ ≈ '+fmt(inputGrad)+'  ('+label+')';
   }
   document.getElementById('depth').addEventListener('input',function(e){depth=+e.target.value;document.getElementById('depthV').textContent=depth;draw();});
   document.getElementById('gain').addEventListener('input',function(e){gain=+e.target.value/100;document.getElementById('gainV').textContent=gain.toFixed(2);draw();});

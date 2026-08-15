@@ -31,6 +31,8 @@ a{color:inherit}
 .nav .links{display:flex;gap:28px;font-size:13.5px;color:var(--ink-sub);align-items:center}
 .nav .links a{text-decoration:none}
 .nav .links a:hover{color:var(--ink)}
+.navkey{border:1.5px solid var(--ink);color:var(--ink);border-radius:8px;padding:9px 16px;font-weight:700;font-size:13.5px}
+.navkey:hover{background:var(--ink);color:var(--bg)}
 .nav .links .navcta{background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:var(--radius);font-weight:600}
 .nav .links .navcta:hover{color:var(--bg);opacity:.88}
 @media(max-width:720px){.nav .links a:not(.navcta){display:none}}
@@ -156,6 +158,7 @@ footer a{text-decoration:none;color:var(--ink-sub)}footer a:hover{color:var(--in
     <a href="#chapters">章一覧</a>
     <a href="#buy">価格</a>
       <a href="#about">制作について</a>
+    <a class="navkey" href="unlock.html">購入済みの方</a>
     <a class="navcta" href="pub/epoch/arc1/">無料で読む</a>
   </div>
 </div></nav>
@@ -285,8 +288,10 @@ footer a{text-decoration:none;color:var(--ink-sub)}footer a:hover{color:var(--in
     <div class="notice">
       <strong>第 1 話「冬を越えた者たち」は、巻末解説の第 1 章まで無料でお読みいただけます。</strong><br>
       <a href="pub/epoch/arc2/">試し読みをはじめる →</a><br><br>
-      第 2 話から先は BOOTH で販売します（準備中）。ご購入後はアクセスコードで
-      <a href="unlock.html">こちらのページ</a>から全編をお読みいただけます。
+      第 2 話から先は BOOTH で販売します（準備中）。<br><br>
+      <a href="unlock.html" style="display:inline-block;padding:12px 24px;border:1.5px solid var(--ink);
+       border-radius:9px;color:var(--ink);font-weight:700;text-decoration:none">
+       購入済みの方はこちら — アクセスコードで開く →</a>
     </div>
   </div>
 

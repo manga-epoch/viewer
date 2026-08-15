@@ -171,6 +171,12 @@ input[type=range]{accent-color:var(--arc)}
 <div class="stepbar" id="steps"></div>
 <div id="v1"></div>
 <div class="readout" id="r1"></div>
+<div class="formula">$y = x + \mathrm{Attn}(\mathrm{LN}(x))$ 　/　 $z = y + \mathrm{MLP}(\mathrm{LN}(y))$
+<div class="note" style="margin-top:8px">1 ブロックはこの 2 行だけ。$\mathrm{LN}$ は層正規化（各語の
+ベクトルの目盛りを揃える）、頭の $x +$ と $y +$ が<b>残差</b>——図の点線と丸の $\oplus$ にあたる。
+入口の $x$ と出口の $z$ が同じ形なので、そのまま次のブロックへ渡せる。
+最後は語彙ぶんの点数に直して $\mathrm{softmax}$ で確率にする。</div>
+</div>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>同じブロックを 12 回</h2>

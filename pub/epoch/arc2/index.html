@@ -239,7 +239,10 @@ const AUTO_SPEAKERS = ["Aja_huang", "Bahdanau", "Bengio", "Dave", "Fei_fei_li", 
 const STORAGE_KEY = 'epoch-arc2-scene1-notes';
 const DIALOGUE_KEY = 'epoch-arc2-scene1-dialogue-edits';
 const SPEAKER_KEY = 'epoch-arc2-scene1-speaker-edits';
-let idx = (location.hash.match(/p(\d+)/) ? Math.min(+location.hash.match(/p(\d+)/)[1], PAGES.length - 1) : 0);
+let idx = 0;
+{ const ph = location.hash.match(/p(\d+)/), sh = location.hash.match(/s(\d+)/);
+  if (ph) idx = Math.min(+ph[1], PAGES.length - 1);
+  else if (sh && SCENES[+sh[1] - 1]) idx = SCENES[+sh[1] - 1].start; }
 let notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 let dialogueEdits = JSON.parse(localStorage.getItem(DIALOGUE_KEY) || '{}');
 let speakerEdits = JSON.parse(localStorage.getItem(SPEAKER_KEY) || '{}');

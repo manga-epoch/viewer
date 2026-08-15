@@ -166,16 +166,25 @@ input[type=range]{accent-color:var(--arc)}
 <div class="fig-stage" id="sec1">
 <h2>1 つずつ、と、一斉に</h2>
 <p>画像の畳み込みは、同じ計算を場所を変えて何万回も繰り返す。
-順番にやるか、いっぺんにやるか——この違いが効いてくる。</p>
+順番にやるか、いっぺんにやるか——この違いが効いてくる。
+下の 2 つの格子はどちらも<b>同じ 256 個の計算</b>で、<b>1 マス = 1 個の計算</b>（畳み込みなら 1 か所ぶん）。
+左は 1 つずつ、右は P 個まとめて塗りつぶしていく——マスが埋まる速さの違いを見てほしい。</p>
 <div class="ctrls">
   <button class="btn" id="race">競走させる</button>
-  <label>並列にできる数 <input type="range" id="cores" min="1" max="64" value="16"></label>
+  <label>並列にできる数 P <input type="range" id="cores" min="1" max="64" value="16"></label>
   <span class="tag" id="cores-v">16</span>
 </div>
-<div class="race"><span>1 つずつ</span><div class="bar"><i id="b-cpu"></i></div><b id="t-cpu">0</b></div>
-<div class="race"><span>一斉に</span><div class="bar"><i id="b-gpu"></i></div><b id="t-gpu">0</b></div>
-<div id="s1"></div>
-<div class="readout" id="r1">同じ 1024 個の計算を、順番にやる場合と、まとめてやる場合で比べる。</div>
+<div class="race"><span>1 つずつ</span><div class="bar"><i id="b-cpu"></i></div><b id="t-cpu">0.00 秒</b></div>
+<div class="race"><span>一斉に</span><div class="bar"><i id="b-gpu"></i></div><b id="t-gpu">0.00 秒</b></div>
+<div class="grid-wrap">
+  <div><div id="s1-cpu"></div><div class="gcap">1 つずつ</div></div>
+  <div><div id="s1-gpu"></div><div class="gcap">一斉に（P 個ずつ）</div></div>
+</div>
+<div class="readout" id="r1">同じ 256 個の計算を、順番にやる場合と、まとめてやる場合で比べる。</div>
+<div class="formula">$T_{\text{並列}} = T_{\text{逐次}} / P$
+<div class="note" style="margin-top:8px">理想値。$P$ = 並列にできる数。実際は通信や待ち合わせで目減りする。
+上の競走もこの理想式で動く<b>模式で、実測ではない</b>。</div>
+</div>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>CUDA — 描画の回路に、好きな計算を書けるようになった</h2>
@@ -201,6 +210,11 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 <div id="s3"></div>
 <div class="readout" id="r3"></div>
+<div class="formula">$m \sim \mathrm{Bernoulli}(1-p)$
+<div class="note" style="margin-top:8px">各ノードに独立なマスク $m$ を掛ける（$m=0$ になる確率が、落とす割合 $p$）。
+推論時はマスクを掛けず、代わりに出力を <b>$\times(1-p)$</b> して大きさを揃える。
+AlexNet は全結合層に <b>$p=0.5$</b> を使った。</div>
+</div>
 </div>
 <div class="back-link"><a href="figures.html">← 図解一覧に戻る</a></div>
 <script>
@@ -210,34 +224,41 @@ input[type=range]{accent-color:var(--arc)}
   function svg(w,h,inner){return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px;display:block;margin:0 auto" xmlns="'+NS+'">'+inner+'</svg>';}
   function path(pts,cls){return '<path class="'+cls+'" d="M'+pts.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1)}).join(' L')+'"/>';}
 
-  // ① 逐次 vs 並列
-  var TOTAL=1024, running=false;
+  // ① 逐次 vs 並列 — 格子を2つに分け、それぞれの進み方だけで塗る（速い方の陰に埋もれさせない）
+  var TOTAL=256, running=false;
   function grid(done){
     var g='',c=0;
-    for(var r=0;r<8;r++) for(var i=0;i<32;i++){
+    for(var r=0;r<16;r++) for(var i=0;i<16;i++){
       var cls = c<done ? 'cell done' : 'cell todo';
-      g+='<rect class="'+cls+'" x="'+(14+i*17)+'" y="'+(10+r*17)+'" width="15" height="15"/>'; c++;
+      g+='<rect class="'+cls+'" x="'+(8+i*15)+'" y="'+(8+r*15)+'" width="13" height="13"/>'; c++;
     }
-    return svg(570,150,g);
+    return svg(254,254,g);
   }
+  function sec(ms){ return (ms/1000).toFixed(2)+' 秒'; }
   function race(){
     if(running) return; running=true;
-    var cores=+$('#cores').value, cpu=0, gpu=0, t0=performance.now();
-    $('#s1').innerHTML=grid(0);
+    var cores=+$('#cores').value, cpu=0, gpu=0, cpuEnd=null, gpuEnd=null, t0=performance.now();
+    $('#s1-cpu').innerHTML=grid(0); $('#s1-gpu').innerHTML=grid(0);
     var timer=setInterval(function(){
-      cpu=Math.min(TOTAL,cpu+6); gpu=Math.min(TOTAL,gpu+6*cores);
+      var now=performance.now();
+      if(cpuEnd===null){ cpu=Math.min(TOTAL,cpu+3); if(cpu>=TOTAL) cpuEnd=now; }
+      if(gpuEnd===null){ gpu=Math.min(TOTAL,gpu+3*cores); if(gpu>=TOTAL) gpuEnd=now; }
       $('#b-cpu').style.width=(cpu/TOTAL*100)+'%'; $('#b-gpu').style.width=(gpu/TOTAL*100)+'%';
-      $('#t-cpu').textContent=cpu; $('#t-gpu').textContent=gpu;
-      $('#s1').innerHTML=grid(Math.max(cpu,gpu));
-      if(cpu>=TOTAL){ clearInterval(timer); running=false;
-        $('#r1').innerHTML='同じ 1024 個の計算。一斉にやると <b>'+cores+' 倍</b>速く終わった。'+
-          'AlexNet は GPU 2 枚で 6 日かけて学習した——1 つずつなら年単位になる。'+
-          '<b>畳み込みは「同じ計算を場所を変えて繰り返す」だけ</b>なので、この形に嵌まった。'; }
+      $('#t-cpu').textContent=sec((cpuEnd===null?now:cpuEnd)-t0);
+      $('#t-gpu').textContent=sec((gpuEnd===null?now:gpuEnd)-t0);
+      $('#s1-cpu').innerHTML=grid(cpu); $('#s1-gpu').innerHTML=grid(gpu);
+      if(cpuEnd!==null && gpuEnd!==null){ clearInterval(timer); running=false;
+        var tc=sec(cpuEnd-t0), tg=sec(gpuEnd-t0);
+        $('#r1').innerHTML = cores<=1
+          ? '同じ 256 個の計算。<b>P = 1</b> では並列化の余地が無いので、どちらも同じ時間で終わる（模式・実測ではない）。'
+          : '同じ 256 個の計算。1 つずつ: <b>'+tc+'</b> ／ 一斉: <b>'+tg+'</b>（いずれも模式・実測ではない）。'+
+            'AlexNet は GPU 2 枚で 6 日かけて学習した——1 つずつなら年単位になる。'+
+            '<b>畳み込みは「同じ計算を場所を変えて繰り返す」だけ</b>なので、この形に嵌まった。'; }
     },16);
   }
   $('#race').onclick=race;
   $('#cores').oninput=function(){ $('#cores-v').textContent=this.value; };
-  $('#s1').innerHTML=grid(0);
+  $('#s1-cpu').innerHTML=grid(0); $('#s1-gpu').innerHTML=grid(0);
 
   // ② CUDA
   var E={
@@ -250,17 +271,29 @@ input[type=range]{accent-color:var(--arc)}
       '<rect class="cell todo" x="370" y="40" width="120" height="70"/><text class="lb" x="430" y="72" text-anchor="middle">描画させる</text>'+
       '<text class="lb" x="430" y="94" text-anchor="middle">（本来の用途）</text>'+
       '<text class="lb" x="300" y="160" text-anchor="middle">結果は画面の画素として出てくる → 読み戻して数値に戻す</text>')}},
-    after:{r:'C の拡張として<b>並列で走らせたい処理をそのまま書ける</b>。'+
-             '研究予算では作れない規模の計算力が、店で買えるゲーム用カードで手に入るようになった。'+
-             'AlexNet が使った GTX 580 は当時 5 万円ほどの民生品だ。',
-           g:function(){ return svg(600,180,
-      '<rect class="cell todo" x="30" y="40" width="150" height="70"/><text class="lb" x="105" y="72" text-anchor="middle">やりたい計算を</text>'+
-      '<text class="lb" x="105" y="94" text-anchor="middle">そのまま書く</text>'+
-      '<text class="lb" x="212" y="80">→</text>'+
-      '<rect class="cell done" x="240" y="40" width="150" height="70"/><text class="lb" x="315" y="80" text-anchor="middle">CUDA</text>'+
-      '<text class="lb" x="420" y="80">→</text>'+
-      '<rect class="cell now" x="450" y="40" width="120" height="70"/><text class="lb" x="510" y="80" text-anchor="middle" fill="#fff">GPU が実行</text>'+
-      '<text class="lb" x="300" y="160" text-anchor="middle">迂回が要らなくなった＝研究者が数値計算に GPU を使いはじめた</text>')}}};
+    after:{r:'<b>CUDA</b> は、GPU 上で走らせる小さな関数（<b>カーネル</b>）を 1 つ書けば、'+
+             'それを数千スレッドへ同時に配って同じ計算をいっせいに走らせてくれる、という発想の道具だ。'+
+             'C の拡張として<b>並列で走らせたい処理をそのまま書ける</b>。'+
+             '畳み込みも全結合層の行列積も、中身は「同じ掛け算・足し算を場所や添字を変えて大量に繰り返す」だけなので、この配り方にそのまま嵌まる。'+
+             '研究予算では作れない規模の計算力が、店で買えるゲーム用カードで手に入るようになった——'+
+             'AlexNet が使った GTX 580 は当時 5 万円ほどの民生品で、単精度はおよそ 1.5 TFLOPS 級。'+
+             '同時期のハイエンド CPU はおよそ 0.1 TFLOPS 前後——<b>オーダーで 1 桁違う</b>（数値は概算）。',
+           g:function(){
+      var cores='';
+      for(var r=0;r<6;r++) for(var c=0;c<8;c++){
+        cores+='<rect class="cell now" x="'+(214+c*23)+'" y="'+(58+r*17)+'" width="20" height="14"/>';
+      }
+      return svg(600,230,
+      '<rect class="cell todo" x="20" y="80" width="140" height="70"/><text class="lb" x="90" y="110" text-anchor="middle">やりたい計算を</text>'+
+      '<text class="lb" x="90" y="132" text-anchor="middle">そのまま書く</text>'+
+      '<text class="lb" x="172" y="120">→</text>'+
+      '<rect class="nd" x="190" y="20" width="230" height="170"/>'+
+      '<text class="lb" x="305" y="40" text-anchor="middle">CUDA カーネル</text>'+
+      cores+
+      '<text class="lb" x="305" y="178" text-anchor="middle">同じカーネルを数千スレッドへ配る</text>'+
+      '<text class="lb" x="432" y="120">→</text>'+
+      '<rect class="cell now" x="450" y="80" width="120" height="70"/><text class="lb" x="510" y="120" text-anchor="middle" fill="#fff">GPU が実行</text>'+
+      '<text class="lb" x="300" y="220" text-anchor="middle">迂回が要らなくなった＝研究者が数値計算に GPU を使いはじめた</text>')}}};
   $$('[data-era]').forEach(function(b){b.onclick=function(){
     $$('[data-era]').forEach(function(x){x.classList.remove('on')}); b.classList.add('on');
     var e=E[b.dataset.era]; $('#s2').innerHTML=e.g(); $('#r2').innerHTML=e.r; }});
@@ -288,10 +321,10 @@ input[type=range]{accent-color:var(--arc)}
     $('#s3').innerHTML=svg(600,220,g);
     var dead=pos.reduce(function(a,c){return a+c.filter(function(n){return n.dead}).length},0);
     $('#r3').innerHTML = train
-      ? '訓練中：この回は <b>'+dead+' 個</b>が休み。毎回ちがう組み合わせで学ぶので、'+
+      ? '訓練中：隠れ層 12 個中 <b>'+dead+' 個</b>が休み。毎回ちがう組み合わせで学ぶので、'+
         '「この 1 本が無いと答えられない」経路ができにくい。<b>過学習が減る</b>。'
-      : '推論時：<b>全部のノードを使う</b>。訓練で落としていた割合のぶん出力を調整し、'+
-        '多数の経路が学んだことを平均して効かせる。';
+      : '推論時：<b>全部のノードを使う</b>。代わりに出力を <b>(1-p) 倍</b>して、'+
+        '訓練で落としていた割合のぶんを調整し、多数の経路が学んだことを平均して効かせる。';
   }
   $('#drop').oninput=net;
   $('#resample').onclick=function(){ seed=1+Math.random()*9; net(); };

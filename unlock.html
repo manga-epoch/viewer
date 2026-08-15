@@ -36,6 +36,8 @@ button:disabled{opacity:.5;cursor:default}
 .msg.err{color:var(--bad)}
 .note{margin-top:26px;padding-top:20px;border-top:1px solid var(--border);font-size:13px;color:var(--ink-sub)}
 .note a{color:var(--link)}
+.go-btn{display:inline-block;padding:11px 20px;background:#1A1A1A;color:#FAFAF7;border-radius:9px;text-decoration:none;font-weight:700;font-size:14px}
+.go-btn.ghost{background:#fff;color:#1A1A1A;border:1.5px solid #1A1A1A}
 </style>
 </head>
 <body>
@@ -81,7 +83,17 @@ async function unlock() {
   try {
     // 実在確認してから遷移する（誤ったコードで 404 画面に飛ばさない）
     const r = await fetch(p + "index.html", { method: "HEAD", cache: "no-store" });
-    if (r.ok) { msg.textContent = "開きます…"; location.href = p; return; }
+    if (r.ok) {
+      // 体験版で第 1 話を読み終えている人が多い（読者指摘）。強制で頭から
+      // 開かず、「続きから」を第一候補にした 2 択を出す。#s2 はシーン 2 の頭。
+      msg.className = "msg";
+      msg.innerHTML = 'コードを確認しました。'
+        + '<span style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'
+        + '<a class="go-btn" href="' + p + 'index.html#s2">第 2 話から続きを読む →</a>'
+        + '<a class="go-btn ghost" href="' + p + '">最初から読む</a></span>';
+      $("go").style.display = "none";
+      return;
+    }
   } catch (e) { /* fetch 失敗は「見つからない」と同じ扱い */ }
   msg.className = "msg err";
   msg.textContent = "コードが確認できませんでした。入力をお確かめください。";

@@ -136,7 +136,8 @@ input[type=range]{accent-color:var(--arc)}
 <h2>モンテカルロ木探索を 1 反復ずつ</h2>
 <div class="lead">囲碁は<b>強化学習</b>の題材だ——正解の手は誰も教えてくれず、<b>報酬</b>は勝敗として
 対局の最後にまとめて届く。その中で「どの手が良さそうか」を絞り込むのが木探索である。
-各ノードは局面、数字は <strong>訪問回数 / 推定勝率</strong>。「1 反復」で <strong>選択 → 展開 → 評価 → 逆伝播</strong> が走り、有望な枝の訪問回数が増えていく。policy が初期確率 (枝の太さ)、value が評価を与える。</div>
+最初は根 (今の局面) しかない。「1 反復」を押すたびに <strong>選択 → 展開 → 評価 → 逆伝播</strong> が走り、
+まだ見ていない局面は<strong>展開</strong>で新しく木に加わり、有望な枝の訪問回数が増えていく。policy が初期確率 (枝の太さ)、value が評価を与える。</div>
 <div class="ctrls">
   <button class="btn" id="iterBtn">▶ 1 反復 (select→expand→eval→backup)</button>
   <button class="btn ghost" id="iter10">10 反復</button>
@@ -144,12 +145,14 @@ input[type=range]{accent-color:var(--arc)}
   <div class="ctrl" style="margin-left:auto"><label>反復数 <span class="val" id="itV">0</span></label></div>
 </div>
 <svg id="treeSvg" width="100%" viewBox="0 0 800 340" style="max-width:800px;display:block;margin:6px auto"></svg>
-<div class="readout" id="gout">「1 反復」を押して探索を始めてください。</div>
+<div class="readout" id="gout">「1 反復」を押して探索を始めてください。最初は根だけで、子局面はまだ展開されていません。</div>
+<p class="note">この図のノード上の数値 (N・Q) や評価値 v は、木探索の仕組みを見せるための<strong>模式</strong>であり、実在の AlphaGo が出した値ではない(局面の評価に使っている関数もこの図のためのダミーで、本物の value network ではない)。</p>
 <div class="formula">
 UCT: $\displaystyle a^* = \arg\max_a \Big( Q(a) + c\,P(a)\frac{\sqrt{\sum_b N(b)}}{1+N(a)} \Big)$
 <div class="note" style="margin-top:8px">$Q$ = 平均価値 (value net)、$P$ = 事前確率 (policy net)、$N$ = 訪問回数。<strong>勝率の高さ</strong>と<strong>未探索の有望さ</strong>を両立させ、探索を導く。</div>
 </div>
 <p class="note">AlphaGo Zero (2017) は人間の棋譜を一切使わず、自己対戦の強化学習だけで AlphaGo を超えた。policy/value を 1 つのネットに統合し、純粋に「自分との対局」から囲碁・将棋・チェスを学んだ (後の AlphaZero)。</p>
+<p class="note">導入で触れた <b>Move 37</b> も、この select→expand→eval→backup の繰り返しが選び出した一手だ——AlphaGo 自身は、人間のプロがその手を打つ確率を事前分布からおよそ 1/10,000 と見積もっていたと DeepMind は報告している。</p>
 </div>
 
 <div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_rnn.html">← RNN/LSTM</a><a class="fp-comm" href="commentary.html#scene7">解説 Scene 7「神の一手」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_attention.html">Self-Attention →</a></nav></div>
@@ -158,8 +161,13 @@ UCT: $\displaystyle a^* = \arg\max_a \Big( Q(a) + c\,P(a)\frac{\sqrt{\sum_b N(b)
 (function(){
   var ARC="#6E7BA8";var SVGNS="http://www.w3.org/2000/svg";
   function el(p,t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e;}
+  // 乱数は「評価のゆらぎ」だけに使う。再現性のためシード付き決定論乱数にする(他の図解と同じ流儀)
+  var rseed=7;
+  function rnd(){ rseed=(rseed*9301+49297)%233280; return rseed/233280; }
   // tree: root with 3 children, each child with 2 grandchildren. priors from "policy".
-  function mk(x,y,P,trueV){return {x:x,y:y,N:0,W:0,P:P,trueV:trueV,kids:[]};}
+  // kids は最初から埋めておくが、expanded=false の間は選択もレンダリングも kids を辿らない
+  // = 「葉に到達したら子が生える」という展開フェーズを、実際に見える形で再現する
+  function mk(x,y,P,trueV){return {x:x,y:y,N:0,W:0,P:P,trueV:trueV,kids:[],expanded:false};}
   var root,iters;
   function build(){
     root=mk(400,50,1,0.5);
@@ -172,41 +180,71 @@ UCT: $\displaystyle a^* = \arg\max_a \Big( Q(a) + c\,P(a)\frac{\sqrt{\sum_b N(b)
   build();
   function Q(n){return n.N>0?n.W/n.N:n.P*0.5+0.25;}
   function uct(n,parentN){return Q(n)+1.3*n.P*Math.sqrt(parentN+1)/(1+n.N);}
+  function pickBest(kids,parentN){
+    var best=null,bv=-1;
+    for(var i=0;i<kids.length;i++){var u=uct(kids[i],parentN);if(u>bv){bv=u;best=kids[i];}}
+    return best;
+  }
   function selectLeaf(){
+    // expanded な間だけ潜る。未展開の局面(=まだ木に現れていない)で選択は止まる
     var path=[root],n=root;
-    while(n.kids.length){var best=null,bv=-1;for(var i=0;i<n.kids.length;i++){var u=uct(n.kids[i],n.N);if(u>bv){bv=u;best=n.kids[i];}}n=best;path.push(n);}
+    while(n.expanded && n.kids.length){ n=pickBest(n.kids,n.N); path.push(n); }
     return path;
   }
   function iterate(){
     var path=selectLeaf();var leaf=path[path.length-1];
-    // evaluate with "value net" = trueV + small noise
-    var v=Math.max(0,Math.min(1,leaf.trueV+(Math.random()-0.5)*0.1));
-    // backup
+    var didExpand=false;
+    if(!leaf.expanded && leaf.kids.length){
+      // 展開: この局面の子をはじめて木に加える。次数字が新規に増えた子を 1 つ選んで評価する
+      leaf.expanded=true; didExpand=true;
+      var child=pickBest(leaf.kids,leaf.N);
+      path.push(child); leaf=child;
+    }
+    // 評価: value net 相当のダミー関数(真の局面価値 trueV に、シード付き決定論乱数でゆらぎを乗せる)
+    var v=Math.max(0,Math.min(1,leaf.trueV+(rnd()-0.5)*0.1));
+    // 逆伝播
     path.forEach(function(n){n.N++;n.W+=v;});
     iters++;document.getElementById('itV').textContent=iters;
-    draw(path,v);
+    draw(path,v,didExpand);
   }
-  function draw(path,v){
+  function draw(path,v,didExpand){
     var svg=document.getElementById('treeSvg');svg.innerHTML='';
     function edge(a,b,on){el(svg,'line',{x1:a.x,y1:a.y+22,x2:b.x,y2:b.y-22,stroke:on?ARC:'#CFCBBE','stroke-width':on?3:1+b.P*3,opacity:on?1:.7});}
     var inPath=path?path.slice():[];
     function isOn(n){return inPath.indexOf(n)>=0;}
-    root.kids.forEach(function(c){edge(root,c,isOn(root)&&isOn(c));c.kids.forEach(function(g){edge(c,g,isOn(c)&&isOn(g));});});
+    // 展開済みのノードだけを辿って描く(未展開の子はまだ「見えていない」)
+    function walkEdges(n){ if(!n.expanded)return; n.kids.forEach(function(c){edge(n,c,isOn(n)&&isOn(c));walkEdges(c);}); }
+    walkEdges(root);
     function node(n){
       var on=isOn(n);
       el(svg,'circle',{cx:n.x,cy:n.y,r:22,fill:on?'rgba(110,123,168,.16)':'#fff',stroke:on?ARC:'#C8C4B8','stroke-width':on?2.5:1.5});
       el(svg,'text',{x:n.x,y:n.y-1,'text-anchor':'middle','font-size':12,fill:'#1A1A1A','font-weight':700},'N='+n.N);
       el(svg,'text',{x:n.x,y:n.y+13,'text-anchor':'middle','font-size':10,fill:'#565248'},'Q='+Q(n).toFixed(2));
     }
-    node(root);root.kids.forEach(function(c){node(c);c.kids.forEach(node);});
-    el(svg,'text',{x:400,y:24,'text-anchor':'middle','font-size':11,fill:'#9A9488'},'枝の太さ = policy の事前確率 P ・ 太線 = この反復で選ばれた経路');
-    if(path){var leaf=path[path.length-1];
-      document.getElementById('gout').textContent='選択した経路を value net が評価 v='+v.toFixed(2)+' → 経路上の全ノードに訪問 N+1, 価値 W+'+v.toFixed(2)+' を逆伝播。訪問が集中した枝が「機械の選んだ手」。';}
+    function walkNodes(n){ node(n); if(n.expanded) n.kids.forEach(walkNodes); }
+    walkNodes(root);
+    el(svg,'text',{x:400,y:24,'text-anchor':'middle','font-size':11,fill:'#9A9488'},'枝の太さ = policy の事前確率 P ・ 太線 = この反復で選ばれた経路(木にまだ現れていない局面は未展開)');
+    var gout=document.getElementById('gout');
+    if(!path){ gout.textContent='「1 反復」を押して探索を始めてください。最初は根だけで、子局面はまだ展開されていません。'; return; }
+    // 図の状態(誰が何回訪問されたか)を実際に読み上げる。v の数字だけを言い換えても
+    // 「どの枝に探索が集中したか」という肝心の情報が伝わらないため
+    var msg='<b>'+iters+' 反復目</b>: '+(didExpand?'新しい局面を展開し、その子を':'既存の木の中から経路を')+
+      '選択 → 葉を評価関数で v='+v.toFixed(2)+' と評価 → 経路上の全ノードに訪問 N+1・価値 W+'+v.toFixed(2)+' を逆伝播した。';
+    if(root.expanded && root.kids.length){
+      var kids=root.kids.slice().sort(function(a,b){return b.N-a.N;});
+      var total=kids.reduce(function(s,k){return s+k.N;},0);
+      msg+='<br>根から出る 3 本の訪問回数は N='+kids.map(function(k){return k.N;}).join(' / ')+'。';
+      if(total>0){
+        var share=Math.round(kids[0].N/total*100);
+        msg+=' 全体の '+share+'% がいちばん有望な枝に集中している'+(share>=60?'——探索が絞り込まれてきた。':'。');
+      }
+    }
+    gout.innerHTML=msg;
   }
   document.getElementById('iterBtn').addEventListener('click',iterate);
   document.getElementById('iter10').addEventListener('click',function(){for(var i=0;i<10;i++)iterate();});
-  document.getElementById('resetBtn').addEventListener('click',function(){build();draw(null,0);document.getElementById('itV').textContent=0;document.getElementById('gout').textContent='リセットしました。';});
-  draw(null,0);
+  document.getElementById('resetBtn').addEventListener('click',function(){build();rseed=7;draw(null,0,false);document.getElementById('itV').textContent=0;});
+  draw(null,0,false);
 })();
 </script>
 

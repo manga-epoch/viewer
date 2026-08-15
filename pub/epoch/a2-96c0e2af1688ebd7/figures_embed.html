@@ -186,6 +186,22 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 <div id="v1"></div>
 <div class="readout" id="r1"></div>
+<p style="margin-top:16px">ここで数えた表は、置き方の<b>出発点</b>にすぎない。
+実際の Word2Vec はこの表をそのまま座標に使わず、各語に数百次元のベクトルを持たせて、
+<b>周りの語を当てられるように</b>それを少しずつ調整する——数えるのではなく、<b>予測で学習する</b>。
+周りの顔ぶれが同じ語ほど同じ予測をすることになるから、結果として<b>近くの点</b>に落ち着く。
+それが次の平面だ。</p>
+<svg width="100%" viewBox="0 0 620 100" style="max-width:620px;display:block;margin:2px auto">
+  <rect class="box" x="30" y="26" width="180" height="44" rx="8"/>
+  <text class="tk" x="120" y="53">周りの語を数えた表</text>
+  <path class="arw" d="M218 48 L392 48"/>
+  <path d="M392 43 L402 48 L392 53 Z" fill="#6E7BA8"/>
+  <text class="lb c" x="305" y="34">周りの語を当てられるよう調整</text>
+  <text class="lb c" x="305" y="68">（予測で学習）</text>
+  <rect class="box" x="410" y="26" width="180" height="44" rx="8"/>
+  <text class="tk" x="500" y="53">数百次元のベクトル＝点</text>
+  <text class="lb" x="30" y="92">※ 模式。学習の流れを 1 本の矢印にまとめたもので、実測ではない</text>
+</svg>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>王 − 男 + 女 = ？ — 意味の差が「向き」になる</h2>
@@ -213,9 +229,12 @@ input[type=range]{accent-color:var(--arc)}
 だから「はし」（橋・箸）のように意味が複数ある語は、<b>どちらの意味の場所にも置けない</b>。
 学習が終わると、その語は両方の平均——どちらでもない場所に落ち着く。
 文脈に応じて置き場所を変える仕組み（BERT）は、ここから先の話になる。</p>
+<div class="formula">$v_{はし} = (v_{橋} + v_{箸})/2$
+<div class="note" style="margin-top:8px">1 本のベクトルしか持てないので、学習の結果は 2 つの意味の<b>平均</b>に落ち着く。</div>
+</div>
 <div class="ctrls">
-  <button class="btn" id="mSep">意味ごとに置ければ</button>
-  <button class="btn ghost" id="mAvg">実際の Word2Vec</button>
+  <button class="btn ghost" id="mSep">意味ごとに置ければ</button>
+  <button class="btn" id="mAvg">実際の Word2Vec</button>
 </div>
 <div id="v3"></div>
 <div class="readout" id="r3"></div>
@@ -309,24 +328,40 @@ input[type=range]{accent-color:var(--arc)}
     $(sel).value=['王','男','女'][k];
   });
   function P(p){ return [40+p[0]*1.55, 250-p[1]*0.86]; }
+  /* プロットの内枠。着地点がここを越えたら、縁にクランプして印を出す（消して隠さない） */
+  var PLOT={x0:46,x1:594,y0:30,y1:246};
+  function clampToPlot(p){
+    var cx=Math.max(PLOT.x0,Math.min(PLOT.x1,p[0])), cy=Math.max(PLOT.y0,Math.min(PLOT.y1,p[1]));
+    return {pt:[cx,cy], out:(cx!==p[0]||cy!==p[1])};
+  }
   function draw2(res){
-    var g='';
+    var g='', outOfBounds=false;
     g+='<line class="ax" x1="40" y1="252" x2="600" y2="252"/>';
     g+='<line class="ax" x1="40" y1="252" x2="40" y2="24"/>';
     g+='<text class="lb" x="404" y="272">地位が高い →</text>';
     g+='<text class="lb" x="6" y="238">男性寄り</text>';
     g+='<text class="lb" x="6" y="34">女性寄り</text>';
     if(res){
-      var pa=P(W[res.a]), pb=P(W[res.b]), pc=P(W[res.c]), pr=P(res.v);
-      /* a − b の向きを、c から生やす */
+      var pa=P(W[res.a]), pb=P(W[res.b]), pc=P(W[res.c]);
+      var cl=clampToPlot(P(res.v)), pr=cl.pt; outOfBounds=cl.out;
+      /* a − b の向きを、c から生やす。注釈は矢印の法線方向にずらして、点ラベルと重ならないようにする */
+      var normalAt=function(u,v,t,dist,sign){
+        var mx=u[0]+(v[0]-u[0])*t, my=u[1]+(v[1]-u[1])*t;
+        var dx=v[0]-u[0], dy=v[1]-u[1], len=Math.hypot(dx,dy)||1;
+        return [mx-(dy/len)*dist*sign, my+(dx/len)*dist*sign];
+      };
       g+='<path class="arw g" d="M'+pb[0]+' '+pb[1]+' L'+pa[0]+' '+pa[1]+'"/>';
-      g+='<path class="arw" d="M'+pc[0]+' '+pc[1]+' L'+pr[0]+' '+pr[1]+'"/>';
-      var at=function(u,v,t){return [u[0]+(v[0]-u[0])*t, u[1]+(v[1]-u[1])*t]};
-      var mb=at(pb,pa,0.34), mc=at(pc,pr,0.34);
-      g+='<text class="lb c" x="'+mb[0]+'" y="'+(mb[1]+20)+'">この向きを取り出して</text>';
-      g+='<text class="lb c" x="'+mc[0]+'" y="'+(mc[1]-14)+'">同じだけ動かす</text>';
-      g+='<circle class="dot hit" cx="'+pr[0]+'" cy="'+pr[1]+'" r="7"/>';
-      g+='<text class="lb c" x="'+pr[0]+'" y="'+(pr[1]+22)+'">着地点</text>';
+      g+='<path class="arw" '+(outOfBounds?'stroke-dasharray="5 4"':'')+' d="M'+pc[0]+' '+pc[1]+' L'+pr[0]+' '+pr[1]+'"/>';
+      var mb=normalAt(pb,pa,0.5,20,-1), mc=normalAt(pc,pr,0.5,20,1);
+      g+='<text class="lb c" x="'+mb[0]+'" y="'+mb[1]+'">この向きを取り出して</text>';
+      g+='<text class="lb c" x="'+mc[0]+'" y="'+mc[1]+'">同じだけ動かす</text>';
+      if(outOfBounds){
+        g+='<circle class="dot" fill="#b4493f" cx="'+pr[0]+'" cy="'+pr[1]+'" r="7"/>';
+        g+='<text class="lb c" x="'+pr[0]+'" y="'+(pr[1]<=PLOT.y0+16?pr[1]+20:pr[1]-14)+'" style="fill:#b4493f">枠の外に出た</text>';
+      } else {
+        g+='<circle class="dot hit" cx="'+pr[0]+'" cy="'+pr[1]+'" r="7"/>';
+        g+='<text class="lb c" x="'+pr[0]+'" y="'+(pr[1]+22)+'">着地点</text>';
+      }
     }
     NAMES.forEach(function(n){
       var p=P(W[n]), hit=res&&res.near===n, dim=res&&!hit&&n!==res.a&&n!==res.b&&n!==res.c;
@@ -335,6 +370,7 @@ input[type=range]{accent-color:var(--arc)}
       g+='<text class="wd'+(hit?' hit':(dim?' dim':''))+'" x="'+lx+'" y="'+(p[1]-13)+'">'+esc(n)+'</text>';
     });
     $('#v2').innerHTML=svg(620,290,g);
+    return outOfBounds;
   }
   $('#go').onclick=function(){
     var a=$('#a').value,b=$('#b').value,c=$('#c').value;
@@ -345,13 +381,19 @@ input[type=range]{accent-color:var(--arc)}
       var d=Math.hypot(W[n][0]-v[0],W[n][1]-v[1]);
       if(d<bd){bd=d;best=n;}
     });
-    draw2({a:a,b:b,c:c,v:v,near:best});
-    $('#r2').innerHTML='<b>'+esc(a)+' − '+esc(b)+' ＋ '+esc(c)+'</b> の着地点にいちばん近いのは <b>'+
-      esc(best)+'</b>（ずれ '+bd.toFixed(0)+'）。'+
-      (bd<8 ? ' ほぼ真上に乗った。「'+esc(b)+' → '+esc(a)+'」の向きと、「'+esc(c)+' → '+esc(best)+
+    var outOfBounds=draw2({a:a,b:b,c:c,v:v,near:best});
+    var msg='<b>'+esc(a)+' − '+esc(b)+' ＋ '+esc(c)+'</b> の着地点にいちばん近いのは <b>'+
+      esc(best)+'</b>（ずれ '+bd.toFixed(0)+'）。';
+    if(outOfBounds){
+      msg+=' 着地点は<b>この平面の外まで飛び出した</b>（枠の縁に印だけ示した）。'+
+        'この組み合わせでは、足し引きが思ったようには効かない——<b>いつでも成り立つわけではない</b>ことの実例。';
+    } else {
+      msg += (bd<8 ? ' ほぼ真上に乗った。「'+esc(b)+' → '+esc(a)+'」の向きと、「'+esc(c)+' → '+esc(best)+
               '」の向きが<b>同じ</b>だということだ。'
             : bd<60 ? ' 少しずれたが、いちばん近いのはこの語だった。'
                     : ' かなり離れた。<b>どんな組でも成り立つわけではない</b>。');
+    }
+    $('#r2').innerHTML=msg;
   };
 
   /* ---------- ③ 多義語 ---------- */
@@ -388,10 +430,15 @@ input[type=range]{accent-color:var(--arc)}
         '最後は<b>橋でも箸でもない真ん中</b>に落ち着く。'+
         '文脈を見てから置き場所を決める仕組みが要る——それが次の一手になる。';
   }
-  $('#mSep').onclick=function(){ draw3('sep'); };
-  $('#mAvg').onclick=function(){ draw3('avg'); };
+  function setMode(mode){
+    $('#mSep').className='btn'+(mode==='sep'?'':' ghost');
+    $('#mAvg').className='btn'+(mode==='avg'?'':' ghost');
+    draw3(mode);
+  }
+  $('#mSep').onclick=function(){ setMode('sep'); };
+  $('#mAvg').onclick=function(){ setMode('avg'); };
 
-  draw1(); $('#go').click(); draw3('avg');
+  draw1(); $('#go').click(); setMode('avg');
 })();
 </script>
 <footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>

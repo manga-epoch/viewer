@@ -152,7 +152,7 @@ input[type=range]{accent-color:var(--arc)}
 <b>どこに</b> あるかを知らないと動けない。出力の形が変わると、やり方も変わる。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">何を出力するのか</a></li><li><a href="#sec2">検出のやり方は「何回 CNN に通すか」で変わった</a></li><li><a href="#sec3">重なった候補を削る</a></li><li><a href="#sec4">縮めて広げる、だけでは輪郭が戻らない</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">何を出力するのか</a></li><li><a href="#sec2">検出のやり方は「何回 CNN に通すか」で変わった</a></li><li><a href="#sec3">重なりを測り、重なった候補を削る</a></li><li><a href="#sec4">縮めて広げる、だけでは輪郭が戻らない</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>何を出力するのか — 三段階</h2>
 <p>同じ 1 枚の画像に対して、答えの形が違う。切り替えて見比べてほしい。</p>
@@ -202,11 +202,18 @@ input[type=range]{accent-color:var(--arc)}
 </svg>
 </div>
 <div class="readout" id="r2"></div>
+<p class="note">U-Net と同じくセグメンテーションにも前史がある：<b>FCN</b>（2014）は分類 CNN の最後の全結合層を畳み込みに置き換え、
+どんな大きさの画像にも同じネットワークを適用できるようにした先駆け。詳しくは④で。</p>
 </div>
 <div class="fig-stage" id="sec3">
-<h2>重なった候補を削る — NMS</h2>
+<h2>重なりを測り、重なった候補を削る — IoU と NMS</h2>
 <p>1 つの物体に何本も枠が出る。確信度の高い枠を残し、それと重なりすぎる枠を消す。
-どこまでを「重なりすぎ」とするかがしきい値だ。</p>
+どこまでを「重なりすぎ」とするかを測るのが IoU（Intersection over Union）だ。</p>
+<div class="formula">
+<svg viewBox="0 0 260 156" width="220" style="display:block;margin:0 auto 10px" xmlns="http://www.w3.org/2000/svg"><rect x="24" y="18" width="120" height="90" fill="none" stroke="#1a1a1a" stroke-width="2.2"/><rect x="96" y="46" width="120" height="90" fill="none" stroke="#1a1a1a" stroke-width="2.2" stroke-dasharray="5 4"/><rect x="96" y="46" width="48" height="62" fill="rgba(110,123,168,.55)"/><text x="24" y="12" font-size="12" fill="#565248">枠 A</text><text x="150" y="150" font-size="12" fill="#565248">枠 B</text><text x="100" y="80" font-size="11" fill="#1a1a1a" font-weight="700">重なり</text></svg>
+$\displaystyle \mathrm{IoU} = \frac{\text{重なり}}{\text{合併}}$
+<div class="note" style="margin-top:8px">濃い部分（重なり）を、2 枠を合わせた面積（合併）で割った値。1 に近いほどほぼ同じ枠、0 に近いほど別々の枠。</div>
+</div>
 <div class="ctrls">
   <label>確信度のしきい値 <input type="range" id="conf" min="0" max="95" value="40" step="5"></label>
   <span class="tag" id="conf-v">0.40</span>
@@ -218,26 +225,39 @@ input[type=range]{accent-color:var(--arc)}
   <rect x="10" y="10" width="620" height="240" fill="#fff" stroke="#e4e1d8"/>
   <g class="obj" transform="translate(160,90) scale(2.0)"><path d="M8 14 L2 2 L16 8 Z"/><path d="M40 14 L46 2 L32 8 Z"/><ellipse cx="24" cy="26" rx="20" ry="16"/><path d="M44 30 q14 4 10 18" fill="none" stroke-width="3"/></g>
   <g class="obj" transform="translate(420,120) scale(1.5)"><path d="M8 14 L2 2 L16 8 Z"/><path d="M40 14 L46 2 L32 8 Z"/><ellipse cx="24" cy="26" rx="20" ry="16"/><path d="M44 30 q14 4 10 18" fill="none" stroke-width="3"/></g>
+  <g class="obj" transform="translate(478,128) scale(1.2)"><path d="M8 14 L2 2 L16 8 Z"/><path d="M40 14 L46 2 L32 8 Z"/><ellipse cx="24" cy="26" rx="20" ry="16"/><path d="M44 30 q14 4 10 18" fill="none" stroke-width="3"/></g>
   <g id="nms-boxes"></g>
 </svg>
 </div>
 <div class="readout" id="r3"></div>
+<p class="note">枠の位置と確信度は仕組みを示すための模式データ（実データではない）。右側の 2 匹は
+もとから枠が重なっている「近くにいる別の物体」で、IoU の計算自体はこの座標で実際に行っている。</p>
 </div>
 <div class="fig-stage" id="sec4">
 <h2>縮めて広げる、だけでは輪郭が戻らない — U-Net</h2>
 <p>特徴を掴むには縮める必要がある。でも縮めた時点で「どこ」の情報は失われる。
-そこで縮める前の層から同じ大きさの層へ横に渡す（スキップ接続）。</p>
+そこで縮める前の層から同じ大きさの層へ横に渡す（スキップ接続）。
+下は 16×16 の丸い模式画像に対して、縮小→拡大を<b>実際に計算</b>した結果。</p>
+<p class="note">U-Net の前史：<b>FCN</b>（2014）が全結合層を畳み込みに置き換えて任意の大きさの画像を扱えるようにしたが、
+縮めるだけで戻す工夫が弱く、輪郭がぼやける弱点が残った。それを解いたのが U-Net（2015）のスキップ接続。</p>
 <div class="ctrls">
   <button class="chip on" id="skip-btn" aria-pressed="true">スキップ接続 ON</button>
-  <label>深さ <input type="range" id="depth" min="2" max="5" value="4"></label>
-  <span class="tag" id="depth-v">4 段</span>
+  <label>深さ <input type="range" id="depth" min="1" max="4" value="3"></label>
+  <span class="tag" id="depth-v">3 段</span>
 </div>
 <div class="stage">
-<svg viewBox="0 0 640 300" width="100%" style="max-width:640px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 640 210" width="100%" style="max-width:640px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
   <g id="unet"></g>
 </svg>
 </div>
+<div class="stage">
+<svg viewBox="0 0 640 190" width="100%" style="max-width:640px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
+  <g id="unet-grids"></g>
+</svg>
+</div>
 <div class="readout" id="r4"></div>
+<p class="note">丸は説明用に生成した 16×16 の模式画像（実データではない）。縮小は 2×2 平均プーリング、
+拡大は最近傍補間、スキップ接続は同じ大きさの層との平均で合成しており、実際にこの演算をここで行っている。</p>
 </div>
 <div class="back-link"><a href="figures.html">← 図解一覧に戻る</a></div>
 <script>
@@ -289,10 +309,20 @@ input[type=range]{accent-color:var(--arc)}
     $('#m-note').textContent=M[b.dataset.m].n; $('#r2').innerHTML=M[b.dataset.m].r;
   }});
 
-  // ③ NMS
-  var CAND=[{x:150,y:82,w:118,h:96,s:.95},{x:162,y:92,w:104,h:84,s:.78},{x:138,y:74,w:132,h:108,s:.62},
-            {x:176,y:100,w:92,h:74,s:.45},{x:410,y:112,w:92,h:76,s:.88},{x:420,y:120,w:80,h:64,s:.55},
-            {x:300,y:60,w:70,h:60,s:.31}];
+  // ③ IoU と NMS —— 8 候補中、右の 2 匹（.88 と .83）はもとから枠が重なっている別々の物体
+  // lx,ly はラベルの手置き座標。密集する候補ほど、箱の直上でなく余白列へ縦に並べて重なりを避ける
+  // （実測: SVG text の見た目の高さは約 24px なので、同じ列内は最低 30px 以上離す）
+  var CAND=[
+    {x:150,y:82, w:118,h:96, s:.95, lx:40, ly:84},
+    {x:162,y:92, w:104,h:84, s:.78, lx:40, ly:118},
+    {x:138,y:74, w:132,h:108,s:.62, lx:40, ly:152},
+    {x:176,y:100,w:92, h:74, s:.45, lx:40, ly:186},
+    {x:410,y:112,w:92, h:76, s:.88, lx:340,ly:120},
+    {x:420,y:120,w:80, h:64, s:.55, lx:340,ly:154},
+    {x:465,y:118,w:88, h:74, s:.83, lx:560,ly:104},
+    {x:300,y:60, w:70, h:60, s:.31, lx:300,ly:48}
+  ];
+  var TRUE_OBJECTS=3;   // この配置に写っている本当の物体数（猫 3 匹）
   function iou(a,b){var x=Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x)),
                         y=Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y)),i=x*y;
     return i/(a.w*a.h+b.w*b.h-i);}
@@ -306,38 +336,103 @@ input[type=range]{accent-color:var(--arc)}
       var alive=keep.indexOf(b)>=0;
       if(b.s<c) return;
       g.appendChild(el('rect',{class:'box'+(alive?'':' dim'),x:b.x,y:b.y,width:b.w,height:b.h}));
-      var tx=el('text',{class:'lbl',x:b.x,y:b.y-5}); tx.textContent=b.s.toFixed(2); g.appendChild(tx);
+      var tx=el('text',{class:'lbl',x:b.lx,y:b.ly}); tx.textContent=b.s.toFixed(2); g.appendChild(tx);
     });
     $('#r3').innerHTML='候補 '+CAND.length+' 個 → 確信度で '+pass.length+' 個 → 重なりを削って <b>'+keep.length+' 個</b>。'+
-      (keep.length>2?' しきい値が緩く、同じ物体に複数の枠が残っている。':
-       keep.length<2?' しきい値が厳しく、隣の物体まで消えている。':' ちょうど物体の数と合った。');
+      (keep.length>TRUE_OBJECTS ? ' しきい値が緩く、同じ物体に複数の枠が残っている。' :
+       keep.length<TRUE_OBJECTS ? ' <b>IoU のしきい値を下げすぎて</b>、隣にいる別の物体まで同じ物体とみなして消してしまった。' :
+       ' 実際の物体の数（'+TRUE_OBJECTS+' 匹）と一致した。');
   }
   ['conf','iou'].forEach(function(id){ $('#'+id).oninput=nms; });
 
-  // ④ U-Net
+  // ④ U-Net —— 16x16 の模式画像に縮小(2x2 平均プーリング)→拡大(最近傍)を実際に計算する
+  function makeDisk(n){
+    var cx=(n-1)/2, cy=(n-1)/2, r=n*0.32, g=[];
+    for(var i=0;i<n;i++){ g.push([]); for(var j=0;j<n;j++){
+      var dx=i-cx, dy=j-cy; g[i].push((dx*dx+dy*dy<=r*r)?1:0);
+    }} return g;
+  }
+  function downsample(grid){
+    var n=grid.length, m=n/2, out=[];
+    for(var i=0;i<m;i++){ out.push([]); for(var j=0;j<m;j++){
+      out[i].push((grid[2*i][2*j]+grid[2*i+1][2*j]+grid[2*i][2*j+1]+grid[2*i+1][2*j+1])/4);
+    }} return out;
+  }
+  function upsampleOnce(grid){
+    var m=grid.length, out=[];
+    for(var i=0;i<2*m;i++) out.push([]);
+    for(var i=0;i<m;i++) for(var j=0;j<m;j++){ var v=grid[i][j];
+      out[2*i][2*j]=v; out[2*i][2*j+1]=v; out[2*i+1][2*j]=v; out[2*i+1][2*j+1]=v; }
+    return out;
+  }
+  function blend(a,b){
+    var n=a.length, out=[]; for(var i=0;i<n;i++){ out.push([]); for(var j=0;j<n;j++){ out[i].push((a[i][j]+b[i][j])/2); } }
+    return out;
+  }
+  function mae(a,b){
+    var n=a.length, s=0; for(var i=0;i<n;i++) for(var j=0;j<n;j++) s+=Math.abs(a[i][j]-b[i][j]);
+    return s/(n*n);
+  }
+  var DISK=makeDisk(16);
+  function runUNet(base,d){
+    var levels=[base];
+    for(var i=0;i<d;i++) levels.push(downsample(levels[i]));
+    var bottleneck=levels[d];
+    var cur=bottleneck; for(var i=0;i<d;i++) cur=upsampleOnce(cur);
+    var noSkip=cur;                                           // 最小の層だけを通って戻した経路（スキップなし）
+    var dec=bottleneck;
+    for(var k=d-1;k>=0;k--){ dec=blend(upsampleOnce(dec), levels[k]); }  // 同じ大きさの層と平均して合成
+    return {levels:levels, noSkip:noSkip, withSkip:dec};
+  }
+  function unetSchematic(d){
+    var g=$('#unet'); g.innerHTML='';
+    var cx=320, top=30, step=38, on=$('#skip-btn').getAttribute('aria-pressed')==='true';
+    for(var i=0;i<d;i++){
+      var w=190-i*32, y=top+i*step;
+      g.appendChild(el('rect',{class:'box',x:cx-150-w/2,y:y,width:w,height:24}));
+      g.appendChild(el('rect',{class:'box',x:cx+150-w/2,y:y,width:w,height:24}));
+      if(on){
+        g.appendChild(el('line',{class:'box dim',x1:cx-150+w/2,y1:y+12,x2:cx+150-w/2,y2:y+12}));
+        var t=el('text',{class:'cap',x:cx,y:y+8,'text-anchor':'middle'}); t.textContent='そのまま渡す'; g.appendChild(t);
+      }
+    }
+    var by=top+d*step, bw=Math.max(24,74-d*10);
+    g.appendChild(el('rect',{class:'obj',x:cx-bw/2,y:by,width:bw,height:22}));
+    var bt=el('text',{class:'lbl',x:cx,y:by+36,'text-anchor':'middle'}); bt.textContent='いちばん小さい層'; g.appendChild(bt);
+    [['縮める（何があるか）',cx-150],['広げる（どこにあるか）',cx+150]].forEach(function(p){
+      var t=el('text',{class:'lbl',x:p[1],y:20,'text-anchor':'middle'}); t.textContent=p[0]; g.appendChild(t);
+    });
+  }
+  function drawGrids(res,on){
+    var g=$('#unet-grids'); g.innerHTML='';
+    var cell=8, n=16, gap=26, totalW=n*cell;
+    var panels=[{grid:res.levels[0],label:'入力（正解）',hi:false},
+                {grid:res.noSkip,label:'出力：スキップ OFF',hi:!on},
+                {grid:res.withSkip,label:'出力：スキップ ON',hi:on}];
+    var startX=[20, 20+totalW+gap, 20+2*(totalW+gap)];
+    panels.forEach(function(p,pi){
+      var ox=startX[pi], oy=16;
+      if(p.hi) g.appendChild(el('rect',{x:ox-6,y:oy-6,width:totalW+12,height:totalW+34,fill:'none',stroke:'#6E7BA8','stroke-width':2,rx:4}));
+      for(var i=0;i<n;i++) for(var j=0;j<n;j++){
+        var v=p.grid[i][j], c=Math.round(255-255*v);
+        g.appendChild(el('rect',{x:ox+j*cell,y:oy+i*cell,width:cell,height:cell,fill:'rgb('+c+','+c+','+c+')'}));
+      }
+      var t=el('text',{class:'cap',x:ox+totalW/2,y:oy+totalW+18,'text-anchor':'middle'}); t.textContent=p.label; g.appendChild(t);
+    });
+  }
   function unet(){
     var d=+$('#depth').value, on=$('#skip-btn').getAttribute('aria-pressed')==='true';
     $('#depth-v').textContent=d+' 段';
-    var g=$('#unet'); g.innerHTML=''; var cx=320, top=40, step=48;
-    for(var i=0;i<d;i++){
-      var w=200-i*34, y=top+i*step;
-      g.appendChild(el('rect',{class:'box',x:cx-150-w/2,y:y,width:w,height:30}));
-      g.appendChild(el('rect',{class:'box',x:cx+150-w/2,y:y,width:w,height:30}));
-      if(on){
-        var ln=el('line',{class:'box dim',x1:cx-150+w/2,y1:y+15,x2:cx+150-w/2,y2:y+15});
-        g.appendChild(ln);
-        var t=el('text',{class:'cap',x:cx,y:y+11,'text-anchor':'middle'}); t.textContent='そのまま渡す'; g.appendChild(t);
-      }
-    }
-    var by=top+d*step;
-    g.appendChild(el('rect',{class:'obj',x:cx-40,y:by,width:80,height:26}));
-    var bt=el('text',{class:'lbl',x:cx,y:by+18,'text-anchor':'middle'}); bt.textContent='いちばん小さい層'; g.appendChild(bt);
-    [['縮める（何があるか）',cx-150],['広げる（どこにあるか）',cx+150]].forEach(function(p){
-      var t=el('text',{class:'lbl',x:p[1],y:24,'text-anchor':'middle'}); t.textContent=p[0]; g.appendChild(t);
-    });
-    $('#r4').innerHTML = on
-      ? '縮める前の層をそのまま渡すので、輪郭の細かさが戻る。<b>これが U-Net</b>（2015・細胞画像のために作られた）。'
-      : 'いちばん小さい層まで縮めてから広げるだけ。何があるかは分かるが<b>輪郭がぼやける</b>（FCN の弱点）。';
+    unetSchematic(d);
+    var res=runUNet(DISK,d);
+    drawGrids(res,on);
+    var out = on ? res.withSkip : res.noSkip;
+    var err = mae(out,DISK);
+    var bsize=16/Math.pow(2,d);
+    $('#r4').innerHTML = 'いちばん小さい層は <b>'+bsize+'×'+bsize+' マス</b>（元は 16×16）。深いほど画像全体をまとめて見られる（文脈が広い）が、そのぶん「どこ」の位置情報はここでほぼ失われる。'+
+      (on
+        ? ' スキップ接続 ON：縮める前の層をそのまま渡して合成するため、輪郭のずれ（平均絶対誤差）は <b>'+err.toFixed(3)+'</b> ―― 輪郭がかなり戻っている。'
+        : ' スキップ接続 OFF：最小の層だけを通って戻すため、輪郭のずれ（平均絶対誤差）は <b>'+err.toFixed(3)+'</b> ―― 輪郭がぼやける（FCN の弱点）。');
   }
   $('#skip-btn').onclick=function(){ var on=this.getAttribute('aria-pressed')==='true';
     this.setAttribute('aria-pressed',!on); this.classList.toggle('on',!on);

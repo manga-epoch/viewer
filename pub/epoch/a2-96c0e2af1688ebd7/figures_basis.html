@@ -83,6 +83,8 @@ svg .box.on{fill:#cfcfc8}
 svg .box.pre{fill:#dfe3ee}
 svg .ed{stroke:#b9b9b2;stroke-width:1.4}
 svg .ax{stroke:#b9b9b2;stroke-width:1.4}
+svg .cv{fill:none;stroke:#1a1a1a;stroke-width:2.6}
+svg .cv2{fill:none;stroke:#6E7BA8;stroke-width:2.6;stroke-dasharray:6 4}
 svg .lb{font:600 12.5px var(--font-sans);fill:#565248}
 svg .lb.c{text-anchor:middle}
 .readout{background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13.5px;
@@ -173,7 +175,7 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 <div class="fig-stage" id="sec2">
 <h2>事前学習 — 一枚ずつ、答えを使わずに積む</h2>
-<p>深い網をいきなり全部learnさせると、奥まで信号が届かない。
+<p>深い網をいきなり全部まとめて学習させると、奥まで信号が届かない。
 そこで層を一枚ずつ「入力を復元できるように」訓練し、良い初期値を作ってから積み上げる。</p>
 <div class="ctrls">
   <button class="btn" id="stack">1 枚積む</button>
@@ -182,6 +184,12 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 <div id="k2"></div>
 <div class="readout" id="r2"></div>
+<div class="formula">$\min_{f,g}\; \lVert x - g(f(x)) 
+Vert^2$
+<div class="note" style="margin-top:8px">$f$ は縮める側、$g$ は戻す側。
+<b>答え $y$ を一切使わず</b>、入力 $x$ を自分で復元できるかどうかだけを目標にする。
+これを 1 層ずつ繰り返して初期値を作り、最後に答えを使って全体を微調整した。</div>
+</div>
 </div>
 <div class="back-link"><a href="figures.html">← 図解一覧に戻る</a></div>
 <script>
@@ -191,8 +199,17 @@ input[type=range]{accent-color:var(--arc)}
   function svg(w,h,i){return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px;display:block;margin:0 auto" xmlns="'+NS+'">'+i+'</svg>';}
 
   // ① 三分類
-  var P=[]; (function(){ for(var i=0;i<26;i++){ var g=i%2;
-    P.push({x:70+Math.random()*440, y:40+Math.random()*150, g:g}); } })();
+  // ※ 以前はラベルを位置と無関係な乱数で振っていたため、描いた境界の上下どちらにも
+  //    ●と○が混在し、「境界を学ぶ」という主張の**反例**を見せてしまっていた。
+  //    境界（下の bd と同じ曲線）の上下でラベルを決め、少数だけ雑音として反転させる。
+  //    乱数はシード付きの決定論（毎回同じ絵になる）。
+  var seed=7; function rnd(){ seed=(seed*9301+49297)%233280; return seed/233280; }
+  function boundaryY(x){ var t=(x-90)/430; return 200+(40-200)*2*t*(1-t)+(170-200)*t*t; }
+  var P=[]; (function(){ for(var i=0;i<26;i++){
+    var x=70+rnd()*440, y=40+rnd()*150;
+    var g=(y<boundaryY(x))?1:0;
+    if(rnd()<0.08) g=1-g;                 // 現実のデータらしく、少しだけ例外を混ぜる
+    P.push({x:x, y:y, g:g}); } })();
   var K={
     sup:{r:'<b>教師あり学習</b>：一つ一つに正解ラベルが付いている。境界を引いて、次に来た点を仕分ける。'+
            '画像の分類・翻訳・音声認識——Arc 2 で扱うものの多くはこれ。',
