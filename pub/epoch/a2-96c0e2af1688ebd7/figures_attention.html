@@ -95,6 +95,24 @@ svg .ax{font:600 11px var(--font-sans);fill:#8c8880;letter-spacing:.08em}
 .headgrid button{border:1px solid var(--border);background:#fff;border-radius:8px;
  padding:6px 11px;font-size:12.5px;cursor:pointer;font-family:inherit}
 .headgrid button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+svg .qkv-src{fill:#F4F2EC;stroke:#E4E1D8;stroke-width:1.4}
+svg .qkv-srct{font:600 11.5px var(--font-sans);fill:#1a1a1a;text-anchor:middle}
+svg .qkv-box{fill:#fff;stroke:#cfccc4;stroke-width:1.6}
+svg .qkv-box.on{fill:#1a1a1a;stroke:#1a1a1a}
+svg .qkv-t{font:600 12.5px var(--font-sans);fill:#1a1a1a;text-anchor:middle}
+svg .qkv-t.on{fill:#fff}
+svg .qkv-line{stroke:#cfccc4;stroke-width:1.6;fill:none}
+svg .qkv-line.on{stroke:#6E7BA8;stroke-width:2.6}
+svg .qkv-wl{font:11px var(--font-sans);fill:#9A9488;text-anchor:middle}
+svg .qkv-wl.on{fill:#3f6178;font-weight:700}
+svg .qkv-head{fill:rgba(110,123,168,.14);stroke:#6E7BA8;stroke-width:1.2}
+svg .qkv-headn{font:600 11px var(--font-sans);fill:#3f6178;text-anchor:middle}
+svg .qkv-cap{font:11.5px var(--font-sans);fill:#565248}
+svg .mix{stroke:#fff;stroke-width:1.5;fill:rgba(110,123,168,.5)}
+svg .mixnum{font:600 11px var(--font-sans);fill:#1a1a1a;text-anchor:middle;dominant-baseline:middle}
+svg .mixlbl{font:11px var(--font-sans);fill:#565248;text-anchor:middle}
+svg .mix-out{fill:rgba(110,123,168,.85);stroke:#1a1a1a;stroke-width:1.4}
+svg .mix-outt{font:600 12px var(--font-sans);fill:#fff;text-anchor:middle}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -162,12 +180,51 @@ input[type=range]{accent-color:var(--arc)}
 各語が自分の<b>クエリ</b>と全語の<b>キー</b>を照らし合わせ、
 「どの語をどれだけ参照するか」の重みを決める。
 ここで見る数値は説明用の作りものではなく、<b>実際に GPT-2 が計算した値</b>だ。</p>
+<p>この図解が扱うのは、Transformer ブロックの中にある<b>Masked Multi-Head Self-Attention</b>という
+1 つの部品の中身だけだ。文が入って次の 1 語が出るまでの全体の通り道（トークン化 → 埋め込み →
+［自己注意 → MLP］× 12 → 出力）は<a href="figures_transformer.html">Transformer の全体像</a>にある。
+ここではその中の「自己注意」の 1 段を、Q・K・V が生まれるところから出力になるところまで、順に追う。</p>
 <div class="prompt-line">読ませた文: <b>Data visualization empowers users to</b><br>
 <span style="color:var(--ink-sub)">（データ可視化は、ユーザーが〜することを可能にする）</span></div>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">重みができるまで</a></li><li><a href="#sec2">マスク</a></li><li><a href="#sec3">12 のヘッド</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">Q・K・V を作る</a></li><li><a href="#sec2">重みができるまで</a></li><li><a href="#sec3">マスク</a></li><li><a href="#sec4">12 のヘッド</a></li><li><a href="#sec5">V を混ぜて出力にする</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
+<h2>Q・K・V を作る — 検索エンジンの比喩で</h2>
+<p>注意の重みは、いきなり降ってくるわけではない。各トークンの<b>埋め込み</b>
+（768 次元の数の並び）に、<b>学習した 3 つの重み行列</b>をそれぞれ掛けて、
+<b>クエリ (Query)</b>・<b>キー (Key)</b>・<b>バリュー (Value)</b> の 3 本を作るところから始まる。
+同じ 1 つの埋め込みが、掛ける行列を変えるだけで 3 方向へ枝分かれする——下の図はそれを表す。
+ボタンで役割を切り替えて読んでほしい。</p>
+
+<div class="formula">$$Q = XW^Q \qquad K = XW^K \qquad V = XW^V$$
+<div class="note" style="margin-top:8px">$X$ はトークンの埋め込み（768 次元）、
+$W^Q,\,W^K,\,W^V$ は<b>学習で決まる</b>重み行列。同じ $X$ から、掛ける行列を変えるだけで
+性質の異なる 3 本のベクトルが出てくる。</div>
+</div>
+
+<div id="v0"></div>
+<div class="chips" id="qkvPick">
+  <span class="chip on" data-role="q">Query（クエリ）</span>
+  <span class="chip" data-role="k">Key（キー）</span>
+  <span class="chip" data-role="v">Value（バリュー）</span>
+</div>
+<div class="readout" id="r0"></div>
+
+<p class="note">検索エンジンにたとえるとつかみやすい。<b>Query</b> は検索窓に打ち込む言葉——
+「この語について、何を知りたいか」。<b>Key</b> は検索結果に並ぶ各ページの見出し——
+「自分は何者か」と各語が掲げる看板。<b>Value</b> はページの中身——照合が済んだあとに
+実際に持ち帰る情報。つまり <b>Query と Key を照らし合わせてどれが関係あるかを決め、
+選んだ分だけ Value を持ってくる</b>。次の節「①重みができるまで」の内積・softmax は、
+まさにこの「照らし合わせ」の計算にあたる。</p>
+
+<h3>1 本でなく、12 本に分けて見る</h3>
+<p>768 次元をまるごと 1 回で使うのではなく、<b>12 に割って</b> 1 本あたり 64 次元ずつ扱う——
+768 = 12 × 64 の意味はこれだ。1 つの見方だけに絞らず、<b>12 通りの見方を同時に走らせる</b>
+（Multi-Head）。後の節「③12 のヘッド」では、ヘッドごとに実際に見ている場所が違うことを確かめる。</p>
+<div id="v0b"></div>
+</div>
+<div class="fig-stage" id="sec2">
 <h2>重みができるまで — 4 つの段</h2>
 <p>「注意の重み」は一度に出てくるわけではない。<b>内積 → スケール → マスク → softmax</b> の
 4 段を通る。段を送って、行列がどう変わるか見てほしい。</p>
@@ -186,7 +243,7 @@ input[type=range]{accent-color:var(--arc)}
 <p class="note">行が<b>クエリ（見る側）</b>、列が<b>キー（見られる側）</b>。
 たとえば 4 行目 2 列目は「"powers" が " visualization" をどれだけ参照するか」。</p>
 </div>
-<div class="fig-stage" id="sec2">
+<div class="fig-stage" id="sec3">
 <h2>マスク — 未来の語は見せない</h2>
 <p>GPT のような生成モデルは、文を左から 1 語ずつ書く。
 だから「3 語目を決めるとき、4 語目以降を見てしまう」ことがあってはならない。
@@ -199,7 +256,7 @@ input[type=range]{accent-color:var(--arc)}
 <div id="v2"></div>
 <div class="readout" id="r2"></div>
 </div>
-<div class="fig-stage" id="sec3">
+<div class="fig-stage" id="sec4">
 <h2>12 のヘッド — 同じ文でも、見ている場所が違う</h2>
 <p>自己注意は 1 組ではない。GPT-2 small は同じ計算を <b>12 組</b>並べ、
 それぞれ別の重み行列で Q・K・V を作る。結果、ヘッドごとに<b>見ている関係が違う</b>。
@@ -207,6 +264,34 @@ input[type=range]{accent-color:var(--arc)}
 <div class="headgrid" id="heads"></div>
 <div id="v3"></div>
 <div class="readout" id="r3"></div>
+</div>
+<div class="fig-stage" id="sec5">
+<h2>V を混ぜて出力にする — 12 ヘッドぶんを 768 へ戻す</h2>
+<p>①〜③で作った重みは、それ自体が目的地ではない。<b>その重みで各語の Value を混ぜ合わせたもの</b>が、
+その語の新しい表現になる。重みが 1 語にほぼ集中していれば、ほとんどその語の Value がそのまま出てくるし、
+重みが分散していれば、複数語の Value が混ざって出てくる。</p>
+
+<div class="formula">$$z_i = \sum_j \alpha_{ij}\,V_j$$
+<div class="note" style="margin-top:8px">$\alpha_{ij}$ は①〜③で作った、行 $i$ の softmax 後の重み
+（合計 1）。$V_j$ は語 $j$ の Value。<b>重みで Value を足し合わせたもの</b>が、語 $i$ の新しい表現
+$z_i$ になる。</div>
+</div>
+
+<p class="note">下の図は「③12 のヘッド」で見たのと同じ例——第 5 ヘッドで "powers" が
+" em"（empowers の前半）へ 0.94 の重みを置く行——が、実際にどんな重みで各語の Value を
+混ぜ合わせるかを示す。<b>帯の幅（重み）は実測値</b>だが、<b>V の中身は模式</b>——実際の
+64 次元のベクトルではなく、「その語の Value」を表す帯として描いているだけで、
+GPT-2 の V の実数値はこの図解のデータに含まれていない。</p>
+<div id="v4"></div>
+<div class="readout" id="r4"></div>
+
+<h3>12 ヘッドぶんを、横に連結する</h3>
+<p>ここまでは 1 ヘッド分の話。実際には 12 のヘッドがそれぞれ 64 次元の $z_i$ を独立に作り、
+それを<b>横に並べて 768 次元へ戻し</b>、最後にもう 1 回学習した行列 $W^O$ を掛けて整える。</p>
+<div class="formula">$$\mathrm{MultiHead}(X) = \mathrm{Concat}(z^{(1)},\dots,z^{(12)})\,W^O$$
+<div class="note" style="margin-top:8px">64 次元 × 12 本を横に並べる（$\mathrm{Concat}$）だけで
+768 次元に戻る——だから次の MLP や、次の Transformer ブロックへ、そのままの形で渡せる。</div>
+</div>
 </div><p class="src-note">数値は <b>GPT-2 small</b>（12 層 × 12 ヘッド）の第 1 ブロックの実測値。Transformer Explainer（Polo Club of Data Science, Georgia Tech / MIT License）が公開している事前計算データから、1 ブロック分だけを取り出して使っている。</p>
 <div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_alphago.html">← AlphaGo・MCTS</a><a class="fp-comm" href="commentary.html#scene8">解説 Scene 8「注意こそ、すべて」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="commentary.html#extra1">補講へ →</a></nav></div>
 
@@ -260,6 +345,62 @@ input[type=range]{accent-color:var(--arc)}
     }
     return '<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="max-width:'+W+
            'px;display:block;margin:8px auto">'+g+'</svg>';
+  }
+
+  /* ---------- ⓪ Q・K・V ---------- */
+  /* 検索エンジンの比喩で Query/Key/Value の役割を切り替えて読ませる。実データには
+     重み行列 W^Q,W^K,W^V 自体は無い(768×768 は可視化しようがない)ため、ここは
+     「1 つの埋め込みが 3 方向へ分岐する」という構造だけを示す模式図でよい。 */
+  var QKV_TEXT = {
+    q: '<b>Query（クエリ）</b> ＝ 検索窓に打ち込む言葉。「この語について、何を知りたいか」を、'+
+       'この語自身が持つ問いとして表す。次の段で、全語の Key と照らし合わされる。',
+    k: '<b>Key（キー）</b> ＝ 検索結果に並ぶ各ページの見出し。「自分は何者か」と、各語が掲げる看板。'+
+       'Query と内積を取ることで、両者がどれだけ噛み合うか（関連度）が決まる。',
+    v: '<b>Value（バリュー）</b> ＝ ページの中身。Query と Key の照合が済んだあと、実際に持ち帰る情報。'+
+       '関連度（重み）が高い語ほど、その Value が多く混ざって次の表現になる。'
+  };
+  function drawQKV(role){
+    var W=620,H=214;
+    var boxes=[
+      {k:'q',x:426,y:12, w:176,h:56,t:'Query（クエリ）',  wl:'× Q 用の重み'},
+      {k:'k',x:426,y:78, w:176,h:56,t:'Key（キー）',      wl:'× K 用の重み'},
+      {k:'v',x:426,y:144,w:176,h:56,t:'Value（バリュー）', wl:'× V 用の重み'}
+    ];
+    var g='';
+    g+='<rect class="qkv-src" x="18" y="79" width="176" height="56" rx="10"/>';
+    g+='<text class="qkv-srct" x="106" y="103">トークンの埋め込み</text>';
+    g+='<text class="qkv-srct" x="106" y="121">X（768 次元）</text>';
+    boxes.forEach(function(b){
+      var on=(b.k===role), y1=b.y+b.h/2;
+      g+='<path class="qkv-line'+(on?' on':'')+'" d="M194 107 C 280 107, 320 '+y1+', 426 '+y1+'"/>';
+      g+='<text class="qkv-wl'+(on?' on':'')+'" x="300" y="'+(y1-8)+'">'+b.wl+'</text>';
+      g+='<rect class="qkv-box'+(on?' on':'')+'" x="'+b.x+'" y="'+b.y+'" width="'+b.w+'" height="'+b.h+'" rx="10"/>';
+      g+='<text class="qkv-t'+(on?' on':'')+'" x="'+(b.x+b.w/2)+'" y="'+(y1+5)+'">'+b.t+'</text>';
+    });
+    return '<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="max-width:'+W+'px;display:block;margin:8px auto">'+g+'</svg>';
+  }
+  function renderQKV(role){
+    $('#v0').innerHTML=drawQKV(role);
+    $('#r0').innerHTML=QKV_TEXT[role];
+    Array.prototype.forEach.call(document.querySelectorAll('#qkvPick .chip'),function(el){
+      el.classList.toggle('on', el.getAttribute('data-role')===role);
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#qkvPick .chip'),function(el){
+    el.onclick=function(){ renderQKV(el.getAttribute('data-role')); };
+  });
+
+  /* 768=12×64 の分割は操作するものが無い(切り替えても中身が変わらない)ので、常時表示の静的図でよい */
+  function drawHeadSplit(){
+    var W=580,x0=10,bw=(W-2*x0)/12,g='';
+    g+='<text class="qkv-cap" x="'+x0+'" y="14">768 次元 を 12 に割る</text>';
+    for(var i=0;i<12;i++){
+      var x=x0+i*bw;
+      g+='<rect class="qkv-head" x="'+(x+2)+'" y="24" width="'+(bw-4)+'" height="38" rx="5"/>';
+      g+='<text class="qkv-headn" x="'+(x+bw/2)+'" y="47">'+(i+1)+'</text>';
+    }
+    g+='<text class="qkv-cap" x="'+x0+'" y="86">1 ヘッドあたり 64 次元 × 12 ヘッド ＝ 768 次元</text>';
+    $('#v0b').innerHTML='<svg width="100%" viewBox="0 0 '+W+' 96" style="max-width:'+W+'px;display:block;margin:8px auto">'+g+'</svg>';
   }
 
   /* ---------- ① 4 段 ---------- */
@@ -364,7 +505,48 @@ input[type=range]{accent-color:var(--arc)}
     el.onclick=function(){ hi=+el.getAttribute('data-h'); draw3(); };
   });
 
+  /* ---------- ④ V を混ぜて出力にする ---------- */
+  /* ③で強調している「第5ヘッド・"powers"行」と同じ例を使い、話を一本につなげる。
+     帯の幅(=重み)は実測、V の中身(帯の色そのもの)は模式であることを本文と図の両方で明記する。 */
+  function drawMix(w, rowIdx){
+    var W=600,x0=10,barW=W-2*x0,y0=54,H=44,g='';
+    g+='<text class="qkv-cap" x="'+x0+'" y="18">"'+esc(T[rowIdx].trim())+
+       '" が持ち帰る Value の内訳（帯の幅＝重み・実測、帯の中身は模式）</text>';
+    var x=x0;
+    for(var j=0;j<N;j++){
+      var v=w[j]||0, seg=barW*v;
+      if(seg>0.6){
+        g+='<rect class="mix" x="'+x+'" y="'+y0+'" width="'+seg+'" height="'+H+'"/>';
+        if(seg>28){
+          g+='<text class="mixlbl" x="'+(x+seg/2)+'" y="'+(y0-6)+'">'+esc(T[j].trim())+'</text>';
+          g+='<text class="mixnum" x="'+(x+seg/2)+'" y="'+(y0+H/2)+'">'+v.toFixed(2)+'</text>';
+        }
+      }
+      x+=seg;
+    }
+    var cx=x0+barW/2;
+    g+='<path d="M'+cx+' '+(y0+H+8)+' L'+cx+' '+(y0+H+30)+'" stroke="#9A9488" stroke-width="1.6" marker-end="url(#mixarrow)"/>';
+    g+='<rect class="mix-out" x="'+(cx-76)+'" y="'+(y0+H+34)+'" width="152" height="42" rx="8"/>';
+    g+='<text class="mix-outt" x="'+cx+'" y="'+(y0+H+60)+'">z（64 次元・模式）</text>';
+    return '<svg width="100%" viewBox="0 0 '+W+' '+(y0+H+92)+
+      '" style="max-width:'+W+'px;display:block;margin:8px auto">'+
+      '<defs><marker id="mixarrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">'+
+      '<path d="M0 0 L10 5 L0 10 z" fill="#9A9488"/></marker></defs>'+g+'</svg>';
+  }
+  function draw4(){
+    var headIdx=4, rowIdx=T.indexOf('powers'); if(rowIdx<0) rowIdx=3;
+    var w=D.heads[headIdx].attn_softmax[rowIdx];
+    $('#v4').innerHTML=drawMix(w, rowIdx);
+    var parts=w.map(function(v,j){return [v,j];}).filter(function(p){return p[0]>0.005;})
+      .sort(function(a,b){return b[0]-a[0];})
+      .map(function(p){return p[0].toFixed(3)+' × V("'+esc(T[p[1]].trim())+'")';});
+    $('#r4').innerHTML='<b>"'+esc(T[rowIdx].trim())+'"</b> の新しい表現 z ≈ '+parts.join(' + ')+
+      '。重みは実測値（第 '+(headIdx+1)+' ヘッドの softmax 後の値）。V の中身（64 次元の実際の値）は'+
+      'このデータには含まれていないため、帯として模式的に示している。';
+  }
+
   draw1(); setMask(true); hi=4; draw3();
+  renderQKV('q'); drawHeadSplit(); draw4();
 })();
 </script>
 <footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>

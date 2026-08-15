@@ -75,17 +75,34 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 
 svg .bx{fill:#fff;stroke:#1a1a1a;stroke-width:1.8}
 svg .bx.on{fill:#1a1a1a}
-svg .bx.blk{fill:rgba(110,123,168,.10);stroke:#6E7BA8;stroke-width:1.6;stroke-dasharray:5 4}
+svg .bx.blk{fill:rgba(110,123,168,.08);stroke:#6E7BA8;stroke-width:1.6;stroke-dasharray:5 4}
+svg .bx.ghost{fill:none;stroke:#6E7BA8;stroke-width:1.2;stroke-dasharray:3 5;opacity:.32}
 svg .bx.dim{stroke:#cfccc4}
-svg .lbl{font:600 12.5px var(--font-sans);fill:#1a1a1a;text-anchor:middle}
+svg .lbl{font-size:12.5px;font-weight:600;fill:#1a1a1a;text-anchor:middle}
 svg .lbl.on{fill:#fff}
 svg .lbl.dim{fill:#a8a49c}
-svg .shape{font:11px var(--font-sans);fill:#8c8880;text-anchor:middle}
+svg .lbl2{font-size:10.5px;font-weight:700;fill:#3f6178;text-anchor:middle;text-decoration:underline}
+svg .shape{font-size:11px;fill:#8c8880}
 svg .flow{stroke:#b9b9b2;stroke-width:1.8;fill:none}
 svg .flow.on{stroke:#6E7BA8;stroke-width:2.6}
 svg .res{stroke:#6E7BA8;stroke-width:1.6;fill:none;stroke-dasharray:4 4}
-svg .note{font:600 11.5px var(--font-sans);fill:#8c8880}
+svg .addn{font-size:11px;font-weight:700;fill:#6E7BA8}
+svg .addn.on{fill:#1a1a1a}
+svg .note{font-size:11.5px;font-weight:600;fill:#8c8880}
 svg .note.c{text-anchor:middle}
+svg .tok{font-size:12px;font-weight:600;fill:#1a1a1a;text-anchor:middle}
+svg .tok.split{fill:#6E7BA8}
+svg .vecbar{fill:rgba(110,123,168,.55)}
+svg .vecbar.pos{fill:rgba(180,73,63,.5)}
+svg .vecbar.sum{fill:rgba(26,26,26,.6)}
+svg .bar4{fill:rgba(110,123,168,.85)}
+svg .bar4.top{fill:#1a1a1a}
+svg .otxt{font-size:12px;fill:#1a1a1a;text-anchor:end}
+svg .onum{font-size:11.5px;fill:#565248;font-variant-numeric:tabular-nums}
+svg .stackseg{stroke:#fff;stroke-width:1}
+svg .stackseg.base{fill:#cfccc4}
+svg .stackseg.attn{fill:rgba(110,123,168,.85)}
+svg .stackseg.mlp{fill:rgba(110,123,168,.38)}
 .readout{background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13.5px;
  color:var(--ink-sub);margin-top:10px}
 .readout b{color:var(--ink)}
@@ -95,6 +112,10 @@ svg .note.c{text-anchor:middle}
 .stepbar button{border:1px solid var(--border);background:#fff;border-radius:8px;
  padding:6px 12px;font-size:12.5px;cursor:pointer;font-family:inherit}
 .stepbar button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.legend2{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-sub);margin-top:8px}
+.legend2 i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.src-note{border-left:3px solid var(--border);padding:2px 0 2px 12px;color:var(--ink-sub);
+ font-size:12.5px;margin:18px 0 0}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -156,138 +177,424 @@ input[type=range]{accent-color:var(--arc)}
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; Transformer の全体像</div>
 <div class="intro">
 <div class="eyebrow">ARC 2 ／ SCENE 8 — 注意こそ、すべて</div>
-<h1>Transformer — 1 文が入って、次の 1 語が出るまで</h1>
-<p>自己注意そのものは、この機械の<b>部品のひとつ</b>にすぎない。
-文を入れてから次の 1 語が出るまでに、何をどの順で通るのか。
-ここでは GPT-2 small（ブロック 12 段・埋め込み 768 次元）の通り道を、
-段ごとに追いかける。</p>
+<h1>Transformer — 1文が入って、次の1語が出るまでの地図</h1>
+<p>ここは<b>地図</b>であって、部屋の中身までは持たない。自己注意（Self-Attention）そのものの
+中身は <a href="figures_attention.html">figures_attention.html</a> が受け持つ。ここで追うのは、
+文が入ってから次の1語が出るまでの<b>全体の通り道</b>と、なぜ同じブロックを12回もくり返すのか、
+という「地図」側の疑問だ。</p>
+<p>Transformer は2017年の論文で登場した構造で、いまの GPT・Llama・Gemini はどれもこれを土台に
+している。やっていることは、突き詰めれば<b>次の1語を当てる</b>ことだけ。その肝が自己注意――
+文中の全部の語を一度に見て、どの語をどれだけ参照するかを、モデル自身が決める――にある。</p>
+<p>ここで見るのは GPT-2 small（パラメータ1億2400万・ブロック12段・埋め込み768次元）。
+埋め込みの中身と、出力の作り方まで、文を1つ通しで追いかける。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">通り道</a></li><li><a href="#sec2">同じブロックを 12 回</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">全体の通り道</a></li><li><a href="#sec2">Embedding</a></li><li><a href="#sec3">なぜ12回くり返すのか</a></li><li><a href="#sec4">出力</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>通り道 — 段を追う</h2>
-<p>段を選ぶと、その段が何をしているかと、そこでのデータの<b>形</b>が出る。
-形が変わらない段が続くことに気づいてほしい——それが「積める」理由だ。</p>
+<h2>全体の通り道</h2>
+<p>文が入ってから次の1語が出るまで、何をどの順で通るのか。よくある描き方に合わせて描いた。
+箱や⊕を選ぶと、そこで何が起きるかと、そこでのデータの<b>形</b>が読み上げに出る。</p>
 <div class="stepbar" id="steps"></div>
 <div id="v1"></div>
 <div class="readout" id="r1"></div>
-<div class="formula">$y = x + \mathrm{Attn}(\mathrm{LN}(x))$ 　/　 $z = y + \mathrm{MLP}(\mathrm{LN}(y))$
-<div class="note" style="margin-top:8px">1 ブロックはこの 2 行だけ。$\mathrm{LN}$ は層正規化（各語の
-ベクトルの目盛りを揃える）、頭の $x +$ と $y +$ が<b>残差</b>——図の点線と丸の $\oplus$ にあたる。
-入口の $x$ と出口の $z$ が同じ形なので、そのまま次のブロックへ渡せる。
-最後は語彙ぶんの点数に直して $\mathrm{softmax}$ で確率にする。</div>
-</div>
+<p class="note">点線の囲みが「同じ形のブロック」。Attention の中身は隣の図解が持つ――箱の中の
+リンクからそのまま移動できる。ブロックをなぜ12回くり返すのかは、次々節「なぜ12回くり返すのか」で
+直接答える。</p>
 </div>
 <div class="fig-stage" id="sec2">
-<h2>同じブロックを 12 回</h2>
-<p>［自己注意 → MLP］は<b>入口と出口の形が同じ</b>（6 × 768 で入って 6 × 768 で出る）。
-だから何段でも積める。GPT-2 small は 12 段、GPT-3 は 96 段。
-<b>構造は変わらず、段数と幅だけが増える</b>——これが「大きくすれば強くなる」の中身だ。
-段数を動かして、通り道の長さを見てほしい。</p>
-<div class="ctrls">
-  <label>ブロックの段数 <input type="range" id="nb" min="1" max="12" value="12"></label>
-  <span class="tag" id="nbv">12 段</span>
-  <button class="btn ghost" id="preGpt2">GPT-2 small (12)</button>
-  <button class="btn ghost" id="preOrig">原論文 (6)</button>
-</div>
+<h2>Embedding — 文を数に変える</h2>
+<p>Transformer が最初に扱うのは、まだ「数」になっていない生の文だ。4段を送りで見る。
+使うトークンは実際に GPT-2 small がこの文を分けた並び――説明用に作った例ではない。</p>
+<div class="stepbar" id="emb-steps"></div>
 <div id="v2"></div>
-<div class="readout" id="r2"></div>
-<p class="note">各ブロックには<b>残差接続</b>（点線）と<b>層正規化</b>も入る。
-残差はブロックの出力を入力に足し戻す配線で、これが無いと深く積めない
-（Scene 5 の ResNet と同じ考え方が、そのまま言語側にも効いている）。</p>
+<div class="readout" id="r2">読み込み中…</div>
+<p class="note">語彙は50,257種類。トークン埋め込み表は 50,257 × 768 = 38,597,376
+（約3,860万）パラメータ――GPT-2 small 全体（1億2400万）のうち、埋め込みだけでこれだけを占める。</p>
 </div>
+<div class="fig-stage" id="sec3">
+<h2>なぜ12回くり返すのか</h2>
+<p>ここが本題。「同じブロックを12回」が何をしているのか、直接答える。</p>
+<div class="formula">$y = x + \mathrm{Attn}(\mathrm{LN}(x))$ 　/　 $z = y + \mathrm{MLP}(\mathrm{LN}(y))$
+<div class="note" style="margin-top:8px">1ブロックがやっているのは、これだけ――<b>足し込む</b>こと。
+$\mathrm{LN}$ は層正規化（各語のベクトルの目盛りを揃える）。$x+$ と $y+$ が残差＝<b>元の表現を
+捨てず、そこに情報を足す</b>という書き方。作り直すのではなく、積み増す。</div>
+</div>
+<p><b>Attention は「トークンの間で情報を配る」</b>。<b>MLP は「1トークンの中で情報を捏ねる」</b>。
+この2つを交互にくり返す――下の2枚を見比べてほしい。左は語と語のあいだを横に結び、
+右は各語の中だけで閉じている（どちらも模式）。</p>
+<div class="grid-wrap">
+  <div><div id="v3a"></div><div class="gcap">Attention: 語と語のあいだで配る（模式）</div></div>
+  <div><div id="v3b"></div><div class="gcap">MLP: 各語の中だけで捏ねる（模式）</div></div>
+</div>
+<p>だから12回通ると、同じトークンの表現に<b>12回ぶん、情報が積み重なる</b>。1層目は語の形の
+ような近い関係、後の層ほど文の意味に近い関係を扱えるようになる。1つのトークンの箱を選んで、
+段数を動かしてみてほしい――積み上がりが実際に増える。</p>
+<div class="ctrls">
+  <label>段数 <input type="range" id="stackN" min="1" max="12" value="4"></label>
+  <span class="tag" id="stackNv">4 段</span>
+  <button class="btn ghost" id="stPre1">1段</button>
+  <button class="btn ghost" id="stPre6">6段</button>
+  <button class="btn ghost" id="stPre12">12段（GPT-2 small）</button>
+</div>
+<div id="v3c"></div>
+<div class="readout" id="r3"></div>
+<div class="legend2">
+  <span><i style="background:rgba(110,123,168,.85)"></i>Attention で足された分</span>
+  <span><i style="background:rgba(110,123,168,.38)"></i>MLP で足された分</span>
+  <span><i style="background:#cfccc4"></i>元の埋め込み</span>
+</div>
+<p class="note">1ブロックに12ヘッドあり、それが12段――だから<b>12 × 12 = 144通りの見方</b>が
+積み重なる（下の読み上げでも段数に応じて再計算する）。段を増やすほど「強くなる」かどうかは、
+この図の範囲では分からない――それは学習で決まる話だ。ここで確かめられるのは、
+<b>情報が積み重なる</b>という一点だけ。</p>
+</div>
+<div class="fig-stage" id="sec4">
+<h2>出力 — 次の1語を選ぶ</h2>
+<p>最後のトークンの768次元を、語彙50,257個ぶんの点数（logit）に直し、softmax で確率にする。
+下のグラフは、GPT-2 small に実際に「Data visualization empowers users to」を読ませたときの<b>実測 logit</b>から、
+その場で確率を計算し直したもの――並んでいる12語は、確率が高い順の実測 top-12。</p>
+<div class="formula">$p_i = \mathrm{softmax}(z_i / T)$
+<div class="note" style="margin-top:8px">$T$ が<b>温度</b>。$T<1$ で分布が尖り（堅実）、
+$T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそのまま使った状態。</div>
+</div>
+<div class="ctrls">
+  <label>温度 T <input type="range" id="temp" min="0.1" max="2.0" step="0.1" value="1.0"></label>
+  <span class="tag" id="tempv">T = 1.0</span>
+  <button class="btn ghost" id="tPre05">T=0.5（堅実）</button>
+  <button class="btn ghost" id="tPre1">T=1.0（素のまま）</button>
+  <button class="btn ghost" id="tPre15">T=1.5（多様）</button>
+</div>
+<div id="v4"></div>
+<div class="readout" id="r4"></div>
+<p class="note">実運用では50,257語すべてを出さず、上位 k 個だけに絞る（<b>top-k</b>）か、
+確率の高い順に足し合わせて合計が p を超えたところで打ち切る（<b>top-p / nucleus</b>）ことが多い。
+ここに並ぶ12語は、確率が高い順に並べた top-12 にあたる。
+なお、このグラフの％は実測した上位12語だけで計算した比率であり、全50,257語に対する
+絶対確率ではない。</p>
+</div><p class="src-note">トークン列・次語候補の logit は <b>GPT-2 small</b>（12層 × 12ヘッド）の実測値。Transformer Explainer（Polo Club of Data Science, Georgia Tech / MIT License）が公開している事前計算データから取り出している。トークン埋め込み・位置エンコーディングの中身の可視化（節「Embedding」）は模式であり、実測値ではない。</p>
 <div class="back-link"><a href="figures.html">← 図解一覧に戻る</a></div>
 
 <script>
 (function(){
+  var D={"tokens":["Data"," visualization"," em","powers"," users"," to"],"candidates":[{"token":" visualize","logit":-135.913},{"token":" create","logit":-136.684},{"token":" see","logit":-137.12},{"token":" make","logit":-137.647},{"token":" easily","logit":-137.666},{"token":" quickly","logit":-137.724},{"token":" explore","logit":-137.784},{"token":" find","logit":-138.048},{"token":" understand","logit":-138.293},{"token":" build","logit":-138.41},{"token":" better","logit":-138.453},{"token":" identify","logit":-138.487}],"prompt":"Data visualization empowers users to","dim":768,"heads":12,"headDim":64,"ffn":3072,"vocab":50257,"blocks":12,"embParams":"38,597,376"};
+  var STEPS1=[["input", "入力テキスト", "6 語の文がそのまま入る。まだ数にはなっていない。", "6 語の文"], ["embed", "Input Embedding", "各語を、意味と位置を表す768個の数に変える。中身は次の節「Embedding」で追う。", "6 × 768"], ["attn", "Masked Multi-Head Self-Attention", "各語が他のどの語を参照するかを自分で決め、情報を混ぜ合わせる。自分より後ろの語は見えない（Masked）。12組を並列に走らせる（12ヘッド、1組64次元）。中身は figures_attention.html で見られる。", "6 × 768"], ["add1", "Add & Norm", "Attention の出力を、その手前の値に足し戻す（残差）。そのあと各語のベクトルの目盛りを揃える（層正規化）。捨てて作り直すのではなく、足し込む。", "6 × 768"], ["mlp", "MLP（Feed Forward）", "語ごとに独立して、いったん3072次元へ広げ、また768次元へ戻す。Attention で集めた情報を、ここで捏ねる。", "6 × 768"], ["add2", "Add & Norm", "MLP の出力を、その手前の値に足し戻し、また目盛りを揃える。", "6 × 768"], ["out", "Linear & Softmax", "最後の語の768次元を、語彙50,257個ぶんの点数（logit）に変換し、softmax で確率にする。いちばん確からしい語が次の1語。中身は節「出力」で見る。", "50,257 語の確率"]];
   var $=function(s){return document.querySelector(s)};
-  var STEPS=[["tok", "トークン化", "文を語より細かい単位に割る。“empowers” は “ em” + “powers” の 2 つになる。", "6 語 → 6 トークン"], ["emb", "埋め込み", "各トークンを 768 個の数の並びにする。似た意味の語が近くに置かれる。", "6 × 768"], ["pos", "位置を足す", "そのままでは語順が消える。何番目かを表す数を足して、順番を持たせる。", "6 × 768"], ["attn", "自己注意", "各語が他のどの語を参照するかを決め、混ぜ合わせる。12 組を並列に走らせ、1 組あたり 64 次元。", "6 × 768"], ["mlp", "MLP", "語ごとに独立して、いったん 3072 次元へ広げ、また 768 へ戻す。注意で集めた情報を、そこで捏ねる。", "6 × 768"], ["out", "出力", "最後のトークンの 768 次元を語彙 50,257 個ぶんの点数に直し、softmax で確率にする。いちばん確からしい語が次の 1 語。", "50,257 個の確率"]];
+  var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
   function svg(w,h,inner){return '<svg width="100%" viewBox="0 0 '+w+' '+h+
     '" style="max-width:'+w+'px;display:block;margin:8px auto">'+inner+'</svg>'}
+  var N=D.tokens.length, DIM=D.dim, HEADS=D.heads, HEAD_DIM=D.headDim, FFN=D.ffn,
+      VOCAB=D.vocab, BLOCKS=D.blocks;
 
-  /* ---------- ① 通り道 ---------- */
+  /* ==================== 節1: 全体の通り道 ==================== */
   var cur=0;
-  var LAY=[
-    {k:'tok', t:'トークン化',  y:30},
-    {k:'emb', t:'埋め込み',    y:100},
-    {k:'pos', t:'＋ 位置',     y:170},
-    {k:'attn',t:'自己注意',    y:258},
-    {k:'mlp', t:'MLP',        y:328},
-    {k:'out', t:'出力（確率）', y:416}
-  ];
+  window.__selStep1=function(k){
+    for(var i=0;i<STEPS1.length;i++){ if(STEPS1[i][0]===k){ cur=i; break; } }
+    draw1();
+  };
+  function sel(k){ return STEPS1[cur][0]===k; }
+  function stepIdx(k){ for(var i=0;i<STEPS1.length;i++) if(STEPS1[i][0]===k) return i; return -1; }
+  function mkBox(key,x,y,w,h,lines,onSel,fs){
+    var g='<g style="cursor:pointer" onclick="__selStep1(&#39;'+key+'&#39;)">';
+    g+='<rect class="bx'+(onSel?' on':'')+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="8"/>';
+    lines.forEach(function(t,i){
+      var ly = lines.length===1 ? (y+h/2+4) : (y+h/2+(i===0?-2:16));
+      g+='<text class="lbl'+(onSel?' on':'')+'" x="'+(x+w/2)+'" y="'+ly+'" style="font-size:'+
+         (fs||12.5)+'px">'+esc(t)+'</text>';
+    });
+    g+='</g>';
+    return g;
+  }
+  function mkArrow(xC,y1,y2,onSel){
+    var g='<path class="flow'+(onSel?' on':'')+'" d="M'+xC+' '+y1+' L'+xC+' '+y2+'"/>';
+    g+='<path class="flow'+(onSel?' on':'')+'" d="M'+(xC-5)+' '+(y2-8)+' L'+xC+' '+y2+
+       ' L'+(xC+5)+' '+(y2-8)+'"/>';
+    return g;
+  }
+  function mkAddNorm(key,xC,y,onSel){
+    var g='<g style="cursor:pointer" onclick="__selStep1(&#39;'+key+'&#39;)">';
+    g+='<circle cx="'+xC+'" cy="'+y+'" r="8" fill="#fff" stroke="#6E7BA8" stroke-width="1.8"/>';
+    g+='<path d="M'+(xC-4)+' '+y+' h8 M'+xC+' '+(y-4)+' v8" stroke="#6E7BA8" stroke-width="1.5"/>';
+    g+='<text class="addn'+(onSel?' on':'')+'" x="'+(xC+16)+'" y="'+(y+4)+'">Add &amp; Norm</text>';
+    g+='</g>';
+    return g;
+  }
+  function residual(xC,y1,y2,off){
+    var x=xC-off;
+    return '<path class="res" d="M'+xC+' '+y1+' L'+x+' '+y1+' L'+x+' '+y2+' L'+xC+' '+y2+'"/>';
+  }
   function draw1(){
-    var g='', W=560, BW=250, BX=(W-BW)/2;
-    /* ブロックの囲い */
-    g+='<rect class="bx blk" x="'+(BX-14)+'" y="242" width="'+(BW+28)+'" height="128" rx="12"/>';
-    g+='<text class="note" x="'+(BX-14)+'" y="232">Transformer ブロック × 12</text>';
-    LAY.forEach(function(L,i){
-      var on=(STEPS[cur][0]===L.k);
-      g+='<rect class="bx'+(on?' on':'')+'" x="'+BX+'" y="'+L.y+'" width="'+BW+'" height="46" rx="8"/>';
-      g+='<text class="lbl'+(on?' on':'')+'" x="'+(BX+BW/2)+'" y="'+(L.y+28)+'">'+esc(L.t)+'</text>';
-      var st=STEPS.filter(function(s){return s[0]===L.k})[0];
-      if(st) g+='<text class="shape" x="'+(BX+BW+62)+'" y="'+(L.y+29)+'">'+esc(st[3])+'</text>';
-      if(i<LAY.length-1){
-        var y2=LAY[i+1].y;
-        g+='<path class="flow'+(on?' on':'')+'" d="M'+(BX+BW/2)+' '+(L.y+46)+' L'+(BX+BW/2)+' '+y2+'"/>';
-        g+='<path class="flow'+(on?' on':'')+'" d="M'+(BX+BW/2-5)+' '+(y2-8)+' L'+(BX+BW/2)+' '+y2+
-           ' L'+(BX+BW/2+5)+' '+(y2-8)+'"/>';
-      }
+    var W=680, BW=260, BX=190, xC=BX+BW/2;
+    var yInput=20, hBox=42;
+    var yEmbed=88;
+    var yAttn=168, hAttn=58;
+    var yAdd1=yAttn+hAttn+23;
+    var yMlp=yAttn+hAttn+46, hMlp=42;
+    var yAdd2=yMlp+hMlp+23;
+    var blockTop=yAttn-18, blockBottom=yMlp+hMlp+46+14;
+    var yOut=blockBottom+40, hOut=42;
+    var H=yOut+hOut+30;
+    var g='';
+
+    /* 12回くり返すことを「重なったカード」で示す */
+    [[9,9],[5,5]].forEach(function(off){
+      g+='<rect class="bx ghost" x="'+(BX-16+off[0])+'" y="'+(blockTop+off[1])+
+         '" width="'+(BW+32)+'" height="'+(blockBottom-blockTop)+'" rx="14"/>';
     });
-    /* 残差の配線 */
-    /* 残差＝その部品を迂回して、出た先で足し戻す配線 */
-    [[250, 316, 44], [320, 386, 74]].forEach(function(r){
-      var x=BX-r[2];
-      g+='<path class="res" d="M'+(BX+BW/2)+' '+r[0]+' L'+x+' '+r[0]+
-         ' L'+x+' '+r[1]+' L'+(BX+BW/2)+' '+r[1]+'"/>';
-      g+='<circle cx="'+(BX+BW/2)+'" cy="'+r[1]+'" r="4.5" fill="#fff" stroke="#6E7BA8" stroke-width="1.6"/>';
-      g+='<path d="M'+(BX+BW/2-2.6)+' '+r[1]+' h5.2 M'+(BX+BW/2)+' '+(r[1]-2.6)+' v5.2" stroke="#6E7BA8" stroke-width="1.4"/>';
+    g+='<rect class="bx blk" x="'+(BX-16)+'" y="'+blockTop+'" width="'+(BW+32)+
+       '" height="'+(blockBottom-blockTop)+'" rx="14"/>';
+
+    g+=mkBox('input',BX,yInput,BW,hBox,['入力テキスト'],sel('input'));
+    g+=mkArrow(xC,yInput+hBox,yEmbed,sel('input')||sel('embed'));
+    g+=mkBox('embed',BX,yEmbed,BW,hBox,['Input Embedding'],sel('embed'));
+    g+=mkArrow(xC,yEmbed+hBox,yAttn,sel('embed')||sel('attn'));
+
+    g+=mkBox('attn',BX,yAttn,BW,hAttn,['Masked Multi-Head Self-Attention'],sel('attn'),10.3);
+    g+='<a href="figures_attention.html"><text class="lbl2" x="'+xC+'" y="'+(yAttn+hAttn-8)+
+       '">この中身を見る →</text></a>';
+    g+=mkArrow(xC,yAttn+hAttn,yAdd1-8,sel('attn')||sel('add1'));
+    g+=residual(xC,yAttn,yAdd1,BW/2+18);   // 箱の外を回す（内側を横切ると配線に見えない）
+    g+=mkAddNorm('add1',xC,yAdd1,sel('add1'));
+    g+=mkArrow(xC,yAdd1+8,yMlp,sel('add1')||sel('mlp'));
+
+    g+=mkBox('mlp',BX,yMlp,BW,hMlp,['MLP（Feed Forward）'],sel('mlp'));
+    g+=mkArrow(xC,yMlp+hMlp,yAdd2-8,sel('mlp')||sel('add2'));
+    g+=residual(xC,yMlp,yAdd2,BW/2+42);   // 2 本目はさらに外側（重ならないように）
+    g+=mkAddNorm('add2',xC,yAdd2,sel('add2'));
+    g+=mkArrow(xC,yAdd2+8,yOut,sel('add2')||sel('out'));
+
+    g+=mkBox('out',BX,yOut,BW,hOut,['Linear & Softmax'],sel('out'));
+
+    var shapeY={input:yInput,embed:yEmbed,attn:yAttn,mlp:yMlp,out:yOut};
+    var shapeH={input:hBox,embed:hBox,attn:hAttn,mlp:hMlp,out:hOut};
+    ['input','embed','attn','mlp','out'].forEach(function(k){
+      var st=STEPS1[stepIdx(k)];
+      g+='<text class="shape" x="'+(BX+BW+16)+'" y="'+(shapeY[k]+shapeH[k]/2+4)+
+         '" style="text-anchor:start">'+esc(st[3])+'</text>';
     });
-    g+='<text class="note" x="4" y="286">残差（迂回して</text>';
-    g+='<text class="note" x="4" y="302">足し戻す）</text>';
-    $('#v1').innerHTML=svg(W,486,g);
-    var st=STEPS[cur];
+
+    var tagX=BX+BW+150, tagY=blockTop+(blockBottom-blockTop)/2;
+    g+='<text class="lbl" x="'+tagX+'" y="'+(tagY-4)+
+       '" style="text-anchor:start;font-size:16px">× 12</text>';
+    g+='<a href="#sec3"><text class="lbl2" x="'+tagX+'" y="'+(tagY+16)+
+       '" style="text-anchor:start">なぜ12回か →</text></a>';
+
+    $('#v1').innerHTML=svg(W,H,g);
+    var st=STEPS1[cur];
     $('#r1').innerHTML='<b>'+esc(st[1])+'</b>（'+esc(st[3])+'）：'+st[2];
-    Array.prototype.forEach.call(document.querySelectorAll('#steps button'),function(el,k){
-      el.className=(k===cur?'on':'');
-    });
+    $$('#steps button').forEach(function(el,k){ el.className=(k===cur?'on':''); });
   }
   var sb='';
-  STEPS.forEach(function(s,i){ sb+='<button data-i="'+i+'">'+esc(s[1])+'</button>'; });
+  STEPS1.forEach(function(s,i){ sb+='<button data-i="'+i+'">'+esc(s[1])+'</button>'; });
   $('#steps').innerHTML=sb;
-  Array.prototype.forEach.call(document.querySelectorAll('#steps button'),function(el){
+  $$('#steps button').forEach(function(el){
     el.onclick=function(){ cur=+el.getAttribute('data-i'); draw1(); };
   });
 
-  /* ---------- ② 段を積む ---------- */
-  function draw2(){
-    var n=+$('#nb').value;
-    $('#nbv').textContent=n+' 段';
-    var W=560, BW=190, BX=(W-BW)/2, H=Math.min(30, 300/n), gap=Math.max(2, 10-n*0.6);
-    var top=56, g='';
-    g+='<rect class="bx dim" x="'+BX+'" y="16" width="'+BW+'" height="30" rx="7"/>';
-    g+='<text class="lbl dim" x="'+(BX+BW/2)+'" y="36">埋め込み ＋ 位置</text>';
-    for(var i=0;i<n;i++){
-      var y=top+i*(H+gap);
-      g+='<rect class="bx blk" x="'+BX+'" y="'+y+'" width="'+BW+'" height="'+H+'" rx="6"/>';
-      if(H>18) g+='<text class="lbl" x="'+(BX+BW/2)+'" y="'+(y+H/2+4)+'" '+
-        'style="font-size:11px">自己注意 → MLP</text>';
-      g+='<text class="shape" x="'+(BX+BW+40)+'" y="'+(y+H/2+4)+'">6 × 768</text>';
-    }
-    var by=top+n*(H+gap)+8;
-    g+='<rect class="bx dim" x="'+BX+'" y="'+by+'" width="'+BW+'" height="30" rx="7"/>';
-    g+='<text class="lbl dim" x="'+(BX+BW/2)+'" y="'+(by+20)+'">出力（確率）</text>';
-    $('#v2').innerHTML=svg(W,by+50,g);
-    $('#r2').innerHTML='ブロック <b>'+n+' 段</b>。'+
-      (n===12 ? 'GPT-2 small と同じ段数。' : n===6 ? '2017 年の原論文 (Vaswani et al.) と同じ段数。' : '')+
-      ' どの段も<b>入口と出口が 6 × 768 で同じ</b>——だから積み替えても壊れない。'+
-      ' 段を増やしても<b>やっていることは変わらない</b>。増えるのは、通り道の長さだけだ。';
+  /* ==================== 節2: Embedding ==================== */
+  var embStage=0;
+  var EMB_TITLES=['1. トークン化','2. トークン埋め込み','3. 位置エンコーディング','4. 足す'];
+  function hashSeed(s){ var h=0; for(var i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))|0; } return h>>>0; }
+  function seededBars(seed,n){
+    var h=hashSeed(seed), arr=[];
+    for(var i=0;i<n;i++){ h=(h*1103515245+12345)>>>0; arr.push(0.12+0.8*((h>>>8)%1000)/1000); }
+    return arr;
   }
-  $('#nb').oninput=draw2;
-  $('#preGpt2').onclick=function(){ $('#nb').value=12; draw2(); };
-  $('#preOrig').onclick=function(){ $('#nb').value=6; draw2(); };
+  function vecStrip(x,y,w,h,seed,cls){
+    var n=18, bw=w/n, g='', bars=seededBars(seed,n);
+    for(var i=0;i<n;i++){
+      var bh=Math.max(2,bars[i]*h);
+      g+='<rect class="vecbar '+(cls||'')+'" x="'+(x+i*bw+0.5)+'" y="'+(y+h-bh)+
+         '" width="'+(bw-1)+'" height="'+bh+'" rx="1"/>';
+    }
+    g+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="none" stroke="#E4E1D8"/>';
+    return g;
+  }
+  function draw2(){
+    $$('#emb-steps button').forEach(function(b,i){ b.className=(i===embStage?'on':''); });
+    var W=640, colW=94, gap=8, x0=16, y0=54, g='', note='';
+    if(embStage===0){
+      for(var i=0;i<N;i++){
+        var x=x0+i*(colW+gap), raw=D.tokens[i], cont=(i>0 && raw.charAt(0)!==' ');
+        g+='<rect class="bx'+(cont?' dim':'')+'" x="'+x+'" y="'+y0+'" width="'+colW+
+           '" height="40" rx="6"/>';
+        g+='<text class="tok'+(cont?' split':'')+'" x="'+(x+colW/2)+'" y="'+(y0+25)+'">'+
+           esc(raw.trim())+'</text>';
+        if(cont){ g+='<text class="note c" x="'+(x-gap/2)+'" y="'+(y0-8)+'">続き</text>'; }
+      }
+      note=N+' 語 → '+N+' トークン。語彙は'+VOCAB.toLocaleString('en-US')+'種類。'+
+        '「empowers」は「 em」＋「powers」の2トークンに割れる――先頭に空白のないトークンは、'+
+        '直前のトークンの続き。';
+      $('#v2').innerHTML=svg(W,y0+70,g);
+    } else if(embStage===1){
+      for(var i=0;i<N;i++){
+        var x=x0+i*(colW+gap);
+        g+=vecStrip(x,y0,colW,44,'tok'+i+D.tokens[i]);
+        g+='<text class="tok" x="'+(x+colW/2)+'" y="'+(y0-8)+'" style="font-size:10.5px">'+
+           esc(D.tokens[i].trim())+'</text>';
+      }
+      note='各トークンを768個の数に変える（模式・実際の値ではない）。表は '+
+        VOCAB.toLocaleString('en-US')+' × '+DIM+' = '+D.embParams+
+        '（約3,860万）パラメータ。似た意味の語は、この768次元空間の中で近くに置かれる'+
+        '（この図では位置までは示せない）。';
+      $('#v2').innerHTML=svg(W,y0+70,g);
+    } else if(embStage===2){
+      for(var i=0;i<N;i++){
+        var x=x0+i*(colW+gap);
+        g+=vecStrip(x,y0,colW,44,'pos'+i,'pos');
+        g+='<text class="tok" x="'+(x+colW/2)+'" y="'+(y0-8)+'" style="font-size:10.5px">位置 '+
+           i+'</text>';
+      }
+      note='何番目かを表す768個の数（模式）。GPT-2 はこれも学習で獲得する――決まった数式'+
+        '（sin/cos）ではなく、位置ごとの値そのものを学習で持つ。';
+      $('#v2').innerHTML=svg(W,y0+70,g);
+    } else {
+      for(var i=0;i<N;i++){
+        var x=x0+i*(colW+gap);
+        g+=vecStrip(x,y0,colW,28,'tok'+i+D.tokens[i]);
+        g+='<text class="tok" x="'+(x+colW/2)+'" y="'+(y0+40)+'" style="font-size:14px">+</text>';
+        g+=vecStrip(x,y0+48,colW,28,'pos'+i,'pos');
+        g+='<text class="tok" x="'+(x+colW/2)+'" y="'+(y0+88)+'" style="font-size:14px">=</text>';
+        g+=vecStrip(x,y0+96,colW,32,'sum'+i+D.tokens[i],'sum');
+      }
+      note='意味768個 ＋ 位置768個 = 最終的な埋め込み（'+N+' × '+DIM+'）。この後、'+
+        'Transformer ブロックへ入る。';
+      $('#v2').innerHTML=svg(W,y0+140,g);
+    }
+    $('#r2').innerHTML=note;
+  }
+  (function(){
+    var html=''; EMB_TITLES.forEach(function(t,i){ html+='<button data-i="'+i+'">'+t+'</button>'; });
+    $('#emb-steps').innerHTML=html;
+    $$('#emb-steps button').forEach(function(b){
+      b.onclick=function(){ embStage=+this.getAttribute('data-i'); draw2(); };
+    });
+  })();
 
-  draw1(); draw2();
+  /* ==================== 節3: なぜ12回くり返すのか ==================== */
+  function drawContrast(){
+    var W1=300, H1=132, cy=60;
+    // 6 語を 300px に並べるので、長い語はそのままだと隣とくっついて 1 語に見える
+    var labels=D.tokens.map(function(t){ var w=t.trim()||'∅';
+      return w.length>7 ? w.slice(0,6)+'…' : w; });
+    var stepX=W1/(N+1), cx=[];
+    for(var i=0;i<N;i++) cx.push(stepX*(i+1));
+    var tgt=Math.min(3,N-1);
+
+    var g1='<defs><marker id="ah1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" '+
+      'markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6E7BA8"/>'+
+      '</marker></defs>';
+    for(var i=0;i<N;i++){
+      if(i===tgt) continue;
+      var dirIn = cx[i]<cx[tgt];
+      g1+='<path class="flow on" marker-end="url(#ah1)" d="M'+cx[i]+' '+cy+' L'+
+         (cx[tgt]+(dirIn?-15:15))+' '+cy+'"/>';
+    }
+    for(var i2=0;i2<N;i2++){
+      g1+='<circle cx="'+cx[i2]+'" cy="'+cy+'" r="14" fill="'+(i2===tgt?'#1a1a1a':'#fff')+
+         '" stroke="#6E7BA8" stroke-width="1.6"/>';
+      g1+='<text x="'+cx[i2]+'" y="'+(cy+34)+'" text-anchor="middle" '+
+         'style="font-size:10px;fill:#1a1a1a">'+esc(labels[i2])+'</text>';
+    }
+    $('#v3a').innerHTML=svg(W1,H1,g1);
+
+    var g2='<defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" '+
+      'markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#6E7BA8"/>'+
+      '</marker></defs>';
+    for(var j=0;j<N;j++){
+      g2+='<path class="flow on" marker-end="url(#ah2)" d="M'+(cx[j]-9)+' '+(cy-16)+
+         ' A11 11 0 1 1 '+(cx[j]+9)+' '+(cy-16)+'"/>';
+      g2+='<circle cx="'+cx[j]+'" cy="'+cy+'" r="14" fill="#fff" stroke="#6E7BA8" '+
+         'stroke-width="1.6"/>';
+      g2+='<text x="'+cx[j]+'" y="'+(cy+34)+'" text-anchor="middle" '+
+         'style="font-size:10px;fill:#1a1a1a">'+esc(labels[j])+'</text>';
+    }
+    $('#v3b').innerHTML=svg(W1,H1,g2);
+  }
+
+  var stackN=4;
+  function drawStack(){
+    $('#stackNv').textContent=stackN+' 段';
+    var tokIdx=Math.min(3,N-1), tokLabel=D.tokens[tokIdx].trim();
+    var segH=13, segW=130, x=44, H=380, yBase=H-40;
+    var g='', y=yBase;
+    /* 満タン(12段)までの目盛りを薄線で示す。段数が少ないときに空白だけに見えないように */
+    var maxH=(1+2*BLOCKS)*segH;
+    g+='<rect x="'+x+'" y="'+(yBase-maxH)+'" width="'+segW+'" height="'+maxH+
+       '" fill="none" stroke="#E4E1D8" stroke-dasharray="3 3"/>';
+    g+='<text class="note" x="'+x+'" y="'+(yBase-maxH-14)+
+       '" style="text-anchor:start">満タン = 12段</text>';
+    g+='<rect class="stackseg base" x="'+x+'" y="'+(y-segH)+'" width="'+segW+
+       '" height="'+segH+'"/>';
+    g+='<text class="shape" x="'+(x+segW+10)+'" y="'+(yBase-segH/2+4)+
+       '" style="text-anchor:start">元の埋め込み</text>';
+    y-=segH;
+    for(var i=0;i<stackN;i++){
+      g+='<rect class="stackseg attn" x="'+x+'" y="'+(y-segH)+'" width="'+segW+
+         '" height="'+segH+'"/>';
+      y-=segH;
+      g+='<rect class="stackseg mlp" x="'+x+'" y="'+(y-segH)+'" width="'+segW+
+         '" height="'+segH+'"/>';
+      y-=segH;
+      if(i===stackN-1){
+        g+='<text class="shape" x="'+(x+segW+10)+'" y="'+(y+segH+4)+
+           '" style="text-anchor:start">'+(i+1)+'段目（attn+mlp）</text>';
+      }
+    }
+    g+='<text class="tok" x="'+(x+segW/2)+'" y="'+(yBase+18)+'">"'+esc(tokLabel)+'"</text>';
+    $('#v3c').innerHTML=svg(320,H,g);
+    var ways=HEADS*stackN;
+    var full = stackN===BLOCKS ?
+      ('（GPT-2 small の全'+BLOCKS+'段ぶん。'+HEADS+' × '+BLOCKS+' = '+(HEADS*BLOCKS)+'通り。）') : '';
+    $('#r3').innerHTML='「<b>'+esc(tokLabel)+'</b>」の表現は<b>'+stackN+'段</b>ぶん通った。'+
+      '元の埋め込みに、'+stackN+'回ぶんの「まわりの語から来た情報（attention）」と'+
+      '「捏ねた結果（mlp）」が積み重なっている。1段に'+HEADS+'ヘッドあるので、ここまでで '+
+      '<b>'+HEADS+' × '+stackN+' = '+ways+'</b> 通りの見方が積み重なっている。'+full;
+  }
+  $('#stackN').oninput=function(){ stackN=+this.value; drawStack(); };
+  $('#stPre1').onclick=function(){ $('#stackN').value=1; stackN=1; drawStack(); };
+  $('#stPre6').onclick=function(){ $('#stackN').value=6; stackN=6; drawStack(); };
+  $('#stPre12').onclick=function(){ $('#stackN').value=12; stackN=12; drawStack(); };
+
+  /* ==================== 節4: 出力 ==================== */
+  function softmaxT(logits,T){
+    var scaled=logits.map(function(v){return v/T;});
+    var m=Math.max.apply(null,scaled);
+    var exps=scaled.map(function(v){return Math.exp(v-m);});
+    var s=exps.reduce(function(a,b){return a+b;},0);
+    return exps.map(function(v){return v/s;});
+  }
+  function drawOut(){
+    var T=+$('#temp').value;
+    $('#tempv').textContent='T = '+T.toFixed(1);
+    var C=D.candidates, logits=C.map(function(c){return c.logit;});
+    var probs=softmaxT(logits,T);
+    var labelW=112, barMaxW=300, rowH=24, gap=5;
+    var H=C.length*(rowH+gap)+8, g='';
+    for(var i=0;i<C.length;i++){
+      var y=6+i*(rowH+gap), p=probs[i], bw=Math.max(2,p*barMaxW);
+      g+='<text class="otxt" x="'+(labelW-8)+'" y="'+(y+rowH/2+4)+'">'+esc(C[i].token.trim())+
+         '</text>';
+      g+='<rect class="bar4'+(i===0?' top':'')+'" x="'+labelW+'" y="'+y+'" width="'+bw+
+         '" height="'+rowH+'" rx="4"/>';
+      g+='<text class="onum" x="'+(labelW+bw+8)+'" y="'+(y+rowH/2+4)+'">'+(p*100).toFixed(1)+
+         '%</text>';
+    }
+    $('#v4').innerHTML=svg(labelW+barMaxW+70,H,g);
+    var top=C[0], topP=(probs[0]*100).toFixed(0);
+    var msg='T = <b>'+T.toFixed(1)+'</b> では「<b>'+esc(top.token.trim())+'</b>」が <b>'+topP+
+      '%</b> を占める（この12語の中での比率）。';
+    if(T<0.9) msg+=' 温度が低いほど、分布は尖り、いちばん確からしい語に集中する。';
+    else if(T>1.1) msg+=' 温度が高いほど、分布は平らになり、他の語にも目が向く。';
+    else msg+=' T=1 は、モデルが出した値をそのまま使った状態。';
+    $('#r4').innerHTML=msg;
+  }
+  $('#temp').oninput=drawOut;
+  $('#tPre05').onclick=function(){ $('#temp').value=0.5; drawOut(); };
+  $('#tPre1').onclick=function(){ $('#temp').value=1.0; drawOut(); };
+  $('#tPre15').onclick=function(){ $('#temp').value=1.5; drawOut(); };
+
+  draw1(); draw2(); drawContrast(); drawStack(); drawOut();
 })();
 </script>
 <footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
