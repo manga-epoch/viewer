@@ -142,7 +142,17 @@ input[type=range]{accent-color:var(--arc)}
 <h1>チューリングテスト — 知能を測る最初の物差し</h1><p>1950 年、Turing は「機械は考えるか？」という曖昧な問いを「審査員は機械と人間を見分けられるか？」という観測できる問いに置き換えました。あなたが審査員になって時代別に機械を見分け、さらに 1966 年の ELIZA のルール表を覗いて、「機械が言葉を理解するふり」の正体を確かめてみましょう。</p>
 </div>
 
-<div class="fig-stage"><div class="page" id="turing_test">
+<div class="fig-stage"><style>
+.el-tbl{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.6}
+.el-tbl th,.el-tbl td{border:1px solid #E4E1D8;padding:6px 9px;color:#565248;text-align:left}
+.el-tbl th{background:#F4F2EC;color:#1A1A1A;font-weight:700}
+.el-tbl td.n{text-align:center;width:8%}
+.el-tbl td.tpl{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px}
+.el-tbl .lbl{color:#3f6178;font-weight:700}
+.el-tbl tr.hit td{background:rgba(110,123,168,.16);color:#1A1A1A;font-weight:700}
+.el-tbl tr.hit td.n{color:#3f6178}
+.el-hint{color:#8c8880;font-size:13px}
+</style><div class="page" id="turing_test">
 <h2>チューリングテスト — 知能を測る最初の物差し</h2>
 <div class="arc-label">Arc 1 Scene 1「ダートマスの夏」— 「知能とは何か」をゲームで体感する</div>
 
@@ -283,21 +293,15 @@ var elRules=[
 ];
 var elExamples=['最近、仕事で疲れていて…','私は学生です','家族のことで悩んでいる','コーヒーが好き','勉強したくない','人生の意味とは何ですか？','明日も同じだ'];
 function elRenderTable(matchedIdx){
-  var h='<table style="width:100%;border-collapse:collapse;font-size:12px;line-height:1.55">';
-  h+='<tr style="background:#F4F2EC"><th style="border:1px solid #E4E1D8;padding:5px 6px;color:#5B7C99;width:6%">#</th><th style="border:1px solid #E4E1D8;padding:5px 8px;color:#5B7C99">入力に含まれるパターン</th><th style="border:1px solid #E4E1D8;padding:5px 8px;color:#5B7C99">応答テンプレート</th></tr>';
+  var h='<table class="el-tbl"><tr><th>#</th><th>入力に含まれるパターン</th>'
+       +'<th>応答テンプレート</th></tr>';
   elRules.forEach(function(r,i){
-    var hl=(i===matchedIdx);
-    var bg=hl?'background:#eef1f5':'';
-    var weight=hl?'font-weight:bold':'';
-    var color=hl?'#eaf0f5':'#565248';
-    h+='<tr style="'+bg+'">'
-      +'<td style="border:1px solid #E4E1D8;padding:4px 6px;text-align:center;'+weight+';color:'+(hl?'#5B7C99':'#565248')+'">'+(i+1)+'</td>'
-      +'<td style="border:1px solid #E4E1D8;padding:4px 8px;'+weight+';color:'+color+'"><span style="color:#5fa86f">'+r.label+'</span>: '+r.display+'</td>'
-      +'<td style="border:1px solid #E4E1D8;padding:4px 8px;font-family:monospace;font-size:11.5px;'+weight+';color:'+color+'">'+r.template+'</td>'
-      +'</tr>';
+    h+='<tr class="'+(i===matchedIdx?'hit':'')+'">'
+      +'<td class="n">'+(i+1)+'</td>'
+      +'<td><span class="lbl">'+r.label+'</span>: '+r.display+'</td>'
+      +'<td class="tpl">'+r.template+'</td></tr>';
   });
-  h+='</table>';
-  document.getElementById('elRules').innerHTML=h;
+  document.getElementById('elRules').innerHTML=h+'</table>';
 }
 function elRespond(){
   var s=document.getElementById('elInput').value.trim();
@@ -321,7 +325,8 @@ function elRandom(){
   document.getElementById('elInput').value=s;
   elRespond();
 }
-elRespond();
+elRenderTable(-1);
+document.getElementById('elResp').innerHTML='<span class="el-hint">入力して「ELIZA に話す」を押すと、どのルールが当たったかが下の表で光ります。</span>';
 </script>
 </div>
 

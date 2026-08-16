@@ -553,7 +553,9 @@ input[type=range]{accent-color:var(--arc)}
 </g>
 <g stroke="#C8C4B8" stroke-width="1.5" fill="none" marker-end="url(#s2p)">
 <path d="M140,63 C250,63 250,128 356,128"/>
-<path d="M140,135 H356"/>
+<!-- ⚠ x₂ だけ H356（y=135 のまま）で、Σ の中心 y=128 より 7px 下に刺さっていた。
+     他の 2 本と同じく中心へ寄せる（読者の指摘）。 -->
+<path d="M140,135 C250,135 250,128 356,128"/>
 <path d="M140,207 C250,207 250,128 356,128"/></g>
 <text x="232" y="74" text-anchor="middle" font-size="14.5" fill="#9A9488">w₁</text>
 <text x="232" y="127" text-anchor="middle" font-size="14.5" fill="#9A9488">w₂</text>

@@ -136,7 +136,7 @@ input[type=range]{accent-color:var(--arc)}
 </style></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; STRIPS プランナー</div>
-<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_cyc.html">← Cyc 常識推論</a><a class="fp-comm" href="commentary.html#scene3">解説 Scene 3「専門家の時代」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_attention.html">Self-Attention →</a></nav></div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-prev" href="figures_cyc.html">← Cyc 常識推論</a><a class="fp-comm" href="commentary.html#scene3">解説 Scene 3「専門家の時代」へ</a><a class="fp-idx" href="figures.html">図解一覧</a></nav></div>
 
 <div class="intro">
 <h1>STRIPS プランナー — ブロックワールドで「行動の計画」を作る</h1><p>1971 年 SRI Fikes & Nilsson、世界初の自律移動ロボット <strong>Shakey</strong> (1966-1972) を動かした「状態空間探索」システム。各アクションは <strong>precondition / add-list / delete-list</strong> の 3 つで定義される。初期状態 → 目標状態 への <strong>plan (行動の列)</strong> を自動で探索する仕組みは、2022 年以降の <strong>LLM エージェント</strong> (ReAct, Plan-and-Execute, AutoGPT) の祖先 ―― Bitter Lesson が「単純な敗北ではない」と言う理由。</p>
@@ -262,6 +262,7 @@ var steps = [
 
 // Initial layout: A is stacked on B at left (so B should be at left position too)
 // Adjust: initial → B at left (80), A on B (80, top=65), C at right (200)
+// 各ブロックの初期位置。moveBlock はここからの差分で動かす
 var initLayout = {A: {x:80, y:65}, B: {x:80, y:105}, C: {x:200, y:105}};
 
 // Update steps to use correct positions
@@ -279,16 +280,15 @@ var playBtn = document.getElementById('strips-play-btn');
 var stepBtn = document.getElementById('strips-step-btn');
 var resetBtn = document.getElementById('strips-reset-btn');
 
+// ※ もとは rect と text の x/y を別々に動かしていた。CSS の transition は
+//    SVG の text の x/y には効かないので、**記号だけが先に飛んで**箱が後から
+//    追いかける動きになっていた（読者の指摘）。
+//    箱と記号を包む <g> ごと transform で動かせば、必ず一緒に動く。
 function moveBlock(id, pos){
 var el = document.getElementById('strips-block-' + id);
-var rect = el.querySelector('rect');
-var text = el.querySelector('text');
-rect.style.transition = 'all 0.5s ease';
-text.style.transition = 'all 0.5s ease';
-rect.setAttribute('x', pos.x);
-rect.setAttribute('y', pos.y);
-text.setAttribute('x', pos.x + 30);
-text.setAttribute('y', pos.y + 25);
+var base = initLayout[id];
+el.style.transition = 'transform 0.5s ease';
+el.style.transform = 'translate(' + (pos.x - base.x) + 'px,' + (pos.y - base.y) + 'px)';
 }
 
 function setHand(label){
@@ -375,7 +375,7 @@ playBtn.style.opacity = '1';
 
 
 
-<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_cyc.html">← Cyc 常識推論</a><a class="fp-comm" href="commentary.html#scene3">解説 Scene 3「専門家の時代」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_attention.html">Self-Attention →</a></nav></div>
+<div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_cyc.html">← Cyc 常識推論</a><a class="fp-comm" href="commentary.html#scene3">解説 Scene 3「専門家の時代」へ</a><a class="fp-idx" href="figures.html">図解一覧</a></nav></div>
 
 <footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
 </body>
