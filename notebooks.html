@@ -59,7 +59,7 @@ a{color:var(--link)}
 <p class="lead">図解（③触る）で見たことを、<b>自分の入力</b>で確かめるためのノートブックです。
 ブラウザだけで動きます。インストールも、アカウント登録も要りません（Google アカウントで
 Colab を開くだけです）。</p>
-<p class="lead"><b>3 本とも無料で公開しています。</b>購入内容には含みません。</p>
+<p class="lead"><b>4 本とも無料で公開しています。</b>購入内容には含みません。</p>
 
 <h2>ノートブック</h2>
 
@@ -112,6 +112,24 @@ Colab を開くだけです）。</p>
   </div>
 </div>
 
+<div class="nb">
+  <h3>言葉で計算する — Word2Vec を好きなだけ動かす</h3>
+  <p class="file">word2vec_playground.ipynb</p>
+  <p>図解に積めたのは 15,000 語まで。ここでは <b>40 万語</b>をまるごと読み込み、
+  思いついた語を片端から試せます。英語（GloVe）と日本語（chiVe）を切り替えられます。</p>
+  <ul>
+    <li>近い語を探す／<b>意味を足し引きする</b>（王 − 男 + 女 = ？）</li>
+    <li>類推 20 問を解かせて<b>正解率</b>を出す（1 例で「動いた」と言わない）</li>
+    <li>国と首都を線で結び、<b>関係が 1 本の向きになる</b>ことを見る</li>
+    <li>同じ計算が<b>日本語では崩れる</b>ことと、その理由を確かめる</li>
+    <li>学習データの偏りが<b>そのまま軸として引けてしまう</b>ことを測る</li>
+  </ul>
+  <div class="btns">
+    <a class="btn main" href="https://colab.research.google.com/github/manga-epoch/viewer/blob/main/notebooks/word2vec_playground.ipynb">Colab で開く</a>
+    <a class="btn ghost" href="https://github.com/manga-epoch/viewer/blob/main/notebooks/word2vec_playground.ipynb">中身を読む</a>
+  </div>
+</div>
+
 <h2>出典とライセンス</h2>
 <div class="note">
 <p><b>GPT-2 small</b> は OpenAI が Modified MIT License で公開しているモデルです
@@ -123,6 +141,11 @@ attention.ipynb が出す数値はすべて GPT-2 small の出力です。</p>
 (Polo Club of Data Science, Georgia Tech / MIT License) の事前計算データから
 第 1 ブロック分を取り出したものです。
 <a href="https://manga-epoch.github.io/viewer/notebooks/data/LICENSE-transformer-explainer.txt">ライセンス全文</a></p>
+<p>単語ベクトルは <b>GloVe</b>（Stanford NLP / 配布データは
+<a href="https://opendatacommons.org/licenses/pddl/1-0/">PDDL 1.0＝パブリックドメイン</a>）と
+<b>chiVe</b>（<a href="https://github.com/WorksApplications/chiVe">国立国語研究所・株式会社ワークスアプリケーションズ</a> /
+Apache License 2.0）を使っています。図解に積んでいるのは、そこから 15,000 語を抜き出し
+int8 に量子化したものです。</p>
 <p style="margin-bottom:0">ノートブックは画像を同梱していません。cnn_on_your_image.ipynb は、
 読者が用意した画像か、実行時に合成した画像だけを扱います。
 コードは自由に改変して使えます。</p>

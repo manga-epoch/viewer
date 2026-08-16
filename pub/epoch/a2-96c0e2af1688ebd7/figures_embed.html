@@ -100,6 +100,36 @@ svg .bar.o{fill:#d8d5cd}
  border-radius:14px;padding:3px 11px;font-size:12.5px;color:var(--ink-sub);margin-right:6px}
 .caveat{border-left:3px solid var(--border);padding:2px 0 2px 12px;color:var(--ink-sub);
  font-size:13px;margin:12px 0 0}
+
+.wv-lang{display:flex;align-items:center;gap:8px;margin:14px 0 6px}
+.wv-lang button{border:1px solid var(--border);background:#fff;border-radius:8px;
+ padding:6px 16px;font-size:13px;cursor:pointer;font-family:inherit}
+.wv-lang button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.wv-status{font-size:12.5px;color:var(--ink-sub)}
+.wv-eq{margin:10px 0 4px;font-size:14px}
+.wv-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 8px}
+.wv-row input{flex:0 1 190px;min-width:120px;padding:9px 12px;font-size:15px;
+ border:1px solid var(--border);border-radius:8px;background:#fff;font-family:inherit}
+.wv-row.wv-ana input{flex:0 1 130px}
+.wv-row .op{font-size:17px;font-weight:700;color:var(--ink-sub)}
+.wv-row button{padding:9px 18px;border:0;border-radius:8px;background:var(--ink);
+ color:var(--bg);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.wv-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.wv-chips button{border:1px solid var(--border);background:var(--surface);border-radius:14px;
+ padding:3px 11px;font-size:12px;color:var(--ink-sub);cursor:pointer;font-family:inherit}
+.wv-chips button:hover{background:#fff}
+.wv-out{background:var(--surface);border-radius:8px;padding:12px 14px;font-size:13.5px;
+ color:var(--ink-sub);margin-top:8px;overflow-x:auto}
+.wv-out table{border-collapse:collapse;width:100%;font-size:13px}
+.wv-out th,.wv-out td{padding:5px 9px;text-align:left;white-space:nowrap;
+ border-bottom:1px solid var(--border)}
+.wv-out th{color:var(--ink);font-weight:700;font-size:12px}
+.wv-out td.w{color:var(--ink);font-weight:600}
+.wv-out .bar{display:inline-block;height:8px;background:#6E7BA8;border-radius:2px;
+ vertical-align:middle;margin-right:6px}
+.wv-out .ok{color:#3f6178;font-weight:700}
+.wv-out .ng{color:#b4493f;font-weight:700}
+.wv-out b{color:var(--ink)}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -146,6 +176,15 @@ input[type=range]{accent-color:var(--arc)}
 .con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
 .achieved,.challenge{background:var(--surface);border:1px solid var(--border);
  border-radius:8px;padding:12px 14px}
+</style><style class="epoch-theme-nb">
+.epoch-nb{max-width:820px;margin:40px auto 0;padding:20px 22px;background:var(--surface,#F4F2EC);
+ border:1px solid var(--border,#E4E1D8);border-radius:12px}
+.epoch-nb .k{font-size:11.5px;font-weight:700;letter-spacing:.14em;color:var(--ink-sub,#565248)}
+.epoch-nb h3{font-size:16px;margin:6px 0 6px}
+.epoch-nb p{font-size:13.5px;color:var(--ink-sub,#565248);margin:0 0 14px;line-height:1.85}
+.epoch-nb a.go{display:inline-block;padding:9px 17px;background:var(--ink,#1A1A1A);
+ color:var(--bg,#FAFAF7);border-radius:8px;text-decoration:none;font-weight:700;font-size:13px}
+.epoch-nb a.go:hover{opacity:.82}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -168,7 +207,7 @@ input[type=range]{accent-color:var(--arc)}
 語を<b>空間の点</b>として置き直すことだった。ここでは、その置き方と、置いた後にできることを触って確かめる。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">分布仮説</a></li><li><a href="#sec2">王 − 男 + 女 = ？</a></li><li><a href="#sec3">限界</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">分布仮説</a></li><li><a href="#sec2">王 − 男 + 女 = ？</a></li><li><a href="#sec3">限界</a></li><li><a href="#sec4">本物のベクトルで計算する</a></li><li><a href="#sec5">同じ計算が、言語を変えると崩れる</a></li><li><a href="#sec6">1 語に 1 点</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>分布仮説 — 意味は「周りの語」が決める</h2>
 <p>「その語が何を意味するか」を辞書から教えるのではない。
@@ -239,6 +278,70 @@ input[type=range]{accent-color:var(--arc)}
 <div id="v3"></div>
 <div class="readout" id="r3"></div>
 </div>
+<div class="fig-stage" id="sec4">
+<h2>本物のベクトルで計算する</h2>
+<p>ここから先は模式ではない。実際に学習された単語ベクトル
+（英語は <b>GloVe</b>、日本語は <b>chiVe</b>、それぞれ 15,000 語 × 100 次元）を
+読み込んで、その場で計算する。<b>好きな語を入れて試せる。</b></p>
+<div class="wv-lang">
+  <button id="wv-en" class="on">英語</button>
+  <button id="wv-ja">日本語</button>
+  <span class="wv-status" id="wv-status">読み込み中…</span>
+</div>
+
+<h3>近い語を探す</h3>
+<p>ある語のベクトルと、他の 15,000 語のベクトルとの<b>コサイン類似度</b>を全部計算し、
+大きい順に並べる。</p>
+<div class="wv-eq">$$\mathrm{sim}(a,b)=\frac{a\cdot b}{\lVert a\rVert\,\lVert b\rVert}$$</div>
+<div class="wv-row">
+  <input id="wv-near-in" type="text" placeholder="語を入れる" autocomplete="off">
+  <button id="wv-near-go">探す</button>
+</div>
+<div class="wv-chips" id="wv-near-ex"></div>
+<div class="wv-out" id="wv-near-out"></div>
+
+<h3>意味を足し引きする</h3>
+<p>「王 から 男 を引いて 女 を足す」。ベクトルの引き算が<b>意味の差</b>になっているなら、
+足し戻した先に別の語が立っているはずだ。</p>
+<div class="wv-eq">$$v = \mathrm{vec}(B) - \mathrm{vec}(A) + \mathrm{vec}(C)$$</div>
+<div class="wv-row wv-ana">
+  <input id="wv-b" type="text" autocomplete="off"><span class="op">−</span>
+  <input id="wv-a" type="text" autocomplete="off"><span class="op">+</span>
+  <input id="wv-c" type="text" autocomplete="off">
+  <button id="wv-ana-go">計算</button>
+</div>
+<div class="wv-chips" id="wv-ana-ex"></div>
+<div class="wv-out" id="wv-ana-out"></div>
+<p class="caveat">計算結果から A・B・C 自身は除いている（自分がいちばん近いので、
+除かないと入力した語がそのまま返ってくる）。</p>
+</div>
+
+<div class="fig-stage" id="sec5">
+<h2>同じ計算が、言語を変えると崩れる</h2>
+<p>上の計算を 2 つの言語で試すと、英語では有名な例がきれいに出るのに、
+日本語では出ないものがある。<b>下の表は、その場で計算した実測値だ。</b></p>
+<div class="wv-out" id="wv-cmp-out">計算中…</div>
+<p>日本語で崩れるのは、日本語が悪いからでも Word2Vec が悪いからでもない。
+学習に使った文章に、その語がどう出てきたかがそのまま出ている。
+「王」の近くに何が並ぶかを見ると、理由が分かる。</p>
+<div class="wv-out" id="wv-why-out"></div>
+<p class="caveat">単語ベクトルは<b>集めた文章の鏡</b>でしかない。だから偏りもそのまま写る。
+この性質は、実務では公平性の問題として扱われる（G 検定の AI 倫理の範囲）。</p>
+</div>
+
+<div class="fig-stage" id="sec6">
+<h2>1 語に 1 点 — 多義語はどこにも置けない</h2>
+<p>Word2Vec は 1 つの語に 1 つの点しか与えない。意味が 2 つある語は、
+<b>どちらか強い方に引き寄せられる</b>か、<b>どちらでもない場所</b>に落ち着く。
+下は実データでの近さで、日本語を選ぶと両方の型が並ぶ――
+「はし」はどちらにも寄らず、「あめ」は片方へ寄り切っている。</p>
+<div class="wv-out" id="wv-poly-out">計算中…</div>
+<p>この限界を破ったのが、前後の文を見てそのつど表現を作り直す仕組み――
+<a href="figures_attention.html">Self-Attention</a> であり、その先の BERT・GPT だ。
+同じ「はし」でも、「はしを渡る」と「はしで食べる」で違うベクトルになる。</p>
+</div>
+
+<div class="epoch-nb"><div class="k">④ 書く — 無料</div><h3>言葉で計算する — Word2Vec を好きなだけ動かす</h3><p>この図解に積めたのは 15,000 語まで。ノートブックなら 40 万語を読み込んで、思いついた語を片端から試せる。日本語（chiVe）にも切り替えられる。</p><a class="go" href="https://colab.research.google.com/github/manga-epoch/viewer/blob/main/notebooks/word2vec_playground.ipynb">Colab で開く →</a></div>
 <div class="back-link"><a href="figures.html">← 図解一覧に戻る</a></div>
 
 <script>
@@ -441,6 +544,237 @@ input[type=range]{accent-color:var(--arc)}
   draw1(); $('#go').click(); setMode('avg');
 })();
 </script>
+<script>
+(function(){
+  /* データは ④書く のノートブックと共有している 1 本を読む。
+     図解は有料パス(/pub/epoch/a2-xxxx/)からも試読パス(/pub/epoch/arc2/)からも
+     配信されるので、配信ルートは pathname から割り出す。 */
+  var root = location.pathname.indexOf('/pub/') >= 0
+      ? location.pathname.slice(0, location.pathname.indexOf('/pub/'))
+      : location.pathname.replace(/\/[^\/]*$/, '');
+  var DATA = root + '/notebooks/data/';
+
+  var packs = {}, lang = 'en';
+  var EX = {
+    en: {near: ['king','bank','apple','tokyo','music','doctor'],
+         ana: [['king','man','woman'],['actor','man','woman'],
+               ['tokyo','japan','france'],['better','good','bad']]},
+    ja: {near: ['王','銀行','はし','東京','音楽','医師'],
+         ana: [['王','男','女'],['俳優','男性','女性'],
+               ['東京','日本','フランス'],['姉','兄','弟']]}
+  };
+  function $(id){ return document.getElementById(id); }
+
+  function load(l){
+    if (packs[l]) return Promise.resolve(packs[l]);
+    $('wv-status').textContent = (l === 'en' ? '英語' : '日本語') + 'の 15,000 語を読み込み中…';
+    return Promise.all([
+      fetch(DATA + 'wordvec_' + l + '.json').then(function(r){ return r.json(); }),
+      fetch(DATA + 'wordvec_' + l + '.bin').then(function(r){ return r.arrayBuffer(); })
+    ]).then(function(a){
+      var meta = a[0], q = new Int8Array(a[1]), n = meta.words.length, d = meta.dim;
+      /* int8 → float。読み込み時に 1 度だけ長さ 1 に揃えておくと、
+         以降の類似度は内積だけで済む（15,000 × 100 で 1 回 3ms 程度） */
+      var V = new Float32Array(n * d);
+      for (var i = 0; i < n; i++){
+        var s = 0, o = i * d, k;
+        for (k = 0; k < d; k++){ var v = q[o + k]; V[o + k] = v; s += v * v; }
+        s = Math.sqrt(s) || 1;
+        for (k = 0; k < d; k++) V[o + k] /= s;
+      }
+      var idx = {};
+      for (i = 0; i < n; i++) idx[meta.words[i]] = i;
+      packs[l] = {meta: meta, V: V, n: n, d: d, idx: idx, words: meta.words};
+      return packs[l];
+    });
+  }
+
+  function topN(p, vec, skip, n){
+    var out = [], d = p.d;
+    for (var i = 0; i < p.n; i++){
+      if (skip.indexOf(i) >= 0) continue;
+      var s = 0, o = i * d;
+      for (var k = 0; k < d; k++) s += p.V[o + k] * vec[k];
+      if (out.length < n || s > out[out.length - 1].s){
+        out.push({i: i, s: s});
+        out.sort(function(a, b){ return b.s - a.s; });
+        if (out.length > n) out.pop();
+      }
+    }
+    return out;
+  }
+  function vecOf(p, w){
+    var i = p.idx[w]; if (i === undefined) return null;
+    return p.V.subarray(i * p.d, (i + 1) * p.d);
+  }
+  function table(p, rows){
+    var h = '<table><tr><th>語</th><th>近さ</th></tr>';
+    var mx = rows.length ? rows[0].s : 1;
+    rows.forEach(function(r){
+      h += '<tr><td class="w">' + p.words[r.i] + '</td><td>'
+        + '<i class="bar" style="width:' + Math.max(2, Math.round(r.s / mx * 90)) + 'px"></i>'
+        + r.s.toFixed(3) + '</td></tr>';
+    });
+    return h + '</table>';
+  }
+  function notFound(p, ws){
+    var m = ws.filter(function(w){ return p.idx[w] === undefined; });
+    return m.length ? '<b>' + m.join('・') + '</b> はこの 15,000 語に入っていない。'
+                    + '別の語で試すか、語彙 40 万語を扱える'
+                    + '<a href="../../../notebooks.html">ノートブック</a>へ。' : '';
+  }
+
+  function runNear(w){
+    var p = packs[lang], v = vecOf(p, w);
+    if (!v){ $('wv-near-out').innerHTML = notFound(p, [w]); return; }
+    $('wv-near-out').innerHTML = '<p style="margin:0 0 8px"><b>' + w + '</b> に近い語</p>'
+      + table(p, topN(p, v, [p.idx[w]], 10));
+  }
+  function runAna(b, a, c){
+    var p = packs[lang];
+    if (!vecOf(p, b) || !vecOf(p, a) || !vecOf(p, c)){
+      $('wv-ana-out').innerHTML = notFound(p, [b, a, c]); return;
+    }
+    var vb = vecOf(p, b), va = vecOf(p, a), vc = vecOf(p, c);
+    var v = new Float32Array(p.d), s = 0, k;
+    for (k = 0; k < p.d; k++){ v[k] = vb[k] - va[k] + vc[k]; s += v[k] * v[k]; }
+    s = Math.sqrt(s) || 1;
+    for (k = 0; k < p.d; k++) v[k] /= s;
+    $('wv-ana-out').innerHTML = '<p style="margin:0 0 8px"><b>' + b + ' − ' + a + ' + ' + c
+      + '</b> に近い語</p>' + table(p, topN(p, v, [p.idx[b], p.idx[a], p.idx[c]], 8));
+  }
+  function ana1(p, b, a, c){
+    if (!vecOf(p, b) || !vecOf(p, a) || !vecOf(p, c)) return null;
+    var vb = vecOf(p, b), va = vecOf(p, a), vc = vecOf(p, c);
+    var v = new Float32Array(p.d), s = 0, k;
+    for (k = 0; k < p.d; k++){ v[k] = vb[k] - va[k] + vc[k]; s += v[k] * v[k]; }
+    s = Math.sqrt(s) || 1;
+    for (k = 0; k < p.d; k++) v[k] /= s;
+    var t = topN(p, v, [p.idx[b], p.idx[a], p.idx[c]], 1);
+    return t.length ? p.words[t[0].i] : null;
+  }
+
+  /* 2 言語を並べて、同じ計算が崩れるところを見せる */
+  /* 各行 [表示名, 英語 [B,A,C,想定], 日本語 [B,A,C,想定]]。計算は B − A + C。
+     ※ 並び順を間違えると引き算の向きが逆になり、別物を計算して「崩れた」ように見える
+        （英語行を brother − sister で書いていて nephew が出ていた）。 */
+  var CMP = [
+    ['王 − 男 + 女',       ['king','man','woman','queen'],       ['王','男','女','女王']],
+    ['俳優 − 男 + 女',     ['actor','man','woman','actress'],    ['俳優','男性','女性','女優']],
+    ['首都の入れ替え',     ['tokyo','japan','france','paris'],   ['東京','日本','フランス','パリ']],
+    ['きょうだいの男女',   ['sister','brother','son','daughter'],['姉','兄','弟','妹']]
+  ];
+  function runCmp(){
+    Promise.all([load('en'), load('ja')]).then(function(ps){
+      var h = '<table><tr><th>計算</th><th>英語 (GloVe)</th><th>日本語 (chiVe)</th></tr>';
+      CMP.forEach(function(row){
+        var r = [];
+        [0, 1].forEach(function(j){
+          var p = ps[j], t = row[j + 1];
+          var got = ana1(p, t[0], t[1], t[2]);
+          var ok = got === t[3];
+          r.push(got === null ? '<span class="ng">語彙外</span>'
+            : '<span class="' + (ok ? 'ok' : 'ng') + '">' + got + '</span>'
+              + (ok ? '' : ' <span style="color:#8c8880">（想定 ' + t[3] + '）</span>'));
+        });
+        h += '<tr><td class="w">' + row[0] + '</td><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>';
+      });
+      $('wv-cmp-out').innerHTML = h + '</table>';
+
+      var pj = ps[1], vw = vecOf(pj, '王');
+      $('wv-why-out').innerHTML = vw
+        ? '<p style="margin:0 0 8px">日本語の <b>王</b> に近い語</p>'
+          + table(pj, topN(pj, vw, [pj.idx['王']], 8))
+          + '<p style="margin:8px 0 0">「王様」「帝」「魔王」「大王」――'
+          + '<b>称号や物語の語</b>ばかりが並ぶ。「女王」と対になる「男の王」という'
+          + '使われ方が薄いので、男女の差を引き算で取り出せない。</p>'
+        : '';
+    });
+  }
+
+  /* 多義語。強い意味に引かれるか、どちらでもない場所に落ちるかを実測で見せる */
+  /* ※ 日本語の例に「銀行（金融と川岸）」を使ってはいけない。英語 bank の直訳で、
+        日本語の銀行に川岸の意味は無い（実際 川 との近さは −0.088 だった）。
+        日本語で本当に多義な語を、実データで近さを確かめたうえで選ぶ。 */
+  var POLY = {
+    en: [['bank', '銀行 と 川岸', ['money','river']],
+         ['apple', '会社 と 果物', ['computer','fruit']]],
+    ja: [['はし', '橋 と 箸', ['橋','箸']],
+         ['あめ', '雨 と 飴', ['雨','飴']]]
+  };
+  function runPoly(){
+    var p = packs[lang], h = '';
+    POLY[lang].forEach(function(row){
+      var w = row[0], v = vecOf(p, w);
+      if (!v) return;
+      h += '<p style="margin:10px 0 6px"><b>' + w + '</b>（' + row[1] + '）に近い語</p>'
+         + table(p, topN(p, v, [p.idx[w]], 7));
+      var sims = row[2].map(function(t){
+        var u = vecOf(p, t);
+        if (!u) return t + ' … 語彙外';
+        var s = 0;
+        for (var k = 0; k < p.d; k++) s += v[k] * u[k];
+        return t + ' との近さ <b>' + s.toFixed(3) + '</b>';
+      });
+      h += '<p style="margin:6px 0 0">' + sims.join(' ／ ') + '</p>';
+    });
+    $('wv-poly-out').innerHTML = h;
+  }
+
+  function chips(){
+    var e = EX[lang];
+    $('wv-near-ex').innerHTML = e.near.map(function(w){
+      return '<button data-w="' + w + '">' + w + '</button>'; }).join('');
+    $('wv-near-ex').querySelectorAll('button').forEach(function(b){
+      b.onclick = function(){ $('wv-near-in').value = b.dataset.w; runNear(b.dataset.w); };
+    });
+    $('wv-ana-ex').innerHTML = e.ana.map(function(t){
+      return '<button data-t="' + t.join(',') + '">' + t[0] + ' − ' + t[1] + ' + ' + t[2] + '</button>';
+    }).join('');
+    $('wv-ana-ex').querySelectorAll('button').forEach(function(b){
+      b.onclick = function(){
+        var t = b.dataset.t.split(',');
+        $('wv-b').value = t[0]; $('wv-a').value = t[1]; $('wv-c').value = t[2];
+        runAna(t[0], t[1], t[2]);
+      };
+    });
+    var t0 = e.ana[0];
+    $('wv-b').value = t0[0]; $('wv-a').value = t0[1]; $('wv-c').value = t0[2];
+    $('wv-near-in').value = e.near[0];
+  }
+
+  function switchTo(l){
+    lang = l;
+    $('wv-en').className = l === 'en' ? 'on' : '';
+    $('wv-ja').className = l === 'ja' ? 'on' : '';
+    load(l).then(function(p){
+      $('wv-status').textContent = p.meta.model + '（' + p.words.length.toLocaleString()
+        + ' 語 × ' + p.d + ' 次元）';
+      chips();
+      runNear($('wv-near-in').value);
+      runAna($('wv-b').value, $('wv-a').value, $('wv-c').value);
+      runPoly();
+    }).catch(function(e){
+      $('wv-status').textContent = 'データを読み込めませんでした（' + e + '）';
+    });
+  }
+
+  $('wv-en').onclick = function(){ switchTo('en'); };
+  $('wv-ja').onclick = function(){ switchTo('ja'); };
+  $('wv-near-go').onclick = function(){ runNear($('wv-near-in').value.trim()); };
+  $('wv-near-in').onkeydown = function(e){ if (e.key === 'Enter') $('wv-near-go').click(); };
+  $('wv-ana-go').onclick = function(){
+    runAna($('wv-b').value.trim(), $('wv-a').value.trim(), $('wv-c').value.trim());
+  };
+  ['wv-b','wv-a','wv-c'].forEach(function(id){
+    $(id).onkeydown = function(e){ if (e.key === 'Enter') $('wv-ana-go').click(); };
+  });
+
+  switchTo('en');
+  runCmp();
+})();
+</script>
+
 <footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
 </body>
 </html>
