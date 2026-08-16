@@ -176,7 +176,7 @@ input[type=range]{accent-color:var(--arc)}
 Scene 5 で学んだ「坂を下りる」やり方と、Scene 6 の「学びすぎ」を、動かして確かめる。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">学習率</a></li><li><a href="#sec2">過学習と未学習</a></li><li><a href="#sec3">正則化</a></li><li><a href="#sec4">正解率だけでは足りない</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">学習率</a></li><li><a href="#sec2">過学習と未学習</a></li><li><a href="#sec3">正則化</a></li><li><a href="#sec4">適合率と再現率</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>学習率 — 一歩の大きさ</h2>
 <p>誤差の坂を下る。一歩が小さすぎると進まず、大きすぎると谷を飛び越えて跳ね回る。</p>
@@ -194,7 +194,7 @@ Scene 5 で学んだ「坂を下りる」やり方と、Scene 6 の「学びす�
 <div class="readout" id="r1"></div>
 </div>
 <div class="fig-stage" id="sec2">
-<h2>過学習と未学習 — どこで止めるか</h2>
+<h2>過学習と未学習 — 学習を止める位置</h2>
 <p>モデルを複雑にするほど、手元のデータ（訓練）にはよく合う。
 だが見たことのないデータ（検証）では、あるところから逆に悪くなる。</p>
 <div class="ctrls">
@@ -206,7 +206,7 @@ Scene 5 で学んだ「坂を下りる」やり方と、Scene 6 の「学びす�
 <div class="readout" id="r2"></div>
 </div>
 <div class="fig-stage" id="sec3">
-<h2>正則化 — 重みに罰則をかける</h2>
+<h2>正則化 — 重みへの罰則</h2>
 <p>複雑さを下げる代わりに、<b>大きな重みを使いにくくする</b>という手がある。
 L2 は全体をなだらかに縮め、L1 は要らない重みを 0 にして消す。</p>
 <div class="formula">L2（Ridge）: $L = 誤差 + \lambda\sum w^2$ 　　L1（Lasso）: $L = 誤差 + \lambda\sum|w|$
@@ -224,7 +224,7 @@ L2 は全体をなだらかに縮め、L1 は要らない重みを 0 にして�
 <div class="readout" id="r3"></div>
 </div>
 <div class="fig-stage" id="sec4">
-<h2>正解率だけでは足りない — 適合率と再現率</h2>
+<h2>適合率と再現率 — 正解率だけでは足りない理由</h2>
 <p>「陽性」と判定する線をどこに引くか。厳しくすれば見逃しが増え、緩めれば誤検出が増える。
 両方を同時に良くはできない。</p>
 <div class="ctrls">

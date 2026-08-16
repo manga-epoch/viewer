@@ -180,9 +180,9 @@ input[type=range]{accent-color:var(--arc)}
 ここでは、その中身を動かして確かめる。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">1 つずつ、と、一斉に</a></li><li><a href="#sec2">CUDA</a></li><li><a href="#sec3">Dropout</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">逐次処理と並列処理</a></li><li><a href="#sec2">CUDA</a></li><li><a href="#sec3">ドロップアウト</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>1 つずつ、と、一斉に</h2>
+<h2>逐次処理と並列処理 — CPU と GPU の違い</h2>
 <p>画像の畳み込みは、同じ計算を場所を変えて何万回も繰り返す。
 順番にやるか、いっぺんにやるか——この違いが効いてくる。
 下の 2 つの格子はどちらも<b>同じ 256 個の計算</b>で、<b>1 マス = 1 個の計算</b>（畳み込みなら 1 か所ぶん）。
@@ -205,7 +205,7 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 </div>
 <div class="fig-stage" id="sec2">
-<h2>CUDA — 描画の回路に、好きな計算を書けるようになった</h2>
+<h2>CUDA — 描画専用の回路を、汎用計算に開いた仕組み</h2>
 <p>GPU はもともと「画面の点を塗る」ための部品だった。
 研究者はそれを騙して使っていた——計算したい数値を<b>色に化けさせて</b>描画させ、結果を読み戻す。
 2007 年、NVIDIA がその回路に直接プログラムを書ける口を開けた。それが CUDA だ。</p>
@@ -217,7 +217,7 @@ input[type=range]{accent-color:var(--arc)}
 <div class="readout" id="r2"></div>
 </div>
 <div class="fig-stage" id="sec3">
-<h2>Dropout — わざと欠けさせる</h2>
+<h2>ドロップアウト — 学習中にノードを一定割合で無効化する正則化</h2>
 <p>訓練のたびに、ノードの一部をランダムに無効にする。
 特定の経路に頼れなくなるので、いくつもの経路が同じ仕事を覚える。</p>
 <div class="ctrls">

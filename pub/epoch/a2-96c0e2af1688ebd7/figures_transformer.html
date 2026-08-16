@@ -220,7 +220,7 @@ Self-Attention そのものの中身は
 直接答える。</p>
 </div>
 <div class="fig-stage" id="sec2">
-<h2>Embedding — 文を数に変える</h2>
+<h2>Embedding — 文の数値化</h2>
 <p>Transformer が最初に扱うのは、まだ「数」になっていない生の文だ。4段を送りで見る。
 使うトークンは実際に GPT-2 small がこの文を分けた並び――説明用に作った例ではない。</p>
 <div class="stepbar" id="emb-steps"></div>
@@ -267,7 +267,7 @@ $\mathrm{LN}$ は層正規化（各語のベクトルの目盛りを揃える）
 <b>情報が積み重なる</b>という一点だけ。</p>
 </div>
 <div class="fig-stage" id="sec4">
-<h2>出力 — 次の1語を選ぶ</h2>
+<h2>出力 — 次の 1 語の確率</h2>
 <p>最後のトークンの768次元を、語彙50,257個ぶんの点数（logit）に直し、softmax で確率にする。
 下のグラフは、GPT-2 small に実際に「Data visualization empowers users to」を読ませたときの<b>実測 logit</b>から、
 その場で確率を計算し直したもの――並んでいる12語は、確率が高い順の実測 top-12。</p>

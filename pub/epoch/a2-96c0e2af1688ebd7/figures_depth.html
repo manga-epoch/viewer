@@ -176,9 +176,9 @@ input[type=range]{accent-color:var(--arc)}
 2014 年、二つの答えが出た——<b>小さく揃えて縦に積む</b>か、<b>いろんな大きさを横に並べる</b>か。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">大きな 1 枚 か、小さいのを重ねる か（VGG）</a></li><li><a href="#sec2">大きさを選ばず、全部やる（Inception）</a></li><li><a href="#sec3">Batch Normalization</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">VGG</a></li><li><a href="#sec2">Inception</a></li><li><a href="#sec3">Batch Normalization</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>大きな 1 枚 か、小さいのを重ねる か（VGG）</h2>
+<h2>VGG — 大きな畳み込み 1 枚と、小さな畳み込みの積み重ね</h2>
 <p>同じ広さを見るのに、7×7 を 1 枚使うか、3×3 を 3 枚重ねるか。見える範囲は同じでも中身が違う。</p>
 <div class="ctrls">
   <label>3×3 を何枚重ねるか <input type="range" id="vgg" min="1" max="5" value="3"></label>
@@ -192,7 +192,7 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 
 <div class="fig-stage" id="sec2">
-<h2>大きさを選ばず、全部やる（Inception）</h2>
+<h2>Inception — 複数のカーネルサイズを並列に使う</h2>
 <p>どの大きさのフィルタが効くかは、場所によって違う。なら並べて全部かけ、出てきたものを繋げばいい。
 ただしそのままでは計算量が爆発するので、1×1 で厚みを削ってから通す。</p>
 <div class="ctrls">

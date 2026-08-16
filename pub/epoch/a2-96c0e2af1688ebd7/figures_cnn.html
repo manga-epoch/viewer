@@ -168,9 +168,9 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
 下の格子をクリックして絵を描き、フィルタを選び、特徴マップが浮かび上がる様子を確かめよう。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">畳み込みを手で滑らせる</a></li><li><a href="#sec2">プーリングで潰して比べる</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">畳み込み演算</a></li><li><a href="#sec2">プーリング</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>畳み込みを手で滑らせる</h2>
+<h2>畳み込み演算 — カーネルを滑らせて特徴を取り出す</h2>
 <div class="lead">左の入力 (7×7) のセルをクリックして塗る。フィルタを選ぶと、3×3 を 1 マスずつ滑らせて内積を取った<strong>特徴マップ</strong>(5×5) が右に現れる。「スライド」で受容野が動く様子をアニメーションする。</div>
 
 <div class="chips" id="kernels">
@@ -211,7 +211,7 @@ $\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
 <div class="note" style="margin-top:8px">特徴マップの各セル = フィルタ重み $w$ と、その位置の入力パッチ $x$ の<strong>内積</strong>。フィルタは画像全体で<strong>共有</strong>される (= 9 個の重みだけ)。</div>
 </div>
 
-<h3>なぜ「普通のNN」より強いのか</h3>
+<h3>全結合との違い — 重み共有と局所性</h3>
 <table class="mini">
 <tr><th></th><th>全結合 NN</th><th>CNN</th></tr>
 <tr><td>1000×1000 画像→1000 隠れ</td><td class="hl">約 10 億 パラメータ</td><td class="hl">フィルタ数×9 程度</td></tr>
@@ -222,7 +222,7 @@ $\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
 </div>
 
 <div class="fig-stage" id="sec2">
-<h2>プーリングで潰して比べる</h2>
+<h2>プーリング — 窓ごとの代表値で縮める</h2>
 <div class="lead">特徴マップを 2×2 の窓に区切り、各窓の<strong>最大値だけ</strong>を残すのが Max プーリング。窓の中のどこにあっても最大値さえ動かなければ出力は変わらない ―― 「入力を 1 マスずらす」を押して、特徴マップの中身が変わっても窓ごとの最大値 (＝プーリング後の値) が変わらないことを確かめよう。</div>
 
 <div class="ctrls">

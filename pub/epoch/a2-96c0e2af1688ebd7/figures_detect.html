@@ -170,9 +170,9 @@ input[type=range]{accent-color:var(--arc)}
 <b>どこに</b> あるかを知らないと動けない。出力の形が変わると、やり方も変わる。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">何を出力するのか</a></li><li><a href="#sec2">検出のやり方は「何回 CNN に通すか」で変わった</a></li><li><a href="#sec3">重なりを測り、重なった候補を削る</a></li><li><a href="#sec4">縮めて広げる、だけでは輪郭が戻らない</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">出力の三段階</a></li><li><a href="#sec2">二段階検出と一段階検出</a></li><li><a href="#sec3">IoU と NMS</a></li><li><a href="#sec4">U-Net</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>何を出力するのか — 三段階</h2>
+<h2>出力の三段階 — 分類・検出・セグメンテーション</h2>
 <p>同じ 1 枚の画像に対して、答えの形が違う。切り替えて見比べてほしい。</p>
 <div class="ctrls">
   <button class="chip on" data-task="cls">分類</button>
@@ -201,7 +201,7 @@ input[type=range]{accent-color:var(--arc)}
 <div class="readout" id="r1"><b>分類</b>：画像 1 枚につき答えは 1 つ。位置は分からない。</div>
 </div>
 <div class="fig-stage" id="sec2">
-<h2>検出のやり方は「何回 CNN に通すか」で変わった</h2>
+<h2>二段階検出と一段階検出 — R-CNN 系と YOLO 系</h2>
 <p>素朴にやると、あらゆる大きさの窓をあらゆる位置で切り出して分類することになる。
 その回数をどう減らすかが、この 3 年の歴史だ。</p>
 <div class="ctrls">
@@ -224,7 +224,7 @@ input[type=range]{accent-color:var(--arc)}
 どんな大きさの画像にも同じネットワークを適用できるようにした先駆け。詳しくは④で。</p>
 </div>
 <div class="fig-stage" id="sec3">
-<h2>重なりを測り、重なった候補を削る — IoU と NMS</h2>
+<h2>IoU と NMS — 重なりの尺度と、重複候補の抑制</h2>
 <p>1 つの物体に何本も枠が出る。確信度の高い枠を残し、それと重なりすぎる枠を消す。
 どこまでを「重なりすぎ」とするかを測るのが IoU（Intersection over Union）だ。</p>
 <div class="formula">
@@ -252,7 +252,7 @@ $\displaystyle \mathrm{IoU} = \frac{\text{重なり}}{\text{合併}}$
 もとから枠が重なっている「近くにいる別の物体」で、IoU の計算自体はこの座標で実際に行っている。</p>
 </div>
 <div class="fig-stage" id="sec4">
-<h2>縮めて広げる、だけでは輪郭が戻らない — U-Net</h2>
+<h2>U-Net — スキップ接続による輪郭の復元</h2>
 <p>特徴を掴むには縮める必要がある。でも縮めた時点で「どこ」の情報は失われる。
 そこで縮める前の層から同じ大きさの層へ横に渡す（スキップ接続）。
 下は 16×16 の丸い模式画像に対して、縮小→拡大を<b>実際に計算</b>した結果。</p>

@@ -274,9 +274,9 @@ input[type=range]{accent-color:var(--arc)}
   <span class="wv-status" id="wv-status">読み込み中…</span>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">ベクトルの中身を見る</a></li><li><a href="#sec2">ベクトルで計算する</a></li><li><a href="#sec3">同じ計算が、言語を変えると崩れる</a></li><li><a href="#sec4">1 語に 1 点</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">ベクトルの中身</a></li><li><a href="#sec2">ベクトル演算</a></li><li><a href="#sec3">言語による差</a></li><li><a href="#sec4">1 語に 1 点</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>ベクトルの中身を見る</h2>
+<h2>ベクトルの中身 — 1 語ぶんの 100 個の数</h2>
 <p>「語を数にする」と言うとき、実際に何が入っているのか。1 語ぶんをそのまま出す。</p>
 <div class="wv-row">
   <input id="wv-vec-in" type="text" placeholder="語を入れる" autocomplete="off">
@@ -292,7 +292,7 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 
 <div class="fig-stage" id="sec2">
-<h2>ベクトルで計算する</h2>
+<h2>ベクトル演算 — 近さの測定と、意味の足し引き</h2>
 <p>語を入れ、あいだの<b>符号を押して ＋ と − を切り替える</b>だけ。足し引きした先に近い語を探す。
 1 語だけ入れれば、そのまま「近い語」が出る。</p>
 <div class="wv-eqrow" id="wv-terms"></div>
@@ -317,7 +317,7 @@ input[type=range]{accent-color:var(--arc)}
 </div>
 
 <div class="fig-stage" id="sec3">
-<h2>同じ計算が、言語を変えると崩れる</h2>
+<h2>言語による差 — 同じ計算が日本語では崩れる</h2>
 <p>同じ足し引きを 2 つの言語で試すと、英語では有名な例がきれいに出るのに、
 日本語では出ないものがある。<b>下の表は、その場で計算した実測値だ。</b></p>
 <div class="wv-out" id="wv-cmp-out">計算中…</div>

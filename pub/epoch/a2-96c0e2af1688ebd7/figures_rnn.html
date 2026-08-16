@@ -159,9 +159,9 @@ RNN (再帰型ニューラルネット) は、前の時刻の <strong>隠れ状�
 出入りを制御する <strong>3 つのゲート</strong>を導入してこれを解いた。下で時間展開とゲートの働きを見よう。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">RNN を時間方向に展開する</a></li><li><a href="#sec2">LSTM の 3 つのゲート</a></li><li><a href="#sec3">seq2seq</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">RNN の時間展開</a></li><li><a href="#sec2">LSTM の 3 つのゲート</a></li><li><a href="#sec3">seq2seq</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>RNN を時間方向に展開する</h2>
+<h2>RNN の時間展開</h2>
 <div class="lead">同じセルが時刻ごとにコピーされ、隠れ状態 $h$ が左から右へ受け継がれていく。「1 ステップ進める」で系列を読み進める。</div>
 <svg id="unrollSvg" width="100%" viewBox="0 0 800 180" style="max-width:800px;display:block;margin:6px auto"></svg>
 <div class="readout" id="rout">まだ 1 語も読んでいない。「▶ 1 ステップ進める」で読み進める。</div>
@@ -174,7 +174,7 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
 <div class="note" style="margin-top:8px">$h_t$ は「これまで読んだ文の要約」。$h_{t-1}$ を繰り返し掛けるため、長い系列では勾配が $W^t$ で消失/爆発しやすい。</div>
 </div>
 
-<h3>同じ係数を繰り返し掛けると、何が起きるか</h3>
+<h3>同じ係数の繰り返し積</h3>
 <div class="lead">$h_t$ の勾配には $W$ が $t$ 回掛かる。$|W|<1$ ならその積は指数的に 0 に近づく——これが<strong>勾配消失</strong>だ。ここでは分かりやすく係数 $0.8$ を例に取る。</div>
 <svg id="rnnDecaySvg" width="100%" viewBox="0 0 700 130" style="max-width:700px;display:block;margin:6px auto"></svg>
 <p class="note">$0.8$ を 10 回掛けると $0.8^{10}\approx0.107$——最初の 1 割ほどしか残らない。実際の RNN では $W$ はベクトル/行列で値も学習されるが、「係数を繰り返し掛けると縮む」という力学は同じだ。LSTM がこれをどう避けるかは次のセクションで見る。</p>
@@ -210,7 +210,7 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
 </div>
 
 <div class="fig-stage" id="sec3">
-<h2>seq2seq — 文を 1 本のベクトルに畳んで、開き直す</h2>
+<h2>seq2seq — 固定長ベクトルへの圧縮と、そこからの復元</h2>
 <div class="lead">翻訳では、入力の語数と出力の語数が合わない。そこで <strong>seq2seq</strong> (2014) は、
 読む側と書く側を分けた。<strong>エンコーダ</strong>が入力文を最後まで読み、その時点の内部状態を
 <strong>1 本の固定長ベクトル（文脈ベクトル）</strong>として渡す。<strong>デコーダ</strong>はそれだけを

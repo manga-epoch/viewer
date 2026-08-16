@@ -195,9 +195,9 @@ input[type=range]{accent-color:var(--arc)}
 何が変わったのか、そしてこの計算点 1 個に何ができないのかを、手を動かして確かめる。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">重みと閾値を、手で決める</a></li><li><a href="#sec2">重みを、機械に決めさせる</a></li><li><a href="#sec3">できないこと</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">重みと閾値の手動設定</a></li><li><a href="#sec2">パーセプトロンの学習則</a></li><li><a href="#sec3">線形分離可能性</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>重みと閾値を、手で決める</h2>
+<h2>重みと閾値の手動設定 — 人が決めていた時代</h2>
 <p>入力は 0 か 1 の 2 本。それぞれに重み $w_1, w_2$ を掛けて足し、合計が閾値 $\theta$ 以上なら
 出力は 1、そうでなければ 0。<b>これで全部だ</b>。
 重みと閾値を動かすと、同じ回路が AND になったり OR になったりする。</p>
@@ -208,8 +208,9 @@ input[type=range]{accent-color:var(--arc)}
   <span class="tag" id="w2v">+1</span>
   <label>$\theta$ <input type="range" id="th" min="-2" max="3" step="1" value="2"></label>
   <span class="tag" id="thv">2</span>
-  <button class="btn ghost" id="pAnd">AND にする</button>
-  <button class="btn ghost" id="pOr">OR にする</button>
+  <span class="tag">作りたい論理</span>
+  <button class="btn ghost" id="pAnd">AND</button>
+  <button class="btn ghost" id="pOr">OR</button>
 </div>
 <div id="v1"></div>
 <div id="t1"></div>
@@ -218,7 +219,7 @@ input[type=range]{accent-color:var(--arc)}
 作りたい論理が決まっていれば手で回せる。だが「作りたいものが分かっていない問題」には使えない。</p>
 </div>
 <div class="fig-stage" id="sec2">
-<h2>重みを、機械に決めさせる</h2>
+<h2>パーセプトロンの学習則 — 重みの自動決定</h2>
 <p>1957 年のパーセプトロンは、答えだけを与えて重みを自分で直す。
 やり方は 1 つ——<b>間違えたときだけ、間違えた分だけ重みを動かす</b>。
 出したい答えが 1 なのに 0 を出したなら重みを増やし、逆なら減らす。それを繰り返す。</p>
@@ -247,7 +248,7 @@ $w_0, w_1, w_2$ の <b>3 つの数</b>（$w_0$ は閾値にあたる下駄）。
 重みは勝手に決まっていく。これが「学習」と呼ばれたものの中身だ。</p>
 </div>
 <div class="fig-stage" id="sec3">
-<h2>できないこと — 直線 1 本では分けられない</h2>
+<h2>線形分離可能性 — 直線 1 本で分けられる配置と、分けられない配置</h2>
 
 <p><b>1. 計算点 1 個が引けるのは、直線 1 本だけ。</b>
 式は $w_0 + w_1 x_1 + w_2 x_2$ の足し算しかない。これが 0 になる場所は、平面では必ず
@@ -267,8 +268,8 @@ $w_0, w_1, w_2$ の <b>3 つの数</b>（$w_0$ は閾値にあたる下駄）。
   <label>直線の向き <input type="range" id="ang" min="0" max="179" value="45"></label>
   <span class="tag" id="angv">45°</span>
   <label>位置 <input type="range" id="off" min="-140" max="140" value="0"></label>
-  <button class="btn ghost" id="task3and">AND を分ける</button>
-  <button class="btn ghost" id="task3xor">XOR を分ける</button>
+  <button class="btn ghost" id="task3and">AND</button>
+  <button class="btn ghost" id="task3xor">XOR</button>
 </div>
 <div id="verdict3"></div>
 <div id="v3"></div>

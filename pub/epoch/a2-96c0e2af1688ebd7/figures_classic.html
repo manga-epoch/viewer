@@ -179,9 +179,9 @@ input[type=range]{accent-color:var(--arc)}
 マージン・正解率・収束判定などの数値は、そのデータに対して実際に計算している。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">SVM</a></li><li><a href="#sec2">直線で分けられないとき</a></li><li><a href="#sec3">決定木と、その集まり</a></li><li><a href="#sec4">k-means</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">SVM</a></li><li><a href="#sec2">カーネル法</a></li><li><a href="#sec3">決定木とランダムフォレスト</a></li><li><a href="#sec4">k-means</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>SVM — 境界は「いちばん余裕のある所」に引く</h2>
+<h2>SVM — マージン最大化による境界の決定</h2>
 <p>2 つの群を分ける直線は無数にある。どれを選ぶか。
 SVM は<b>両側にいちばん広く空きが取れる線</b>を選ぶ。だから少ないデータでもぶれにくい。</p>
 <div class="ctrls">
@@ -197,7 +197,7 @@ $\displaystyle w\cdot x + b = 0$ が境界。マージン $\displaystyle 2/\lVer
 </div>
 </div>
 <div class="fig-stage" id="sec2">
-<h2>直線で分けられないとき — 持ち上げる（カーネル）</h2>
+<h2>カーネル法 — 高次元へ写して直線で分ける</h2>
 <p>内側と外側に分かれた配置は、平面では 1 本の直線で切れない。
 だが「中心からの距離」を高さとして持ち上げると、<b>水平な面で切れる</b>ようになる。</p>
 <div class="ctrls">
@@ -212,7 +212,7 @@ $\displaystyle K(x,x') = \phi(x)\cdot\phi(x')$ ―― 実際にはこの座標�
 </div>
 </div>
 <div class="fig-stage" id="sec3">
-<h2>決定木と、その集まり</h2>
+<h2>決定木とランダムフォレスト</h2>
 <p>質問を重ねて軸に平行な線で領域を切り分けるのが決定木。深くするほど訓練データに合うが、
 雑音の点まで囲い込んで<b>新しいデータで外す</b>（過学習）。たくさん作って多数決を取るのがランダムフォレスト。</p>
 <div class="ctrls">
@@ -228,7 +228,7 @@ $\displaystyle \mathrm{Gini} = 1-\sum_k p_k^2$ ―― 分割ごとに、2 グル
 </div>
 </div>
 <div class="fig-stage" id="sec4">
-<h2>k-means — 正解を使わずに寄せる</h2>
+<h2>k-means — 正解なしのクラスタリング</h2>
 <p>ラベルが無くても、近いもの同士はまとめられる。
 代表点を置き、いちばん近い代表へ各点を割り当て、代表を重心へ動かす。これを繰り返す。</p>
 <div class="ctrls">
