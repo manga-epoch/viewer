@@ -110,9 +110,8 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 .wv-out .ng{color:#b4493f;font-weight:700}
 .wv-out b{color:var(--ink)}
 
-/* 計算機（左）と語彙ブラウザ（右） */
-.wv-calc{display:grid;grid-template-columns:minmax(0,1fr) 268px;gap:18px;margin-top:12px}
-.wv-calc-main{min-width:0}
+/* ⚠ 語彙ブラウザを式の右に置くと「＝ の答え」に見える（読者の指摘）。
+      式は全幅にして ＝ の右にはボタンだけを置き、語を探すはその下に回す。 */
 /* 計算機そのものを 1 本の式として横に並べる（縦積みは足し算に見えない、という指摘） */
 .wv-eqrow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:14px 0 10px}
 .wv-eqrow .w{width:132px;flex:0 1 132px;min-width:92px;padding:10px 11px;font-size:15px;
@@ -130,25 +129,31 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 .wv-eqrow .clr{padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:#fff;
  color:var(--ink-sub);font-size:12.5px;cursor:pointer;font-family:inherit}
 
-.wv-pick{border:1px solid var(--border);border-radius:10px;background:#fff;padding:12px;
- display:flex;flex-direction:column;min-width:0}
-.wv-pick-hd{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:8px}
-.wv-pick-hd span{font-weight:400;color:var(--ink-sub);margin-left:6px}
-.wv-pick input{width:100%;padding:7px 10px;font-size:13.5px;border:1px solid var(--border);
- border-radius:7px;background:var(--bg);font-family:inherit;margin-bottom:8px}
+.wv-pick{border:1px solid var(--border);border-radius:10px;background:#fff;padding:14px;
+ margin-top:16px}
+.wv-pick-hd{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:9px;
+ display:flex;align-items:baseline;flex-wrap:wrap;gap:6px}
+.wv-pick-hd span{font-weight:400;color:var(--ink-sub)}
+.wv-pick input{width:100%;max-width:320px;padding:7px 10px;font-size:13.5px;
+ border:1px solid var(--border);border-radius:7px;background:var(--bg);font-family:inherit;
+ margin-bottom:9px;display:block}
 .wv-jump{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px}
 .wv-jump button{border:1px solid var(--border);background:var(--bg);border-radius:5px;
  padding:1px 6px;font-size:11px;color:var(--ink-sub);cursor:pointer;font-family:inherit;line-height:1.6}
 .wv-jump button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.wv-list{height:290px;overflow-y:auto;border:1px solid var(--border);border-radius:7px;
- background:var(--bg);padding:4px}
-.wv-list button{display:block;width:100%;text-align:left;border:0;background:transparent;
- padding:4px 8px;font-size:13.5px;color:var(--ink);cursor:pointer;font-family:inherit;
- border-radius:5px}
+/* 全幅になったので、縦 1 列でなく語のチップとして流し込む。
+   ⚠ grid で組んだら行の高さが padding ぶん（8px）に潰れて文字が消えた。
+      語の長さがまちまちなので、固定列より flex の折り返しが素直。 */
+.wv-list{height:190px;overflow-y:auto;border:1px solid var(--border);border-radius:7px;
+ background:var(--bg);padding:6px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:4px}
+.wv-list button{flex:0 0 auto;border:1px solid transparent;background:#fff;
+ padding:4px 10px;font-size:13.5px;line-height:1.6;color:var(--ink);cursor:pointer;
+ font-family:inherit;border-radius:14px;white-space:nowrap}
+.wv-list button:hover{border-color:#6E7BA8}
 .wv-list button:hover{background:var(--surface)}
 .wv-list button.copied{background:#6E7BA8;color:#fff}
-.wv-list .more{padding:6px 8px;font-size:11.5px;color:var(--ink-sub)}
-.wv-pick-ft{font-size:11.5px;color:var(--ink-sub);margin-top:8px;line-height:1.6}
+.wv-list .more{flex:1 1 100%;padding:4px 6px;font-size:11.5px;color:var(--ink-sub)}
+.wv-pick-ft{font-size:11.5px;color:var(--ink-sub);font-weight:400}
 
 /* ベクトルの中身。ゼロの線を挟んで上下に伸ばす（横棒だと「数」に見えない） */
 .wv-vec{position:relative;display:flex;align-items:stretch;gap:2px;height:96px;margin:10px 0 4px;
@@ -161,8 +166,8 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 .wv-nums{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;
  line-height:1.9;color:var(--ink);word-break:break-all}
 @media(max-width:760px){
-  .wv-calc{grid-template-columns:1fr}
-  .wv-list{height:220px}
+  .wv-eqrow .w{flex:1 1 44%}
+  .wv-list{height:210px}
 }
 </style>
 <style>
@@ -272,26 +277,24 @@ input[type=range]{accent-color:var(--arc)}
 <h2>ベクトルで計算する</h2>
 <p>語を入れ、あいだの<b>符号を押して ＋ と − を切り替える</b>だけ。足し引きした先に近い語を探す。
 1 語だけ入れれば、そのまま「近い語」が出る。</p>
-<div class="wv-calc">
-  <div class="wv-calc-main">
-    <div class="wv-eqrow" id="wv-terms"></div>
-    <div class="wv-chips" id="wv-ex"></div>
-    <div class="wv-out" id="wv-out"></div>
-    <div class="wv-eq">
-      <p class="wv-eq-t">やっていること</p>
-      $$\mathrm{sim}(a,b)=\frac{a\cdot b}{\lVert a\rVert\,\lVert b\rVert}$$
-      <p class="wv-eq-n">近さは<b>コサイン類似度</b>――2 本のベクトルがなす角度で測る。
-      長さを 1 に揃えてあるので、内積がそのまま近さになる。足し引きした結果のベクトルと、
-      15,000 語すべてとの近さをこの式で計算し、大きい順に並べている。</p>
-    </div>
-  </div>
-  <div class="wv-pick">
-    <div class="wv-pick-hd">語を探す<span id="wv-pick-n"></span></div>
-    <input id="wv-pick-q" type="text" placeholder="絞り込む（部分一致）" autocomplete="off">
-    <div class="wv-jump" id="wv-jump"></div>
-    <div class="wv-list" id="wv-list"></div>
-    <div class="wv-pick-ft">押すとコピーします。入力欄に貼って使ってください。</div>
-  </div>
+<div class="wv-eqrow" id="wv-terms"></div>
+<div class="wv-chips" id="wv-ex"></div>
+<div class="wv-out" id="wv-out"></div>
+
+<div class="wv-pick">
+  <div class="wv-pick-hd">語を探す<span id="wv-pick-n"></span>
+    <span class="wv-pick-ft">押すとコピーします。上の欄に貼って使ってください。</span></div>
+  <input id="wv-pick-q" type="text" placeholder="絞り込む（部分一致）" autocomplete="off">
+  <div class="wv-jump" id="wv-jump"></div>
+  <div class="wv-list" id="wv-list"></div>
+</div>
+
+<div class="wv-eq">
+  <p class="wv-eq-t">やっていること</p>
+  $$\mathrm{sim}(a,b)=\frac{a\cdot b}{\lVert a\rVert\,\lVert b\rVert}$$
+  <p class="wv-eq-n">近さは<b>コサイン類似度</b>――2 本のベクトルがなす角度で測る。
+  長さを 1 に揃えてあるので、内積がそのまま近さになる。足し引きした結果のベクトルと、
+  15,000 語すべてとの近さをこの式で計算し、大きい順に並べている。</p>
 </div>
 </div>
 
