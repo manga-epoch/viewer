@@ -101,6 +101,23 @@ async function unlock() {
 }
 $("go").addEventListener("click", unlock);
 $("code").addEventListener("keydown", e => { if (e.key === "Enter") unlock(); });
+
+// ?c=CODE 付きで来たら、入れて開くところまで自動でやる。
+// なぜ要るか: コードは推測されないよう長くしてあるので、毎回打つのが現実的でない
+// （制作中のスマホ確認で毎回詰まった）。リンクをブックマークすれば以後 1 タップ。
+// 購入者にも「このリンクを開くだけ」で渡せる。
+//
+// ⚠ 鍵の強さは変えていない。リンクを渡すのはコードを渡すのと同じで、
+//   もともと設計が織り込んでいる範囲（business/system_architecture.md 第2節）。
+// ⚠ 確認できたらアドレス欄からコードを消す。画面共有やスクショで
+//   URL ごと流れるのを避けるため（ブックマーク側には残る）。
+(function () {
+  const c = new URLSearchParams(location.search).get("c");
+  if (!c) return;
+  $("code").value = c;
+  history.replaceState(null, "", location.pathname);
+  unlock();
+})();
 </script>
 </body>
 </html>
