@@ -101,8 +101,10 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 
 svg .bx{fill:#fff;stroke:#1a1a1a;stroke-width:1.8}
 svg .bx.on{fill:#1a1a1a}
-svg .bx.blk{fill:rgba(110,123,168,.08);stroke:#6E7BA8;stroke-width:1.6;stroke-dasharray:5 4}
-svg .bx.ghost{fill:none;stroke:#6E7BA8;stroke-width:1.2;stroke-dasharray:3 5;opacity:.32}
+/* ⚠ 半透明の面で重なりを出すと、中の箱が沈んで見える（読者の指摘）。
+   面は塗らず、薄い実線の枠だけで「同じ形のブロック」を示す。 */
+svg .bx.blk{fill:none;stroke:#6E7BA8;stroke-width:1.4}
+svg .bx.ghost{fill:none;stroke:#6E7BA8;stroke-width:1.1;opacity:.45}
 svg .bx.dim{stroke:#cfccc4}
 svg .lbl{font-size:12.5px;font-weight:600;fill:#1a1a1a;text-anchor:middle}
 svg .lbl.on{fill:#fff}
@@ -111,7 +113,7 @@ svg .lbl2{font-size:10.5px;font-weight:700;fill:#3f6178;text-anchor:middle;text-
 svg .shape{font-size:11px;fill:#8c8880}
 svg .flow{stroke:#b9b9b2;stroke-width:1.8;fill:none}
 svg .flow.on{stroke:#6E7BA8;stroke-width:2.6}
-svg .res{stroke:#6E7BA8;stroke-width:1.6;fill:none;stroke-dasharray:4 4}
+svg .res{stroke:#6E7BA8;stroke-width:1.8;fill:none}
 svg .addn{font-size:11px;font-weight:700;fill:#6E7BA8}
 svg .addn.on{fill:#1a1a1a}
 svg .note{font-size:11.5px;font-weight:600;fill:#8c8880}
@@ -134,6 +136,14 @@ svg .stackseg.mlp{fill:rgba(110,123,168,.38)}
 .readout b{color:var(--ink)}
 .tag{display:inline-block;background:var(--surface);border:1px solid var(--border);
  border-radius:14px;padding:3px 11px;font-size:12.5px;color:var(--ink-sub);margin-right:6px}
+/* 全体のフローは図の中の箱と重複するので、上は ◁ ▷ と現在地だけにする */
+.stepnav{display:flex;align-items:center;gap:10px;margin:12px 0}
+.stepnav button{width:40px;height:40px;border:1px solid var(--border);background:#fff;
+ border-radius:9px;font-size:16px;line-height:1;cursor:pointer;color:var(--ink-sub);
+ font-family:inherit}
+.stepnav button:hover{background:var(--surface);color:var(--ink)}
+.stepnav button:disabled{opacity:.3;cursor:default}
+.stepnow{font-size:13.5px;font-weight:700;color:var(--ink)}
 .stepbar{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
 .stepbar button{border:1px solid var(--border);background:#fff;border-radius:8px;
  padding:6px 12px;font-size:12.5px;cursor:pointer;font-family:inherit}
@@ -227,12 +237,16 @@ Self-Attention そのものの中身は
 <h2>全体のフロー</h2>
 <p>文が入ってから次の1語が出るまで、何をどの順で通るのか。よくある描き方に合わせて描いた。
 箱や⊕を選ぶと、そこで何が起きるかと、そこでのデータの<b>形</b>が読み上げに出る。</p>
-<div class="stepbar" id="steps"></div>
+<div class="stepnav" id="steps">
+  <button id="s1prev" aria-label="前のブロック">&#9665;</button>
+  <span class="stepnow" id="s1now"></span>
+  <button id="s1next" aria-label="次のブロック">&#9655;</button>
+</div>
 <div id="v1"></div>
 <div class="readout" id="r1"></div>
-<p class="note">点線の囲みが「同じ形のブロック」。Attention の中身は隣の図解が持つ――箱の中の
-リンクからそのまま移動できる。ブロックをなぜ12回くり返すのかは、次々節「なぜ12回くり返すのか」で
-直接答える。</p>
+<p class="note">図の中の箱を直接押しても選べる。囲みが「同じ形のブロック」で、これを 12 回くり返す。
+Attention の中身は隣の図解が持つ――箱の中のリンクからそのまま移動できる。
+なぜ 12 回なのかは、次々節「なぜ12回くり返すのか」で直接答える。</p>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>Embedding — 文の数値化</h2>
@@ -310,7 +324,7 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
 <script>
 (function(){
   var D={"tokens":["Data"," visualization"," em","powers"," users"," to"],"candidates":[{"token":" visualize","logit":-135.913},{"token":" create","logit":-136.684},{"token":" see","logit":-137.12},{"token":" make","logit":-137.647},{"token":" easily","logit":-137.666},{"token":" quickly","logit":-137.724},{"token":" explore","logit":-137.784},{"token":" find","logit":-138.048},{"token":" understand","logit":-138.293},{"token":" build","logit":-138.41},{"token":" better","logit":-138.453},{"token":" identify","logit":-138.487}],"prompt":"Data visualization empowers users to","dim":768,"heads":12,"headDim":64,"ffn":3072,"vocab":50257,"blocks":12,"embParams":"38,597,376"};
-  var STEPS1=[["input", "入力テキスト", "6 語の文がそのまま入る。まだ数にはなっていない。", "6 語の文"], ["embed", "Input Embedding", "各語を、意味と位置を表す768個の数に変える。中身は次の節「Embedding」で追う。", "6 × 768"], ["attn", "Masked Multi-Head Self-Attention", "各語が他のどの語を参照するかを自分で決め、情報を混ぜ合わせる。自分より後ろの語は見えない（Masked）。12組を並列に走らせる（12ヘッド、1組64次元）。中身は figures_attention.html で見られる。", "6 × 768"], ["add1", "Add & Norm", "Attention の出力を、その手前の値に足し戻す（残差）。そのあと各語のベクトルの目盛りを揃える（層正規化）。捨てて作り直すのではなく、足し込む。", "6 × 768"], ["mlp", "MLP（Feed Forward）", "語ごとに独立して、いったん3072次元へ広げ、また768次元へ戻す。Attention で集めた情報を、ここで捏ねる。", "6 × 768"], ["add2", "Add & Norm", "MLP の出力を、その手前の値に足し戻し、また目盛りを揃える。", "6 × 768"], ["out", "Linear & Softmax", "最後の語の768次元を、語彙50,257個ぶんの点数（logit）に変換し、softmax で確率にする。いちばん確からしい語が次の1語。中身は節「出力」で見る。", "50,257 語の確率"]];
+  var STEPS1=[["input", "入力テキスト", "この例の文は 6 語。語数はいくつでもよく、以降の形の「6」がその数に変わるだけ。まだ数にはなっていない。", "6 語の文（この例）"], ["embed", "Input Embedding", "各語を、意味と位置を表す768個の数に変える。中身は次の節「Embedding」で追う。", "6 × 768"], ["attn", "Masked Multi-Head Self-Attention", "各語が他のどの語を参照するかを自分で決め、情報を混ぜ合わせる。自分より後ろの語は見えない（Masked）。12組を並列に走らせる（12ヘッド、1組64次元）。中身は figures_attention.html で見られる。", "6 × 768"], ["add1", "Add & Norm", "Attention の出力を、その手前の値に足し戻す（残差）。そのあと各語のベクトルの目盛りを揃える（層正規化）。捨てて作り直すのではなく、足し込む。", "6 × 768"], ["mlp", "MLP（Feed Forward）", "語ごとに独立して、いったん3072次元へ広げ、また768次元へ戻す。Attention で集めた情報を、ここで捏ねる。", "6 × 768"], ["add2", "Add & Norm", "MLP の出力を、その手前の値に足し戻し、また目盛りを揃える。", "6 × 768"], ["out", "出力（次の1語の確率）", "最後の語の768次元を、語彙50,257個ぶんの点数（logit）に変換し、softmax で確率にする。いちばん確からしい語が次の1語。中身は節「出力」で見る。", "50,257 語の確率"]];
   var $=function(s){return document.querySelector(s)};
   var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -360,17 +374,22 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
        (3) 起点を箱の上辺と同じ高さに置くと、横へ伸ばす区間が箱に覆われて起点が消え、
            線が途中から生えて見える → 起点は箱の**手前の矢印の途中**にとり、
            そこに小さな分岐点を打つ。 */
-  function residual(xC,yFrom,yTo,off,boxBottom){
-    var x=xC-off;                      // 縦に降りる位置（ブロックの点線枠より外）
-    var yMid=(boxBottom+yTo)/2;        // 箱の下辺と ⊕ の中間で内側へ折り返す
-    return '<circle cx="'+xC+'" cy="'+yFrom+'" r="2.6" fill="#6E7BA8"/>'+
-           '<path class="res" d="M'+xC+' '+yFrom+' L'+x+' '+yFrom+' L'+x+' '+yMid+
-           ' L'+xC+' '+yMid+' L'+xC+' '+(yTo-10)+'"/>'+
-           '<path d="M'+(xC-4.5)+' '+(yTo-15)+' L'+xC+' '+(yTo-8)+' L'+(xC+4.5)+' '+(yTo-15)+
-           '" fill="none" stroke="#6E7BA8" stroke-width="1.8"/>';
+  /* 残差＝その部品を迂回して ⊕ に足し戻す配線。
+     ※ 読者の指摘で 3 つ直した:
+       (1) 点線だと「補足」に見える。フローの一部なので**実線**にする
+       (2) 上下 2 本の迂回線で縦の位置が違い、揃っていなかった → 同じ x に固定
+       (3) ⊕ の真上から入れると本流と重なる → **⊕ の左側へ水平に**入れる */
+  function residual(xC,yFrom,yTo,x){
+    var r=13;                           // ⊕ の半径ぶん手前で止める
+    return '<circle cx="'+xC+'" cy="'+yFrom+'" r="2.8" fill="#6E7BA8"/>'+
+           '<path class="res" d="M'+xC+' '+yFrom+' L'+x+' '+yFrom+' L'+x+' '+yTo+
+           ' L'+(xC-r-10)+' '+yTo+'"/>'+
+           '<path d="M'+(xC-r-15)+' '+(yTo-4.5)+' L'+(xC-r-8)+' '+yTo+
+           ' L'+(xC-r-15)+' '+(yTo+4.5)+'" fill="none" stroke="#6E7BA8" stroke-width="1.8"/>';
   }
   function draw1(){
     var W=780, BW=260, BX=250, xC=BX+BW/2;   // 左は残差の迂回線ぶん、右は注記ぶんの余白
+    var RX=BX-52;                            // 迂回線の縦位置。上下で同じにする
     var yInput=20, hBox=42;
     var yEmbed=88;
     var yAttn=176, hAttn=58;
@@ -378,7 +397,7 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
     var yMlp=yAdd1+35, hMlp=42;        // ⊕ と MLP の間は残差の分岐点が入るぶん空ける
     var yAdd2=yMlp+hMlp+23;
     var blockTop=yAttn-26, blockBottom=yAdd2+30;   // 上辺と箱の間も同じ理由で空ける
-    var yOut=blockBottom+40, hOut=42;
+    var yOut=blockBottom+40, hOut=52;
     var H=yOut+hOut+30;
     var g='';
 
@@ -399,17 +418,17 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
     g+='<a href="figures_attention.html"><text class="lbl2" x="'+xC+'" y="'+(yAttn+hAttn-8)+
        '">この中身を見る →</text></a>';
     g+=mkArrow(xC,yAttn+hAttn,yAdd1-8,sel('attn')||sel('add1'));
-    g+=residual(xC,yAttn-13,yAdd1,BW/2+56,yAttn+hAttn);
+    g+=residual(xC,yAttn-13,yAdd1,RX);
     g+=mkAddNorm('add1',xC,yAdd1,sel('add1'));
     g+=mkArrow(xC,yAdd1+8,yMlp,sel('add1')||sel('mlp'));
 
     g+=mkBox('mlp',BX,yMlp,BW,hMlp,['MLP（Feed Forward）'],sel('mlp'));
     g+=mkArrow(xC,yMlp+hMlp,yAdd2-8,sel('mlp')||sel('add2'));
-    g+=residual(xC,yMlp-13,yAdd2,BW/2+92,yMlp+hMlp);
+    g+=residual(xC,yMlp-13,yAdd2,RX);
     g+=mkAddNorm('add2',xC,yAdd2,sel('add2'));
     g+=mkArrow(xC,yAdd2+8,yOut,sel('add2')||sel('out'));
 
-    g+=mkBox('out',BX,yOut,BW,hOut,['Linear & Softmax'],sel('out'));
+    g+=mkBox('out',BX,yOut,BW,hOut,['出力（次の1語の確率）','Linear & Softmax'],sel('out'),11.5);
 
     var shapeY={input:yInput,embed:yEmbed,attn:yAttn,mlp:yMlp,out:yOut};
     var shapeH={input:hBox,embed:hBox,attn:hAttn,mlp:hMlp,out:hOut};
@@ -428,14 +447,12 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
     $('#v1').innerHTML=svg(W,H,g);
     var st=STEPS1[cur];
     $('#r1').innerHTML='<b>'+esc(st[1])+'</b>（'+esc(st[3])+'）：'+st[2];
-    $$('#steps button').forEach(function(el,k){ el.className=(k===cur?'on':''); });
+    $('#s1now').textContent=(cur+1)+' / '+STEPS1.length+'　'+st[1];
+    $('#s1prev').disabled=(cur===0);
+    $('#s1next').disabled=(cur===STEPS1.length-1);
   }
-  var sb='';
-  STEPS1.forEach(function(s,i){ sb+='<button data-i="'+i+'">'+esc(s[1])+'</button>'; });
-  $('#steps').innerHTML=sb;
-  $$('#steps button').forEach(function(el){
-    el.onclick=function(){ cur=+el.getAttribute('data-i'); draw1(); };
-  });
+  $('#s1prev').onclick=function(){ if(cur>0){ cur--; draw1(); } };
+  $('#s1next').onclick=function(){ if(cur<STEPS1.length-1){ cur++; draw1(); } };
 
   /* ==================== 節2: Embedding ==================== */
   var embStage=0;

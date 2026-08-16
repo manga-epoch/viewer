@@ -236,12 +236,21 @@ code,a{overflow-wrap:anywhere}
 .comm-topnav .ct-fig{border-color:var(--arc);color:var(--link)}
 .comm-topnav .ct-next{background:var(--ink);color:var(--bg);border-color:var(--ink);margin-left:auto}
 .comm-topnav .ct-next:hover{background:var(--arc);color:#fff;border-color:var(--arc)}
-.fig-inline { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 10px; margin:14px 0 10px; padding:0; background:none; border:none }
-.fig-inline .fi-label { font-size:11.5px; font-weight:600; letter-spacing:.14em; color:var(--ink-muted) }
+/* ⚠ 導線が目立たなすぎて素通りされていた（読者の指摘）。
+   読み物の地の文から浮くよう、帯にして色を付ける。この製品の売りは
+   「読んだ直後に手を動かせる」ことなので、ここは目立ってよい。 */
+.fig-inline { display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px;
+  margin:22px 0 20px; padding:14px 16px; background:rgba(var(--arcrgba,110,123,168),.07);
+  border:1px solid var(--arc,#6E7BA8); border-left-width:4px; border-radius:10px }
+.fig-inline .fi-label { font-size:12px; font-weight:700; letter-spacing:.12em;
+  color:var(--arc,#6E7BA8); white-space:nowrap }
+.fig-inline .fi-label::before { content:"▶ "; font-size:10px }
 .fig-inline .fi-links { display:flex; flex-wrap:wrap; gap:8px }
-.fig-inline a { font-size:13px; font-weight:650; color:var(--ink); text-decoration:none; background:#fff; border:1px solid var(--border-strong,#CFCBBE); border-radius:999px; padding:7px 16px; transition:border-color .15s }
-.fig-inline a::after { content:" ↗"; color:var(--ink-muted); font-size:11px }
-.fig-inline a:hover { border-color:var(--ink) }
+.fig-inline a { font-size:13.5px; font-weight:700; color:#fff; text-decoration:none;
+  background:var(--ink,#1A1A1A); border:1px solid var(--ink,#1A1A1A); border-radius:999px;
+  padding:9px 18px; transition:opacity .15s }
+.fig-inline a::after { content:" ↗"; font-size:11px; opacity:.75 }
+.fig-inline a:hover { opacity:.82 }
 </style><section id="scene1"><nav class="comm-topnav" aria-label="章ナビ"><a class="ct-prev" href="index.html#p14">← マンガの続きへ — Scene 2「パーセプトロンの興奮と絶望」</a><a class="ct-next" href="index.html#p2">マンガを読み返す →</a></nav><h2>Scene 1: ダートマスの夏 — AIという夢の始まり</h2>
 <p><strong>所要時間</strong>: 約10分（読み物8分 + 確認問題2分）</p>
 <h3>ある提案書</h3>
@@ -973,7 +982,7 @@ Symbolic AI が残した遺産は今も生きている:</p>
 <li>Polanyi, M. (1966). <em>The Tacit Dimension</em>. University of Chicago Press.</li>
 <li>Sutton, R. (2019). The Bitter Lesson. <a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">http://www.incompleteideas.net/IncIdeas/BitterLesson.html</a></li>
 <li>Rumelhart, D. E., Hinton, G. E., &amp; Williams, R. J. (1986). Learning representations by back-propagating errors. <em>Nature</em>, 323(6088), 533-536.</li>
-</ul><div class="scene-flow"><div class="sf-done">Scene 3「専門家の時代」読了 — Arc 1「黎明」完走！</div><div class="sf-label">記号主義がぶつかった壁までが Arc 1 です。第 2 巻「覚醒」は、その壁を越える話から始まります。</div><a class="sf-next" href="../../../">EPOCH トップへ →</a><a class="sf-skip" href="figures.html">図解の一覧を見る →</a></div></section><script>(function(){function run(){var h=(location.hash||'').replace('#','');var S=['scene1','scene2','scene3','scene4','scene5','scene6'];if(S.indexOf(h)>=0){S.forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=(id===h)?'block':'none';});var ap=document.getElementById('comm-appendix');if(ap)ap.style.display='none';window.scrollTo(0,0);}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}window.addEventListener('hashchange',run);})();</script><script>document.querySelectorAll('.quiz-q .q-ans').forEach(function(d){d.addEventListener('toggle',function(){if(!d.open)return;var q=d.closest('.quiz-q');var c=q.getAttribute('data-correct');var li=q.querySelector('.q-opts li[data-opt="'+c+'"]');if(li)li.classList.add('is-correct');});});</script>
+</ul><div class="scene-flow"><div class="sf-done">Scene 3「専門家の時代」読了 — Arc 1「黎明」完走！</div><div class="sf-label">記号主義がぶつかった壁までが Arc 1 です。第 2 巻「覚醒」は、その壁を越える話から始まります。</div><a class="sf-next" href="../../../">EPOCH トップへ →</a><a class="sf-skip" href="figures.html">図解の一覧を見る →</a></div></section><script>(function(){function run(){var h=(location.hash||'').replace('#','');var S=['scene1','scene2','scene3','scene4','scene5','scene6'];var only=null;if(S.indexOf(h)>=0){only=h;}else if(/^figlink\d+$/.test(h)){var t=document.getElementById(h);while(t&&S.indexOf(t.id)<0){t=t.parentElement;}if(t)only=t.id;}if(only){S.forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=(id===only)?'block':'none';});var ap=document.getElementById('comm-appendix');if(ap)ap.style.display='none';var tgt=(only===h)?null:document.getElementById(h);if(tgt){tgt.scrollIntoView({block:'center'});}else{window.scrollTo(0,0);}}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}window.addEventListener('hashchange',run);})();</script><script>document.querySelectorAll('.quiz-q .q-ans').forEach(function(d){d.addEventListener('toggle',function(){if(!d.open)return;var q=d.closest('.quiz-q');var c=q.getAttribute('data-correct');var li=q.querySelector('.q-opts li[data-opt="'+c+'"]');if(li)li.classList.add('is-correct');});});</script>
 
 <div id="comm-appendix">
 <h2>Arc 1 登場人物（統合プロフィール）</h2>

@@ -177,8 +177,8 @@ RNN (再帰型ニューラルネット) は、前の時刻の <strong>隠れ状�
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">RNN の時間展開</a></li><li><a href="#sec2">LSTM の 3 つのゲート</a></li><li><a href="#sec3">seq2seq</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>RNN の時間展開</h2>
-<div class="lead">同じセルが時刻ごとにコピーされ、隠れ状態 $h$ が左から右へ受け継がれていく。「1 ステップ進める」で系列を読み進める。</div>
-<svg id="unrollSvg" width="100%" viewBox="0 0 800 180" style="max-width:800px;display:block;margin:6px auto"></svg>
+<div class="lead">同じセルが時刻ごとにコピーされ、隠れ状態 $h$ が左から右へ受け継がれていく。「1 ステップ進める」で系列を読み進めると、<b>その時点の $h_t$ の中身（数）</b>が各セルに出る。</div>
+<svg id="unrollSvg" width="100%" viewBox="0 0 800 208" style="max-width:800px;display:block;margin:6px auto"></svg>
 <div class="readout" id="rout">まだ 1 語も読んでいない。「▶ 1 ステップ進める」で読み進める。</div>
 <div class="ctrls">
   <button class="btn" id="stepBtn">▶ 1 ステップ進める</button>
@@ -187,6 +187,8 @@ RNN (再帰型ニューラルネット) は、前の時刻の <strong>隠れ状�
 <div class="formula">
 $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
 <div class="note" style="margin-top:8px">$h_t$ は「これまで読んだ文の要約」。$h_{t-1}$ を繰り返し掛けるため、長い系列では勾配が $W^t$ で消失/爆発しやすい。</div>
+<div class="note" style="margin-top:6px">図に出る数は、この式を<b>実際に計算した値</b>（$h$ は 2 次元、重み $W_h, W_x, b$ と各語の $x_t$ は
+固定の例）。本物は数百次元で、重みは学習で決まる。</div>
 </div>
 
 <h3>同じ係数の繰り返し積</h3>
@@ -257,20 +259,56 @@ $c = h_T$
   function el(p,t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e;}
   // --- RNN unroll ---
   var SEQ=["私","は","本","を","読む"],step=0;
+  /* 読者から「その時の h_t を表示した方がよい」と指摘。式を書くだけでなく、
+     実際に h_t = tanh(W_h h_{t-1} + W_x x_t + b) を計算して数を出す。
+     h は 2 次元、重みと x_t は固定の例（本物は数百次元・重みは学習で決まる）。 */
+  var Wh=[[0.5,-0.3],[0.4,0.6]], Wx=[[0.9,0.1],[0.2,0.8]], Bb=[0.05,-0.05];
+  var XV={"私":[1.0,0.2],"は":[0.1,0.8],"本":[0.9,-0.3],"を":[0.0,0.7],"読む":[-0.6,0.9]};
+  function hSeq(){
+    var h=[0,0], out=[];
+    for(var t=0;t<SEQ.length;t++){
+      var x=XV[SEQ[t]], nh=[0,0];
+      for(var i=0;i<2;i++){
+        var z=Bb[i];
+        for(var j=0;j<2;j++){ z+=Wh[i][j]*h[j]+Wx[i][j]*x[j]; }
+        nh[i]=Math.tanh(z);
+      }
+      h=nh; out.push([h[0],h[1]]);
+    }
+    return out;
+  }
+  var HS=hSeq();
+  function fmt(v){ return (v>=0?'+':'−')+Math.abs(v).toFixed(2) }
   function drawUnroll(){
     var svg=document.getElementById('unrollSvg');svg.innerHTML='';
     var n=SEQ.length,W=800,cw=W/n;
     for(var t=0;t<n;t++){
       var on=t<step,cx=t*cw+cw/2;
-      el(svg,'rect',{x:t*cw+18,y:60,width:cw-36,height:54,rx:8,fill:on?'rgba(110,123,168,.12)':'#fff',stroke:on?ARC:'#E4E1D8','stroke-width':on?2:1});
-      el(svg,'text',{x:cx,y:92,'text-anchor':'middle','font-size':13,fill:'#1A1A1A','font-weight':600},'RNNセル');
+      el(svg,'rect',{x:t*cw+18,y:44,width:cw-36,height:78,rx:8,fill:on?'rgba(110,123,168,.12)':'#fff',stroke:on?ARC:'#E4E1D8','stroke-width':on?2:1});
+      el(svg,'text',{x:cx,y:66,'text-anchor':'middle','font-size':12.5,fill:'#1A1A1A','font-weight':600},'RNNセル');
+      /* いまの h_t を数で出す。まだ読んでいないセルは「—」 */
+      el(svg,'text',{x:cx,y:88,'text-anchor':'middle','font-size':11,fill:on?ARC:'#CFCBBE','font-weight':700},
+         'h'+(t+1)+(on?' =':''));
+      if(on){
+        var hv=HS[t];
+        el(svg,'text',{x:cx,y:104,'text-anchor':'middle','font-size':11.5,fill:'#1A1A1A',
+          'font-family':'ui-monospace,Menlo,Consolas,monospace'},'( '+fmt(hv[0])+', '+fmt(hv[1])+' )');
+        /* 2 本の棒でも出す。数だけだと大小が掴みにくい */
+        for(var k=0;k<2;k++){
+          var bw=Math.abs(hv[k])*((cw-56)/2)*0.9, bx=cx-((cw-56)/4)+k*((cw-56)/2);
+          el(svg,'rect',{x:bx-bw/2,y:110,width:Math.max(1.5,bw),height:6,rx:2,
+            fill:hv[k]>=0?ARC:'#B4493F'});
+        }
+      }else{
+        el(svg,'text',{x:cx,y:104,'text-anchor':'middle','font-size':11.5,fill:'#CFCBBE'},'（未読）');
+      }
       // input below
-      el(svg,'text',{x:cx,y:150,'text-anchor':'middle','font-size':16,fill:on?ARC:'#9A9488','font-weight':on?700:400},SEQ[t]);
-      el(svg,'text',{x:cx,y:168,'text-anchor':'middle','font-size':10,fill:'#9A9488'},'x'+(t+1));
-      el(svg,'line',{x1:cx,y1:134,x2:cx,y2:114,stroke:on?ARC:'#CFCBBE','stroke-width':1.5,'marker-end':'url(#ar)'});
+      el(svg,'text',{x:cx,y:166,'text-anchor':'middle','font-size':16,fill:on?ARC:'#9A9488','font-weight':on?700:400},SEQ[t]);
+      el(svg,'text',{x:cx,y:184,'text-anchor':'middle','font-size':10,fill:'#9A9488'},
+         'x'+(t+1)+' = ( '+fmt(XV[SEQ[t]][0])+', '+fmt(XV[SEQ[t]][1])+' )');
+      el(svg,'line',{x1:cx,y1:150,x2:cx,y2:122,stroke:on?ARC:'#CFCBBE','stroke-width':1.5,'marker-end':'url(#ar)'});
       // h arrow to next
-      if(t<n-1){el(svg,'line',{x1:t*cw+cw-18,y1:87,x2:(t+1)*cw+18,y2:87,stroke:on&&t+1<=step?ARC:'#CFCBBE','stroke-width':1.5,'marker-end':'url(#ar)'});
-        el(svg,'text',{x:t*cw+cw,y:80,'text-anchor':'middle','font-size':10,fill:'#9A9488'},'h'+(t+1));}
+      if(t<n-1){el(svg,'line',{x1:t*cw+cw-18,y1:83,x2:(t+1)*cw+18,y2:83,stroke:on&&t+1<=step?ARC:'#CFCBBE','stroke-width':1.5,'marker-end':'url(#ar)'});}
     }
     var defs=el(svg,'defs',{});var m=el(defs,'marker',{id:'ar',markerWidth:8,markerHeight:8,refX:6,refY:3,orient:'auto'});
     el(m,'path',{d:'M0,0 L6,3 L0,6',fill:'#9A9488'});
@@ -279,7 +317,11 @@ $c = h_T$
     if(step===0){
       rout.textContent='まだ 1 語も読んでいない。「▶ 1 ステップ進める」で読み進める。';
     }else if(step<n){
-      rout.textContent=step+' 語目「'+SEQ[step-1]+'」を読み込み、h'+step+' に「ここまでの要約」を書き込んだ。h'+step+' は次のセルへ渡される。';
+      var hv=HS[step-1];
+      rout.innerHTML=step+' 語目「'+SEQ[step-1]+'」を読み込み、'
+        +'<b>h'+step+' = ( '+fmt(hv[0])+', '+fmt(hv[1])+' )</b> になった。'
+        +(step>1?'直前の h'+(step-1)+' と 今の x'+step+' から、上の式で計算した値だ。':'h0 は 0 から始めている。')
+        +' これが次のセルへ渡される。';
     }else{
       rout.textContent=n+' 語すべて読み終えた。最後の h'+n+' がこの文全体の要約になる。';
     }

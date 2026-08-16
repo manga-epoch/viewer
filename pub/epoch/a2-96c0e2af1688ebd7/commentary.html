@@ -49,12 +49,21 @@ hr { border:none; border-top:1px solid var(--border); margin:32px 0 }
 .gk-foot { display:block; margin:56px 0 0; padding:15px 18px; background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--arc); border-radius:8px; font-size:13px; font-weight:700; color:var(--link); text-decoration:none; text-align:center }
 .gk-foot span { font-weight:400; color:var(--ink-sub) }
 .gk-foot:hover { border-color:var(--arc) }
-.fig-inline { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 10px; margin:14px 0 10px; padding:0; background:none; border:none }
-.fig-inline .fi-label { font-size:11.5px; font-weight:600; letter-spacing:.14em; color:var(--ink-muted) }
+/* ⚠ 導線が目立たなすぎて素通りされていた（読者の指摘）。
+   読み物の地の文から浮くよう、帯にして色を付ける。この製品の売りは
+   「読んだ直後に手を動かせる」ことなので、ここは目立ってよい。 */
+.fig-inline { display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px;
+  margin:22px 0 20px; padding:14px 16px; background:rgba(var(--arcrgba,110,123,168),.07);
+  border:1px solid var(--arc,#6E7BA8); border-left-width:4px; border-radius:10px }
+.fig-inline .fi-label { font-size:12px; font-weight:700; letter-spacing:.12em;
+  color:var(--arc,#6E7BA8); white-space:nowrap }
+.fig-inline .fi-label::before { content:"▶ "; font-size:10px }
 .fig-inline .fi-links { display:flex; flex-wrap:wrap; gap:8px }
-.fig-inline a { font-size:13px; font-weight:650; color:var(--ink); text-decoration:none; background:#fff; border:1px solid var(--border-strong,#CFCBBE); border-radius:999px; padding:7px 16px; transition:border-color .15s }
-.fig-inline a::after { content:" ↗"; color:var(--ink-muted); font-size:11px }
-.fig-inline a:hover { border-color:var(--ink) }
+.fig-inline a { font-size:13.5px; font-weight:700; color:#fff; text-decoration:none;
+  background:var(--ink,#1A1A1A); border:1px solid var(--ink,#1A1A1A); border-radius:999px;
+  padding:9px 18px; transition:opacity .15s }
+.fig-inline a::after { content:" ↗"; font-size:11px; opacity:.75 }
+.fig-inline a:hover { opacity:.82 }
 .manga-clip { margin:20px 0 26px; padding:12px; background:#fff; border-radius:12px; border:1px solid var(--border); text-align:center }
 .manga-clip img { max-width:100%; height:auto; border-radius:6px; display:block; margin:0 auto }
 .manga-clip figcaption { margin-top:10px; font-size:12.5px; color:var(--ink-sub); line-height:1.6 }
@@ -2244,7 +2253,7 @@ Arc 2 に出てきたどの手法も、最後はこの物差しで良し悪し�
 </div>
 <a class="gk-foot" href="gken.html">G 検定で学ぶ人へ — 模試（第3章 機械学習／第5章 DL／第6章 応用・画像）<span>・無料</span></a>
 </div>
-<script>(function(){function run(){var h=(location.hash||'').replace('#','');var S=['scene1','scene2','scene3','scene4','scene5','scene6','scene7','scene8','extra1','extra2','extra3'];if(S.indexOf(h)>=0){S.forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=(id===h)?'block':'none';});var ap=document.getElementById('comm-appendix');if(ap)ap.style.display='none';window.scrollTo(0,0);}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}window.addEventListener('hashchange',run);})();</script>
+<script>(function(){function run(){var h=(location.hash||'').replace('#','');var S=['scene1','scene2','scene3','scene4','scene5','scene6','scene7','scene8','extra1','extra2','extra3'];var only=null;if(S.indexOf(h)>=0){only=h;}else if(/^figlink\d+$/.test(h)){var t=document.getElementById(h);while(t&&S.indexOf(t.id)<0){t=t.parentElement;}if(t)only=t.id;}if(only){S.forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=(id===only)?'block':'none';});var ap=document.getElementById('comm-appendix');if(ap)ap.style.display='none';var tgt=(only===h)?null:document.getElementById(h);if(tgt){tgt.scrollIntoView({block:'center'});}else{window.scrollTo(0,0);}}}if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',run);}else{run();}window.addEventListener('hashchange',run);})();</script>
 <script>
 // クイズ: 選択肢クリックで仮選択、答えを見るで正解をハイライト。
 document.querySelectorAll('.quiz-q').forEach(function(q){
