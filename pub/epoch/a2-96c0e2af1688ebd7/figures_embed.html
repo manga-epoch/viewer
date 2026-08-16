@@ -73,12 +73,20 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 .fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
 @media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
 
-.wv-lang{display:flex;align-items:center;gap:8px;margin:14px 0 6px;flex-wrap:wrap}
+/* 言語切替はページ全体に効くので、節の中でなく先頭に帯として置く
+   （節の中にあると「この節だけの設定」に見える、という読者の指摘） */
+.wv-lang{max-width:820px;margin:22px auto 4px;padding:12px 16px;display:flex;align-items:center;
+ gap:9px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.wv-lang-k{font-size:12px;font-weight:700;color:var(--ink);margin-right:2px}
 .wv-lang button{border:1px solid var(--border);background:#fff;border-radius:8px;
  padding:6px 16px;font-size:13px;cursor:pointer;font-family:inherit}
 .wv-lang button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.wv-status{font-size:12.5px;color:var(--ink-sub)}
-.wv-eq{margin:10px 0 4px;font-size:14px}
+.wv-status{font-size:12.5px;color:var(--ink-sub);flex:1 1 100%}
+/* 式は結果の下に「やっていること」として置く。上に置くと計算機より先に出て邪魔になる */
+.wv-eq{margin:16px 0 0;padding:14px 16px;background:var(--surface);border-radius:8px;
+ border-left:3px solid #6E7BA8}
+.wv-eq-t{font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--ink-sub);margin:0 0 2px}
+.wv-eq-n{font-size:12.5px;color:var(--ink-sub);margin:4px 0 0;line-height:1.85}
 .wv-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 8px}
 .wv-row input{flex:0 1 200px;min-width:120px;padding:9px 12px;font-size:15px;
  border:1px solid var(--border);border-radius:8px;background:#fff;font-family:inherit}
@@ -105,15 +113,22 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 /* 計算機（左）と語彙ブラウザ（右） */
 .wv-calc{display:grid;grid-template-columns:minmax(0,1fr) 268px;gap:18px;margin-top:12px}
 .wv-calc-main{min-width:0}
-.wv-term{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-.wv-sign{width:42px;height:40px;border:1px solid var(--border);background:#fff;border-radius:8px;
- font-size:19px;font-weight:700;cursor:pointer;color:var(--ink);font-family:inherit;flex:none}
-.wv-sign.minus{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.wv-term input{flex:1 1 auto;min-width:0;padding:9px 12px;font-size:15px;
- border:1px solid var(--border);border-radius:8px;background:#fff;font-family:inherit}
-.wv-term .bad{border-color:#b4493f}
-.wv-expr{font-size:13px;color:var(--ink-sub);margin:2px 0 10px}
-.wv-expr b{color:var(--ink)}
+/* 計算機そのものを 1 本の式として横に並べる（縦積みは足し算に見えない、という指摘） */
+.wv-eqrow{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:14px 0 10px}
+.wv-eqrow .w{width:132px;flex:0 1 132px;min-width:92px;padding:10px 11px;font-size:15px;
+ text-align:center;border:1px solid var(--border);border-radius:8px;background:#fff;
+ font-family:inherit}
+.wv-eqrow .w:focus{outline:2px solid #6E7BA8;outline-offset:1px}
+.wv-op{width:38px;height:38px;flex:none;border:1px solid var(--border);background:#fff;
+ border-radius:19px;font-size:19px;font-weight:700;line-height:1;cursor:pointer;color:var(--ink);
+ font-family:inherit}
+.wv-op.minus{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.wv-op.off{opacity:.28}
+.wv-eqs{font-size:20px;font-weight:700;color:var(--ink-sub);padding:0 2px}
+.wv-eqrow .run{padding:10px 20px;border:0;border-radius:8px;background:var(--ink);color:var(--bg);
+ font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.wv-eqrow .clr{padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:#fff;
+ color:var(--ink-sub);font-size:12.5px;cursor:pointer;font-family:inherit}
 
 .wv-pick{border:1px solid var(--border);border-radius:10px;background:#fff;padding:12px;
  display:flex;flex-direction:column;min-width:0}
@@ -229,15 +244,17 @@ input[type=range]{accent-color:var(--arc)}
 <b>好きな語を入れて、その場で計算できる。</b></p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">ベクトルの中身を見る</a></li><li><a href="#sec2">ベクトルで計算する</a></li><li><a href="#sec3">同じ計算が、言語を変えると崩れる</a></li><li><a href="#sec4">1 語に 1 点</a></li></ol></nav>
-<div class="fig-stage" id="sec1">
-<h2>ベクトルの中身を見る</h2>
-<p>「語を数にする」と言うとき、実際に何が入っているのか。1 語ぶんをそのまま出す。</p>
 <div class="wv-lang">
+  <span class="wv-lang-k">このページ全体で使う単語ベクトル</span>
   <button id="wv-en" class="on">英語 GloVe</button>
   <button id="wv-ja">日本語 chiVe</button>
   <span class="wv-status" id="wv-status">読み込み中…</span>
 </div>
+
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">ベクトルの中身を見る</a></li><li><a href="#sec2">ベクトルで計算する</a></li><li><a href="#sec3">同じ計算が、言語を変えると崩れる</a></li><li><a href="#sec4">1 語に 1 点</a></li></ol></nav>
+<div class="fig-stage" id="sec1">
+<h2>ベクトルの中身を見る</h2>
+<p>「語を数にする」と言うとき、実際に何が入っているのか。1 語ぶんをそのまま出す。</p>
 <div class="wv-row">
   <input id="wv-vec-in" type="text" placeholder="語を入れる" autocomplete="off">
   <button id="wv-vec-go">中身を見る</button>
@@ -253,20 +270,20 @@ input[type=range]{accent-color:var(--arc)}
 
 <div class="fig-stage" id="sec2">
 <h2>ベクトルで計算する</h2>
-<p>近さは<b>コサイン類似度</b>――2 本のベクトルがなす角度で測る。長さを 1 に揃えてあるので、
-内積がそのまま近さになる。</p>
-<div class="wv-eq">$$\mathrm{sim}(a,b)=\frac{a\cdot b}{\lVert a\rVert\,\lVert b\rVert}$$</div>
-<p><b>語を 1 つだけ書けば「近い語」</b>が出る。2 つ以上書けば、符号どおりに足し引きしてから
-その場所に近い語を探す。<b>＋と − は押して切り替えられる。</b></p>
+<p>語を入れ、あいだの<b>符号を押して ＋ と − を切り替える</b>だけ。足し引きした先に近い語を探す。
+1 語だけ入れれば、そのまま「近い語」が出る。</p>
 <div class="wv-calc">
   <div class="wv-calc-main">
-    <div id="wv-terms"></div>
-    <div class="wv-row">
-      <button id="wv-go">計算する</button>
-      <button id="wv-clear" class="ghost">空にする</button>
-    </div>
+    <div class="wv-eqrow" id="wv-terms"></div>
     <div class="wv-chips" id="wv-ex"></div>
     <div class="wv-out" id="wv-out"></div>
+    <div class="wv-eq">
+      <p class="wv-eq-t">やっていること</p>
+      $$\mathrm{sim}(a,b)=\frac{a\cdot b}{\lVert a\rVert\,\lVert b\rVert}$$
+      <p class="wv-eq-n">近さは<b>コサイン類似度</b>――2 本のベクトルがなす角度で測る。
+      長さを 1 に揃えてあるので、内積がそのまま近さになる。足し引きした結果のベクトルと、
+      15,000 語すべてとの近さをこの式で計算し、大きい順に並べている。</p>
+    </div>
   </div>
   <div class="wv-pick">
     <div class="wv-pick-hd">語を探す<span id="wv-pick-n"></span></div>
@@ -315,7 +332,7 @@ input[type=range]{accent-color:var(--arc)}
       : location.pathname.replace(/\/[^\/]*$/, '');
   var DATA = root + '/notebooks/data/';
 
-  var packs = {}, lang = 'en', NTERM = 4;
+  var packs = {}, lang = 'en', NTERM = 3;   // 語 3 つ、あいだの符号 2 つ
   function $(id){ return document.getElementById(id); }
 
   var EX = {
@@ -423,55 +440,63 @@ input[type=range]{accent-color:var(--arc)}
   }
 
   /* ---------- 節 2: 計算機 ---------- */
+  /* 計算機は「1 本の式」として横に並べる。
+     語 → 符号 → 語 → 符号 → 語 → ＝。**先頭の語に符号は付けない**（縦に積んで
+     全項に符号を付ける形は、足し算の式に見えないという読者の指摘）。 */
   function termRows(){
     var h = '';
     for (var i = 0; i < NTERM; i++){
-      h += '<div class="wv-term"><button class="wv-sign" data-i="' + i + '">＋</button>'
-        + '<input type="text" id="wv-t' + i + '" autocomplete="off" placeholder="'
-        + (i === 0 ? '語を入れる' : '（空でよい）') + '"></div>';
+      if (i > 0) h += '<button class="wv-op" data-op="' + i + '" title="＋ と − を切り替える">＋</button>';
+      h += '<input class="w" type="text" id="wv-t' + i + '" autocomplete="off" placeholder="'
+        + (i === 0 ? '語' : '（空でよい）') + '">';
     }
-    $('wv-terms').innerHTML = h + '<div class="wv-expr" id="wv-expr"></div>';
-    $('wv-terms').querySelectorAll('.wv-sign').forEach(function(b){
+    $('wv-terms').innerHTML = h + '<span class="wv-eqs">＝</span>'
+      + '<button class="run" id="wv-go">計算する</button>'
+      + '<button class="clr" id="wv-clear">空にする</button>';
+    $('wv-terms').querySelectorAll('.wv-op').forEach(function(b){
       b.onclick = function(){
-        var m = b.classList.toggle('minus');
-        b.textContent = m ? '−' : '＋';
-        showExpr();
+        b.textContent = b.classList.toggle('minus') ? '−' : '＋';
+        dimOps();
       };
     });
     for (var j = 0; j < NTERM; j++){
-      (function(id){
-        $(id).oninput = showExpr;
-        $(id).onkeydown = function(e){ if (e.key === 'Enter') run(); };
-      })('wv-t' + j);
+      $('wv-t' + j).oninput = dimOps;
+      $('wv-t' + j).onkeydown = function(e){ if (e.key === 'Enter') run(); };
+    }
+    $('wv-go').onclick = run;
+    $('wv-clear').onclick = function(){ setTerms([]); $('wv-out').innerHTML = ''; };
+  }
+  function ops(){ return $('wv-terms').querySelectorAll('.wv-op'); }
+  /* 語が入っていない項の符号は効かない。押せるままだと「− が付いているのに
+     結果に出ない」と読めるので、使われていない演算子は薄くする。 */
+  function dimOps(){
+    var o = ops();
+    for (var i = 1; i < NTERM; i++){
+      o[i - 1].classList.toggle('off', !$('wv-t' + i).value.trim());
     }
   }
   function terms(){
-    var out = [];
+    var out = [], o = ops();
     for (var i = 0; i < NTERM; i++){
       var w = $('wv-t' + i).value.trim();
       if (!w) continue;
-      out.push({sign: $('wv-terms').querySelectorAll('.wv-sign')[i].classList.contains('minus')
-        ? -1 : 1, w: w});
+      // 先頭は常に ＋。2 つ目以降は直前の符号ボタンに従う
+      out.push({sign: i === 0 ? 1 : (o[i - 1].classList.contains('minus') ? -1 : 1), w: w});
     }
     return out;
   }
-  function showExpr(){
-    var t = terms();
-    $('wv-expr').innerHTML = t.length
-      ? '式: <b>' + t.map(function(x, i){
-          return (i === 0 ? (x.sign < 0 ? '− ' : '') : (x.sign < 0 ? ' − ' : ' ＋ ')) + x.w;
-        }).join('') + '</b>'
-      : '';
-  }
   function setTerms(list){
+    var o = ops();
     for (var i = 0; i < NTERM; i++){
-      var t = list[i], b = $('wv-terms').querySelectorAll('.wv-sign')[i];
+      var t = list[i];
       $('wv-t' + i).value = t ? t[1] : '';
-      var m = !!t && t[0] === '-';
-      b.classList.toggle('minus', m);
-      b.textContent = m ? '−' : '＋';
+      if (i > 0){
+        var m = !!t && t[0] === '-';
+        o[i - 1].classList.toggle('minus', m);
+        o[i - 1].textContent = m ? '−' : '＋';
+      }
     }
-    showExpr();
+    dimOps();
   }
   function run(){
     var p = packs[lang], t = terms();
@@ -511,12 +536,32 @@ input[type=range]{accent-color:var(--arc)}
     }
     return (KANA[key] || '').indexOf(c) >= 0;
   }
+  /* 頻度上位はどの言語でも機能語（the/of/to…／する・こと・ある…）が占める。
+     そのまま出すと一覧の先頭が探す気にならないものだけになるので、
+     絞り込みが無いときは飛ばす（語を打てば普通に見つかる）。 */
+  /* 頻度上位はどの言語でも機能語が占める。そのまま出すと一覧の先頭が
+     探す気にならないものだけになるので、絞り込みが無いときは飛ばす。
+     ※ chiVe は Sudachi の正規化形なので「する」ではなく「為る」、「いる」ではなく
+        「居る」で入っている。見た目の表記で書くと 1 つも当たらない（実データで確認した）。 */
+  var STOP_EN = (' the of to and in for that on is was said with he as it by at from his an be '
+    + 'has are have but were not this who they which their had one all we her she there been '
+    + 'its two more when after also first about up out over new said i s t d ll re ve m o y ')
+    .split(' ');
+  var STOP_JA = ('為る ます です 居る 御 有る こと 成る から れる ない 言う 出来る 無い よう '
+    + '方 など 思う 良い 行く 其の 此の さん 下さる たい 為 物 来る まで 頂く 場合 中 使う つく '
+    + 'よる 此れ 何 られる てる 又 だけ 仕舞う そう 其れ せる より 等 たり 様 或る 於く 就く '
+    + 'そして しかし また さらに ただし なお ので のに ばかり ほど くらい という といった')
+    .split(' ');
+  function isStop(w){
+    return (lang === 'en' ? STOP_EN : STOP_JA).indexOf(w) >= 0;
+  }
   function renderList(){
     var p = packs[lang], q = $('wv-pick-q').value.trim().toLowerCase();
     var hit = [], LIMIT = 300;
     for (var i = 0; i < p.n && hit.length < LIMIT + 1; i++){
       var w = p.words[i];
       if (q && w.toLowerCase().indexOf(q) < 0) continue;
+      if (!q && isStop(w)) continue;
       if (!headMatch(w, jumpKey)) continue;
       hit.push(w);
     }
@@ -685,8 +730,6 @@ input[type=range]{accent-color:var(--arc)}
   $('wv-ja').onclick = function(){ switchTo('ja'); };
   $('wv-vec-go').onclick = function(){ showVec($('wv-vec-in').value.trim()); };
   $('wv-vec-in').onkeydown = function(e){ if (e.key === 'Enter') $('wv-vec-go').click(); };
-  $('wv-go').onclick = run;
-  $('wv-clear').onclick = function(){ setTerms([]); $('wv-out').innerHTML = ''; };
   $('wv-pick-q').oninput = function(){ $('wv-list').scrollTop = 0; renderList(); };
 
   switchTo('en');
