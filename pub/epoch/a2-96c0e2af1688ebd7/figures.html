@@ -67,7 +67,6 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 .fig-pager .fp-comm{margin-right:auto;border-color:var(--arc);color:var(--link);
  background:rgba(var(--arcrgba),.08);font-size:18px}
 .fig-pager .fp-comm:hover{background:rgba(var(--arcrgba),.16);color:var(--link)}
-.fig-pager .fp-comm::after{left:0;transform:none}
 .fig-pager .fp-ico{flex:none;position:relative;width:40px;height:40px;border-radius:9px;
  border:1px solid var(--border);background:#fff;display:flex;align-items:center;
  justify-content:center;font-size:16px;color:var(--ink-sub)}
@@ -80,6 +79,8 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
  white-space:normal;width:max-content;max-width:min(260px,58vw);text-align:center;
  pointer-events:none;z-index:5;display:none}
 .fig-pager .fp-ico:hover::after,.fig-pager .fp-ico:focus-visible::after{display:block}
+.fig-pager .fp-comm::after{left:0;transform:none}
+.fig-pager .fp-ico:last-child::after{left:auto;right:0;transform:none}
 .back-link .fig-pager .fp-ico::after{bottom:auto;top:calc(100% + 6px)}
 
 .fig-grid{max-width:840px;margin:28px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}

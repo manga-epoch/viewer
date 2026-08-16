@@ -90,6 +90,7 @@ body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Int
  pointer-events:none; z-index:5; display:none }
 .fig-pager .fp-ico:hover::after, .fig-pager .fp-ico:focus-visible::after { display:block }
 .fig-pager .fp-comm::after { left:0; transform:none }
+.fig-pager .fp-ico:last-child::after { left:auto; right:0; transform:none }
 .back-link .fig-pager .fp-ico::after { bottom:auto; top:calc(100% + 6px) }
 .fig-grid { max-width:820px; margin:28px auto; padding:0 20px; display:grid; grid-template-columns:1fr; gap:14px }
 .fig-card { background:#fff; border:1px solid #E4E1D8; border-radius:12px; overflow:hidden; transition:transform .15s,border-color .15s,box-shadow .15s }
