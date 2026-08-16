@@ -114,6 +114,11 @@ table.tt td.y1{background:rgba(91,124,153,.16);font-weight:700}
  color:var(--ink-sub);margin-top:10px}
 .readout b{color:var(--ink)}
 .fig-legend{font-size:12.5px;color:var(--ink-muted);text-align:center;margin:2px 0 0}
+/* 分けられたかどうかを、文章の前に大きく出す（「何が OK か分からない」への対応） */
+.vd{display:inline-block;font-weight:700;font-size:14px;padding:8px 18px;border-radius:8px;
+ margin:6px 0 2px}
+.vd.ok{background:rgba(21,128,61,.12);color:#15803d;border:1px solid rgba(21,128,61,.35)}
+.vd.ng{background:rgba(180,73,63,.10);color:#b4493f;border:1px solid rgba(180,73,63,.3)}
 .lg-dot{display:inline-block;width:11px;height:11px;border-radius:50%;
  border:1.6px solid #1a1a1a;background:#fff;margin:0 6px 0 16px;vertical-align:-1px}
 .lg-dot:first-child{margin-left:0}
@@ -217,6 +222,14 @@ input[type=range]{accent-color:var(--arc)}
 <p>1957 年のパーセプトロンは、答えだけを与えて重みを自分で直す。
 やり方は 1 つ——<b>間違えたときだけ、間違えた分だけ重みを動かす</b>。
 出したい答えが 1 なのに 0 を出したなら重みを増やし、逆なら減らす。それを繰り返す。</p>
+
+<p>いま機械が使っている式は、これ 1 本だけだ。動かしているのは
+$w_0, w_1, w_2$ の <b>3 つの数</b>（$w_0$ は閾値にあたる下駄）。</p>
+<div class="formula" id="f2"></div>
+
+<p class="note">下の図は<b>入力の 4 通り</b>を点で置いたもの。横が $x_1$、縦が $x_2$。
+線は、いまの重みで機械が引いている<b>境目</b>。線の上側で 1、下側で 0 を出す。</p>
+
 <div class="ctrls">
   <button class="btn" id="step2">▶ 1 回学習する</button>
   <button class="btn ghost" id="auto2">できるまで回す</button>
@@ -227,16 +240,29 @@ input[type=range]{accent-color:var(--arc)}
   </select></label>
 </div>
 <div id="v2"></div>
-<p class="fig-legend"><span class="lg-dot fill"></span>1 を出したい<span class="lg-dot"></span>0 を出したい<span class="lg-dot bad"></span>いま間違えている</p>
+<p class="fig-legend"><span class="lg-dot fill"></span>この入力では 1 と答えてほしい<span class="lg-dot"></span>この入力では 0 と答えてほしい<span class="lg-dot bad"></span>いま機械が違う答えを出している</p>
 <div class="readout" id="r2"></div>
+<div id="d2"></div>
 <p class="note">人が正解の重みを知っている必要はない。<b>合っているか間違っているかを言うだけ</b>で、
 重みは勝手に決まっていく。これが「学習」と呼ばれたものの中身だ。</p>
 </div>
 <div class="fig-stage" id="sec3">
 <h2>できないこと — 直線 1 本では分けられない</h2>
-<p>計算点 1 個がやっているのは、平面に<b>直線を 1 本引いて、上と下で答えを変える</b>ことだ。
-AND も OR も直線 1 本で分けられる。では XOR（どちらか一方だけが 1 のとき 1）はどうか。
-直線を回して、4 点を正しく分けられるか試してほしい。</p>
+
+<p><b>1. 計算点 1 個が引けるのは、直線 1 本だけ。</b>
+式は $w_0 + w_1 x_1 + w_2 x_2$ の足し算しかない。これが 0 になる場所は、平面では必ず
+<b>まっすぐな線</b>になる。曲げる手立てが式の中に無い。</p>
+
+<p><b>2. その線で、答えを 2 つに仕分ける。</b>
+線の片側なら 1、反対側なら 0。「これは A か B か」を決めるとは、
+つまり<b>境目を引くこと</b>だ。手書き数字が 3 か 8 か、メールが迷惑か否か——
+判断と呼ばれるものの多くは、この形に置き直せる。だから
+「どこに線を引けるか」が、そのまま<b>何を判断できるか</b>になる。</p>
+
+<p><b>3. 引ければ OK、引けなければ NG。</b>
+線を回し、ずらして、4 点を正しく分けられるか試してほしい。
+分けられたとき、その線がそのまま重み $w_1, w_2$ の答えになる。</p>
+
 <div class="ctrls">
   <label>直線の向き <input type="range" id="ang" min="0" max="179" value="45"></label>
   <span class="tag" id="angv">45°</span>
@@ -244,8 +270,10 @@ AND も OR も直線 1 本で分けられる。では XOR（どちらか一方�
   <button class="btn ghost" id="task3and">AND を分ける</button>
   <button class="btn ghost" id="task3xor">XOR を分ける</button>
 </div>
+<div id="verdict3"></div>
 <div id="v3"></div>
-<p class="fig-legend"><span class="lg-dot fill"></span>1 を出したい<span class="lg-dot"></span>0 を出したい<span class="lg-dot bad"></span>線の反対側にある</p>
+<p class="fig-legend"><span class="lg-dot fill"></span>この入力では 1 と答えてほしい<span class="lg-dot"></span>この入力では 0 と答えてほしい<span class="lg-dot bad"></span>線の反対側にあって答えを間違える</p>
+<div class="formula" id="f3"></div>
 <div class="readout" id="r3"></div>
 </div>
 <div class="back-link"><nav class="fig-pager"><a class="fp-prev" href="figures_turing.html">← チューリングテスト</a><a class="fp-comm" href="commentary.html#scene2">解説 Scene 2「パーセプトロンの興奮と絶望」へ</a><a class="fp-idx" href="figures.html">図解一覧</a><a class="fp-next" href="figures_mycin.html">MYCIN 推論 →</a></nav></div>
@@ -328,6 +356,18 @@ AND も OR も直線 1 本で分けられる。では XOR（どちらか一方�
     if(pts.length<2) return null;
     return [pts[0], pts[pts.length-1]];
   }
+  function sgn(v){ return (v>0?'+':'−')+Math.abs(v) }
+  /* ※ 「式が何で、重みが何か分からない」と言われた（読者の指摘）。
+        いまの 3 つの数を式に入れて、そのまま見せる。 */
+  function showForm2(){
+    $('#f2').innerHTML =
+      '<div style="font-size:15px">'+
+      '出力 y = 1（ <b>'+sgn(W[0])+' '+sgn(W[1])+'&thinsp;x₁ '+sgn(W[2])+'&thinsp;x₂</b> &gt; 0 のとき）'+
+      '、それ以外は 0</div>'+
+      '<div class="note" style="margin-top:6px">'+
+      'w₀ = <b>'+sgn(W[0])+'</b>　w₁ = <b>'+sgn(W[1])+'</b>　w₂ = <b>'+sgn(W[2])+'</b>'+
+      '　← 学習で動くのはこの 3 つだけ</div>';
+  }
   function draw2(msg){
     var g=[]; frame(g);
     var seg=clipLine(W[0],W[1],W[2]);
@@ -341,23 +381,27 @@ AND も OR も直線 1 本で分けられる。では XOR（どちらか一方�
              '" cx="'+SX(p[0])+'" cy="'+SY(p[1])+'" r="9"/>');
     });
     $('#v2').innerHTML=svg(520,250,g.join(''));
-    var ws='重み ('+W.map(function(v){return (v>0?'+':'')+v}).join(', ')+')';
+    showForm2();
     var out=[];
     if(msg) out.push(msg);
     if(!seg) out.push('いまの重みでは、境界線が図の外にある（4 点すべてが同じ側）。');
     out.push(wrong===0
-      ? '<b>4 つとも当たった。</b>学習は止まる——'+ws+'。誰も正解の重みを教えていない。'
-      : '<b>'+wrong+' 個</b>間違えている。'+ws+'。「▶ 1 回学習する」で直す。');
+      ? '<b>4 つとも当たった。</b>学習はここで止まる。誰も正解の重みを教えていない。'
+      : '<b>'+wrong+' 個</b>間違えている。「▶ 1 回学習する」で直す。');
     $('#r2').innerHTML=out.join(' ');
   }
+  /* どの重みをいくつ動かしたかを残す（「どこを直したか分からない」への対応） */
+  var lastDiff=null;
   function learn(){
     if(done) return false;
     var task=TASK[$('#task2').value], changed=false;
+    lastDiff=null;
     for(var i=0;i<IN.length;i++){
       var p=IN[i], want=task(p[0],p[1]), got=predict(p[0],p[1]);
       if(want!==got){
-        var d=want-got;
+        var d=want-got, before=W.slice();
         W[0]+=d; W[1]+=d*p[0]; W[2]+=d*p[1];
+        lastDiff={x:p, want:want, got:got, before:before, after:W.slice()};
         changed=true; break;                 /* 1 回に 1 個だけ直す（見えるように） */
       }
     }
@@ -365,19 +409,40 @@ AND も OR も直線 1 本で分けられる。では XOR（どちらか一方�
     if(!changed) done=true;
     return changed;
   }
+  function showDiff(){
+    if(!lastDiff){ $('#d2').innerHTML=''; return; }
+    var d=lastDiff, names=['w₀','w₁','w₂'], rows='';
+    for(var k=0;k<3;k++){
+      var moved=d.before[k]!==d.after[k];
+      rows+='<tr><td>'+names[k]+'</td><td>'+sgn(d.before[k])+'</td>'+
+        '<td>'+(moved?'→':'')+'</td>'+
+        '<td class="'+(moved?'y1':'')+'">'+sgn(d.after[k])+'</td>'+
+        '<td class="note">'+(moved?'動いた':'そのまま')+'</td></tr>';
+    }
+    $('#d2').innerHTML=
+      '<p class="note" style="margin-top:10px">入力 (x₁,x₂) = ('+d.x[0]+','+d.x[1]+') で、'+
+      '<b>'+d.want+'</b> と答えてほしいのに <b>'+d.got+'</b> と答えた。'+
+      'そこで重みをこう直した:</p>'+
+      '<table class="tt"><tr><th>重み</th><th>前</th><th></th><th>後</th><th>　</th></tr>'+
+      rows+'</table>'+
+      '<p class="note">動くのは、その入力が 1 だった重みだけ（x が 0 の側は掛けて 0 になるので動かない）。'+
+      'これが「間違えた分だけ動かす」の中身。</p>';
+  }
   function reset2(){
-    epoch++; done=false;
+    epoch++; done=false; lastDiff=null;
     W=[rnd(), rnd(), rnd()];
-    draw2('でたらめな重みから始める。');
+    draw2('でたらめな重みから始める。'); showDiff();
   }
   $('#step2').onclick=function(){
     var ch=learn();
     draw2(ch ? '間違えた 1 つを見て、重みを直した。' : '直すところが無い＝できあがり。');
+    showDiff();
   };
   $('#auto2').onclick=function(){ var n=0; while(learn()&&n<200) n++;
-    draw2('<b>'+n+' 回</b>直したら、間違いが無くなった。'); };
+    draw2('<b>'+n+' 回</b>直したら、間違いが無くなった。'); showDiff(); };
   $('#reset2').onclick=reset2;
-  $('#task2').onchange=function(){ done=false; draw2('教えたい論理を変えた。'); };
+  $('#task2').onchange=function(){ done=false; lastDiff=null;
+    draw2('教えたい論理を変えた。'); showDiff(); };
 
   /* ---------- ③ 直線 1 本の限界 ---------- */
   var task3='and';
@@ -385,8 +450,13 @@ AND も OR も直線 1 本で分けられる。では XOR（どちらか一方�
     var ang=+$('#ang').value, off=+$('#off').value;
     $('#angv').textContent=ang+'°';
     var g=[]; frame(g);
-    /* 向き ang・オフセット off の直線を、法線形式にしてから同じクリップに掛ける */
-    var rad=ang*Math.PI/180, nx=-Math.sin(rad), ny=Math.cos(rad);
+    /* 向き ang・オフセット off の直線を、法線形式にしてから同じクリップに掛ける。
+       ※ もとは nx=-sin(ang) だった。ang は 0〜179 なので sin は常に 0 以上、
+          つまり **w₁ が常に 0 以下**になり、「x₁ が大きいほど 1 に近づく」線を
+          1 本も引けなかった。結果、AND も OR も **どう回しても分けられない**
+          （総当たりで 0 通り）。「AND は分けられる」という節の主張が成立して
+          いなかったし、OK の状態を一度も見られなかった（読者の指摘の原因）。 */
+    var rad=ang*Math.PI/180, nx=Math.sin(rad), ny=Math.cos(rad);
     var w0=-(nx*0.5+ny*0.5) - off/300, w1=nx, w2=ny;
     var seg=clipLine(w0,w1,w2);
     if(seg) g.push('<path class="bd" d="M'+SX(seg[0][0])+' '+SY(seg[0][1])+
@@ -401,16 +471,35 @@ AND も OR も直線 1 本で分けられる。では XOR（どちらか一方�
     });
     $('#v3').innerHTML=svg(520,250,g.join(''));
     var name=task3.toUpperCase();
+    /* ※ 「何が OK の状態なのか分からない」と言われた（読者の指摘）。
+          分けられたかどうかを、文章の前に大きく出す。 */
+    $('#verdict3').innerHTML = wrong===0
+      ? '<div class="vd ok">OK — '+name+' は直線 1 本で分けられた</div>'
+      : '<div class="vd ng">NG — '+wrong+' 点が反対側にある（'+name+'）</div>';
+    /* 引いた線は、そのまま重みの答えになる。対応を見せる */
+    $('#f3').innerHTML =
+      '<div style="font-size:15px">いまの線 = <b>'+sgn3(w0)+' '+sgn3(w1)+'&thinsp;x₁ '+
+      sgn3(w2)+'&thinsp;x₂ = 0</b></div>'+
+      '<div class="note" style="margin-top:6px">'+
+      (wrong===0
+        ? 'つまり <b>w₁ = '+sgn3(w1)+'、w₂ = '+sgn3(w2)+'</b>（下駄 w₀ = '+sgn3(w0)+'）と'+
+          '決まれば、この論理は作れる。②の学習が探していたのは、この数だ。'
+        : 'この重みでは間違える。角度と位置を変えると、w₁ と w₂ が変わる。')+
+      '</div>';
     $('#r3').innerHTML = wrong===0
-      ? '<b>'+name+' は分けられた。</b>4 点が線の正しい側にそろっている。'
+      ? '4 点が線の正しい側にそろっている。'
       : (task3==='xor'
-          ? '<b>まだ '+wrong+' 点</b>が反対側にある。XOR は、どう回しても・どこへ動かしても'+
-            '<b>直線 1 本では分けられない</b>——●が対角、○が対角に置かれているからだ。'+
-            ' 計算点 1 個にできることは、ここまで。'
-          : '<b>'+wrong+' 点</b>が反対側にある。角度と位置を調整すれば分けられる。');
+          ? 'XOR は、どう回しても・どこへ動かしても<b>直線 1 本では分けられない</b>——'+
+            '●が対角、○が対角に置かれているからだ。'+
+            ' 計算点 1 個にできることは、ここまで。次に要るのは、線を 2 本以上引ける仕組み——層を重ねることだ。'
+          : '角度と位置を調整すれば分けられる。');
   }
+  function sgn3(v){ var r=Math.round(v*100)/100; return (r>=0?'+':'−')+Math.abs(r) }
   $('#ang').oninput=draw3; $('#off').oninput=draw3;
-  $('#task3and').onclick=function(){ task3='and'; draw3(); };
+  /* 押した瞬間の状態から始めると、いきなり OK だったり遠すぎたりして
+     「動かして OK にする」体験にならない。あと一歩の NG から始める。
+     AND は 45°/−60 が 2 点はずれ。位置スライダを右へ動かすと OK になる。 */
+  $('#task3and').onclick=function(){ task3='and'; $('#ang').value=45; $('#off').value=-60; draw3(); };
   $('#task3xor').onclick=function(){ task3='xor'; $('#ang').value=45; $('#off').value=0; draw3(); };
 
   draw1(); reset2(); draw3();
