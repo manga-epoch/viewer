@@ -190,7 +190,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="eyebrow">ARC 2 ／ SCENE 1 — 冬を越えた者たち</div>
 <h1>何を手がかりに学ぶのか</h1>
 <p>「機械が学ぶ」といっても、何を手がかりにするかで種類が分かれる。
-そして 2006 年、深い網を学習させる糸口になったのが<b>答えを使わない学習</b>だった。</p>
+そして 2006 年、深いニューラルネットを学習させる糸口になったのが<b>答えを使わない学習</b>だった。</p>
 </div>
 
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">手がかりの違い</a></li><li><a href="#sec2">事前学習</a></li></ol></nav>
@@ -210,7 +210,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 </div>
 <div class="fig-stage" id="sec2">
 <h2>事前学習 — 正解を使わない、層ごとの初期化</h2>
-<p>深い網をいきなり全部まとめて学習させると、奥まで信号が届かない。
+<p>深いニューラルネットをいきなり全部まとめて学習させると、奥まで信号が届かない。
 そこで層を一枚ずつ「入力を復元できるように」訓練し、良い初期値を作ってから積み上げる。</p>
 <div class="ctrls">
   <button class="btn" id="stack">1 枚積む</button>
@@ -221,7 +221,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="readout" id="r2"></div>
 <p class="note">左が<b>いま訓練している 1 枚</b>（オートエンコーダ）。入力を一度せまい層へ縮め、
 そこから元に戻せるかを見る。戻せたら、その縮める側の重みを「使える初期値」として採る。
-右は<b>積み上がった網</b>。1 枚ずつ初期値を入れてから、最後に答えを使って全体を微調整する。</p>
+右は<b>積み上がったニューラルネット</b>。1 枚ずつ初期値を入れてから、最後に答えを使って全体を微調整する。</p>
 <div class="formula">$\min_{f,g}\; \lVert x - g(f(x)) \rVert^2$
 <div class="note" style="margin-top:8px">$f$ は縮める側、$g$ は戻す側。
 <b>答え $y$ を一切使わず</b>、入力 $x$ を自分で復元できるかどうかだけを目標にする。
@@ -274,7 +274,7 @@ table{display:block;overflow-x:auto;max-width:100%}
   // ② 事前学習
   // ※ もとは灰色の帯が 1 本ずつ増えるだけで、何をしているのか分からなかった（読者の指摘）。
   //    左に「いま訓練している 1 枚」を**実際のニューロンの絵**（オートエンコーダ）で描き、
-  //    右に「積み上がった網」を描いて、両者の対応が見えるようにする。
+  //    右に「積み上がったニューラルネット」を描いて、両者の対応が見えるようにする。
   var n=0;
   function nodes(g,cx,ys,cls){
     ys.forEach(function(y){ g.push('<circle class="'+cls+'" cx="'+cx+'" cy="'+y+'" r="9"/>'); });
@@ -303,9 +303,9 @@ table{display:block;overflow-x:auto;max-width:100%}
     g.push('<text class="lb c" x="150" y="'+(cy+130)+'" style="font-size:11.5px">'
       + '同じになるように重みを直す（答え y は使わない）</text>');
 
-    /* ── 右: 積み上がった網 ── */
+    /* ── 右: 積み上がったニューラルネット ── */
     var BX=430, bw=200, base=232;
-    g.push('<text class="lb c" x="'+(BX+bw/2)+'" y="34">積み上がった網</text>');
+    g.push('<text class="lb c" x="'+(BX+bw/2)+'" y="34">積み上がったニューラルネット</text>');
     for(var i=0;i<4;i++){
       var built=i<n, y=base-i*46;
       var cls = !built ? 'box' : (pre?'box pre':'box on');

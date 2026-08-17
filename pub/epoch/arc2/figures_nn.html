@@ -177,13 +177,13 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="fig-topnav"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene1" data-t="巻末解説に戻る（Scene 1「冬を越えた者たち」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="#" data-t="前の図解はありません" aria-label="前の図解はありません" aria-disabled="true" tabindex="-1">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="../../../#buy" data-t="一つ後の図解へ（学び方の枠組み）" aria-label="一つ後の図解へ（学び方の枠組み）">&#9655;</a></nav></div>
 <div class="intro">
 <div class="eyebrow">EPOCH Arc 2 ・ Scene 1「冬を越えた者たち」</div>
-<h1>ニューラルネットの土台 — 1 個の点から、学習する網へ</h1>
+<h1>ニューラルネットの土台 — 1 個の点から、学習する仕組みへ</h1>
 <p>マンガ Scene 1 は「深くすれば賢くなるはずだった」ところから始まる。その「はず」を支える仕組みを、
 ここでは<strong>記号と式</strong>で辿る。1 個の計算点 (パーセプトロン) に始まり、層を重ね、
 <strong>活性化関数</strong>で非線形をはさみ、<strong>誤差逆伝播法</strong>で重みを直す ――
 そして、その逆伝播が深いネットで<strong>消えてしまう</strong>ところまで。
-この先の節は<strong>ひとつの同じ網</strong>を使い回す。順に流し、活性化関数を差し替え、逆向きに辿り、
-最後に同じ網を深くする。絵の読み方を 1 回おぼえれば、最後まで持つ。</p>
+この先の節は<strong>ひとつの同じニューラルネット</strong>を使い回す。順に流し、活性化関数を差し替え、逆向きに辿り、
+最後に同じニューラルネットを深くする。絵の読み方を 1 回おぼえれば、最後まで持つ。</p>
 </div>
 
 <style>
@@ -257,7 +257,7 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 </div>
 
 <div class="fig-stage" id="sec2">
-<h2>多層パーセプトロン（MLP） — 同じ網の積み重ね</h2>
+<h2>多層パーセプトロン（MLP） — 計算点を層にして重ねる</h2>
 <div class="lead">計算点を並べて層にし、層を重ねる。第 $m$ 層の $j$ 番目から $i$ 番目へ向かう重みを
 $w^{(m)}_{ij}$ と書く。
 辺の数字が重み、丸の中の数字がその計算点がいま出している値。$x_1, x_2$ を動かすと、値が左から右へ更新される。</div>
@@ -291,7 +291,7 @@ $y_1$ と $y_2$ の<strong>差</strong>で、境目は $y_1 = y_2$ の線にな�
 
 <div hidden>
 <!-- 巻末解説へ配る静止版（extract_nn_svgs.py が data-fig で拾う）。
-     図解ページ上では上の動的な網が同じ役目を果たすので、ここでは表示しない。 -->
+     図解ページ上では上の動的なニューラルネットが同じ役目を果たすので、ここでは表示しない。 -->
 <svg width="330" height="240" viewBox="0 0 330 240" data-fig="nn_mlp">
   <text x="16" y="16" font-size="12" fill="#9A9488">入力層</text>
   <text x="128" y="16" font-size="12" fill="#9A9488">中間層</text>
@@ -351,7 +351,7 @@ $y_1$ と $y_2$ の<strong>差</strong>で、境目は $y_1 = y_2$ の線にな�
 <h2>活性化関数 — 入力と重みを固定した、$h$ の比較</h2>
 
 <div class="formula" style="background:rgba(180,73,63,.07);border-color:rgba(180,73,63,.3);text-align:left">
-<b style="color:#b4493f">ここまでの網は、何層積んでもずっと 1 次式のまま。</b>
+<b style="color:#b4493f">ここまでのニューラルネットは、何層積んでもずっと 1 次式のまま。</b>
 <div class="note" style="margin-top:8px">1 次式に 1 次式を代入しても、出てくるのはまた 1 次式。
 $$W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2 = (W_2W_1)\mathbf{x} + (W_2\mathbf{b}_1+\mathbf{b}_2)$$
 だから前の節の境界も<strong>まっすぐな 1 本</strong>だった。層を足しても曲がらない。</div>
@@ -424,7 +424,7 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 </div>
 <div class="readout" id="xOut"></div>
 <p class="note">※ 右の XOR ネットだけは、$h$ ごとに通る重みが違う（大きな重みは ReLU では飽和しないため）。
-上の網とは別物で、<strong>「非線形をはさめば曲がった境界が引ける」</strong>ことだけを見せている。</p>
+上のニューラルネットとは別物で、<strong>「非線形をはさめば曲がった境界が引ける」</strong>ことだけを見せている。</p>
 
 <div class="formula" style="background:rgba(180,73,63,.07);border-color:rgba(180,73,63,.3)">
 <b style="color:#b4493f">この多層ニューラルネットを、効率的に学習する仕組みが必要！</b>
@@ -435,7 +435,7 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 <h2>誤差逆伝播法（Back Propagation） — 出力側からの勾配の伝達</h2>
 <div class="lead">「出力 $y$ と正解値 $\hat{y}$ の差分を最小化する」とはどういうことか。
 差を 1 つの数にまとめたものが<strong>損失関数</strong> $L$ で、これを重みについて最小化する問題を解く。
-下は<strong>同じ網</strong>。ただし信号は右から左へ流れる。</div>
+下は<strong>同じニューラルネット</strong>。ただし信号は右から左へ流れる。</div>
 
 <div class="formula">
 例. 二乗和誤差 $$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
@@ -454,7 +454,7 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 
 <h3>重みの更新</h3>
 <div class="lead">$\partial L/\partial w$ が分かれば、$L$ が減る向きへ重みをずらせる。
-実際にずらすと、前の 2 つの節の図の辺の数字も同時に変わる ―― 同じ 1 つの網だから。</div>
+実際にずらすと、前の 2 つの節の図の辺の数字も同時に変わる ―― 同じ 1 つのニューラルネットだから。</div>
 <div class="ctrls">
   <button class="btn" id="trOne">1 回更新する</button>
   <button class="btn" id="trTen">10 回まとめて</button>
@@ -469,7 +469,7 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 <h2>勾配消失 — 層が深いほど手前へ届かなくなる勾配</h2>
 <div class="lead">連鎖律は掛け算の連なりだから、1 層さかのぼるたびに活性化関数の微分 $h'(m)$ が掛かる。
 Sigmoid の微分は<strong>どんなに大きくても 0.25</strong>。掛け続ければ、指数的に小さくなる。
-下は同じ網を深くしたもの（2-3-3-3-3-2）。<strong>「活性化関数」の節で選んだ $h$ が、そのまま減り方を決める</strong>。</div>
+下は同じニューラルネットを深くしたもの（2-3-3-3-3-2）。<strong>「活性化関数」の節で選んだ $h$ が、そのまま減り方を決める</strong>。</div>
 
 <div class="hbadge">いまの活性化関数 <b id="hb3">なし</b> ・「活性化関数」の節を切り替えて、届き方の違いを見る</div>
 <div class="nnfig wide"><svg id="dpSvg" width="470" height="226" viewBox="0 0 470 226"></svg></div>
@@ -622,7 +622,7 @@ function xnet(x1,x2,f,k){
   function H(z){return ACTS[HK].f(z);}
   function HD(z){return ACTS[HK].d(z);}
 
-  // ---- 網の幾何。②③④は 2-3-2、⑤は 2-3-3-3-3-2。描き手は下の renderNet ひとつ。
+  // ---- ニューラルネットの幾何。②③④は 2-3-2、⑤は 2-3-3-3-3-2。描き手は下の renderNet ひとつ。
   // ※ 縦の間隔は**列ごとに**変える。丸の下の注記（m=… / 正解 …）と、その下の丸の名前
   //   （n₂ / y₂）が同じ隙間を取り合って重なるため。丸の直径 42 に対して隙間 36 では、
   //   注記(+36)と次の名前(−29)が 13 しか離れず、実測で文字がぶつかった。
@@ -639,7 +639,7 @@ function xnet(x1,x2,f,k){
   }
 
   // ※ 辺のラベルは **t（辺上の位置）を送り元ごとにずらして**置く。同じ t に置くと
-  //   左右対称な網では中央で必ず重なる（x₁→n₂ と x₂→n₁ の中点が一致する）。
+  //   左右対称なニューラルネットでは中央で必ず重なる（x₁→n₂ と x₂→n₁ の中点が一致する）。
   //   下の T0/T1 は「隣り合うラベルが x で 43 単位以上離れるか、y で 20 単位以上離れる」
   //   ことを 12 本すべてについて実測して決めた値。数字の桁を増やすと崩れる。
   var T0=[0.42,0.76];
@@ -700,7 +700,7 @@ function xnet(x1,x2,f,k){
         fill:MUTED},labs[i]));
   }
 
-  // ---- ②〜④ が共有する網（入力 2 → 中間 3 → 出力 2）
+  // ---- ②〜④ が共有するニューラルネット（入力 2 → 中間 3 → 出力 2）
   var G=geom([2,3,2],470,160,[78,92,116],21,44), VH=316, CAPY=306, HEADY=18;
   var W1_0=[[1.2,-0.8],[-0.5,1.4],[0.9,0.7]], B1_0=[0.3,-0.2,-0.6];
   var W2_0=[[1.1,-0.9,0.6],[-0.7,1.2,0.8]],   B2_0=[0.1,-0.3];
@@ -793,7 +793,7 @@ function xnet(x1,x2,f,k){
 
   // ---- ② の続き。出口が 2 つのとき境界がどう出るか（読者の問い）。
   // 答えは「大きいほうの番号」なので、絵に出るのは y₁ − y₂ の符号＝ y₁ = y₂ の線。
-  // ここは恒等のままの網なので collapse()（1 次式への畳み込み）がそのまま使える。
+  // ここは恒等のままのニューラルネットなので collapse()（1 次式への畳み込み）がそのまま使える。
   function drawMlpRegion(){
     var svg=g('mlpSvg'); if(!svg) return;
     var L=collapse(), R=1.5, pad=26, S=300, WD=S-pad*2;
@@ -802,7 +802,7 @@ function xnet(x1,x2,f,k){
       return (L[0][0]*a+L[0][1]*b+L[0][2]) > (L[1][0]*a+L[1][1]*b+L[1][2]) ? 1 : 0;
     };
     plot(svg,[],d);
-    // いまのスライダの位置を重ねる。図と上の網が同じ 1 点を指していることを見せる
+    // いまのスライダの位置を重ねる。図と上のニューラルネットが同じ 1 点を指していることを見せる
     var ux=(XIN[0]+R)/(2*R), uy=(XIN[1]+R)/(2*R);
     svg.appendChild(el('circle',{cx:pad+ux*WD,cy:S-pad-uy*WD,r:7,
       fill:'#fff',stroke:'#1A1A1A','stroke-width':2}));
@@ -839,7 +839,7 @@ function xnet(x1,x2,f,k){
   }
   bindX('x1','x1V',0); bindX('x2','x2V',1);
 
-  // ---- ③ 活性化関数（同じ網・同じ入力・同じ重みのまま h だけ差し替える）
+  // ---- ③ 活性化関数（同じニューラルネット・同じ入力・同じ重みのまま h だけ差し替える）
   function drawAc(){
     var f=fwd(), mx=Math.max(1e-9,Math.max.apply(null,f.n.map(Math.abs)));
     var my=Math.max(1e-9,Math.max.apply(null,f.y.map(Math.abs)));
@@ -920,7 +920,7 @@ function xnet(x1,x2,f,k){
       : 'h = '+ACTS[HK].nm+' ・ 正解率 '+Math.round(acc*100)+'%  →  曲がった境界が引けるので XOR を分けられる。';
   }
 
-  // ---- ④ 逆伝播（同じ網を右から左へ）
+  // ---- ④ 逆伝播（同じニューラルネットを右から左へ）
   var bstage=0, bwTimer=null;
   function drawBw(){
     var b=bwd(), f=b.f;
@@ -993,7 +993,7 @@ function xnet(x1,x2,f,k){
   g('trTen').addEventListener('click',function(){ train(10); redraw(); });
   g('trReset').addEventListener('click',function(){ resetW(); redraw(); });
 
-  // ---- ⑤ 勾配消失（同じ網を深くしたもの。描き手は renderNet で共通）
+  // ---- ⑤ 勾配消失（同じニューラルネットを深くしたもの。描き手は renderNet で共通）
   var DSHAPE=[2,3,3,3,3,2], DW=[], DB=[];
   (function(){
     // ※ 乗算が 2^53 を超えると桁が落ちて再現しなくなるので Lehmer 乗算器を使う
@@ -1071,10 +1071,10 @@ function xnet(x1,x2,f,k){
                 : ratio>0.05? '   ← 減ってはいるが、まだ届いている'
                 :             '   ← ほとんど何も届いていない ＝ 勾配消失';
     var tail = (HK==='none')
-      ? '\n※ h なしでは信号は消えない。ただし ③ のとおり、この網は何層積んでも 1 次式のまま。\n  「消えない」と「学べる」は別の話。'
+      ? '\n※ h なしでは信号は消えない。ただし ③ のとおり、このニューラルネットは何層積んでも 1 次式のまま。\n  「消えない」と「学べる」は別の話。'
       : (HK==='sigmoid'
-         ? '\n※ 1 層ごとに h\u2032(m) ≤ 0.25 が掛かる。これが 2000 年代に深い網を止めていた壁。'
-         : '\n※ ③ でシグモイドに戻すと、同じ網・同じ重みのまま届き方だけが変わる。');
+         ? '\n※ 1 層ごとに h\u2032(m) ≤ 0.25 が掛かる。これが 2000 年代に深いニューラルネットを止めていた壁。'
+         : '\n※ ③ でシグモイドに戻すと、同じニューラルネット・同じ重みのまま届き方だけが変わる。');
     g('dpOut').textContent =
       'h = '+ACTS[HK].nm+'    h\u2032(x) の最大値 = '+ACTS[HK].dmax+'\n'
       +'出口に生まれた信号 '+nf(d.rms[n-1])+' が、5 層さかのぼって入口では '+nf(d.rms[0])+'\n'
