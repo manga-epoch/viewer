@@ -182,8 +182,21 @@ table{display:block;overflow-x:auto;max-width:100%}
 ここでは<strong>記号と式</strong>で辿る。1 個の計算点 (パーセプトロン) に始まり、層を重ね、
 <strong>活性化関数</strong>で非線形をはさみ、<strong>誤差逆伝播法</strong>で重みを直す ――
 そして、その逆伝播が深いネットで<strong>消えてしまう</strong>ところまで。
-この先の節は<strong>ひとつの同じニューラルネット</strong>を使い回す。順に流し、活性化関数を差し替え、逆向きに辿り、
-最後に同じニューラルネットを深くする。絵の読み方を 1 回おぼえれば、最後まで持つ。</p>
+①〜⑤ は<strong>同じ 1 つのニューラルネット</strong>を、見る向きを変えながら追っていく。
+どこかで重みを動かすと、ほかの節の図の数字も一緒に動く。</p>
+
+<h2 style="font-size:1.05rem;margin:26px 0 6px">なぜ「分ける」なのか</h2>
+<p>この先ずっと「分ける」の話をする。先にその理由を書いておく。<br>
+機械にできるのは<strong>数を計算すること</strong>だけで、「猫」も「迷惑メール」も直接は分からない。
+そこで、対象を<strong>数の並び</strong>にしてしまう ―― 画像なら画素の明るさ、メールなら単語の出現回数。
+すると 1 つ 1 つの対象が、数の空間の中の<strong>1 点</strong>になる。<br>
+ここまで来ると、「これは猫か」という問いは
+<strong>「この点は、猫の点が集まっている側にあるか」</strong>という問いに化ける。
+つまり<strong>判断すること＝空間を分けること</strong>だ。手書き数字の判別も、翻訳の次の 1 語選びも、
+囲碁の一手選びも、突き詰めれば「候補の空間をどこで区切るか」に行きつく。<br>
+だから、この図解はまず<strong>分ける線を引く</strong>ところから始める。
+最初の図は入力が 2 つ（$x_1, x_2$）の場合で、1 点が 1 つの対象、色が正解の側を表す。
+現実の入力は何万次元にもなるが、やっていることは同じ。</p>
 </div>
 
 <style>
@@ -199,14 +212,22 @@ table{display:block;overflow-x:auto;max-width:100%}
 @media(prefers-reduced-motion:reduce){.nnf,.nnfr{animation:none}}
 .fig-stage .formula{overflow-x:auto}
 .statfig{width:100%;max-width:420px;height:auto}
+/* ④ の「1〜4 を繰り返すだけ」を、番号付きの札で見せる */
+.steps{display:grid;gap:8px;margin:14px 0 4px}
+.steps .step{border:1px solid var(--border);border-left:3px solid var(--link);border-radius:8px;
+ padding:10px 14px;font-size:13.5px;line-height:1.85;color:var(--ink-sub);background:#fff}
+.steps .step b{display:block;color:var(--ink);font-size:14px;margin-bottom:2px}
 @media(max-width:520px){.nnfig{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
 </style>
 
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">パーセプトロン</a></li><li><a href="#sec2">多層パーセプトロン（MLP）</a></li><li><a href="#sec3">活性化関数</a></li><li><a href="#sec4">誤差逆伝播法（Back Propagation）</a></li><li><a href="#sec5">勾配消失</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>パーセプトロン — バイアスを含めた重み付き和</h2>
-<div class="lead">入力に重みを掛けて足し、閾値を超えたら 1 を出す。これが計算点 1 個の全部。
-バイアス $b$ は「つねに 1 を入れる入力」の重みだと考えると、式が 1 本にまとまる。</div>
+<div class="lead">1 個の計算点がやることは、次の 2 つだけ。
+<strong>(1) 入力それぞれに重みを掛けて足す。(2) その和が 0 以上なら 1、そうでなければ 0 を出す。</strong>
+掛ける数（重み $w$）を変えると、引ける境界の<strong>向き</strong>が変わり、
+足す数（バイアス $b$）を変えると境界の<strong>位置</strong>がずれる。
+$b$ は「つねに 1 を入れる入力」への重みだと考えると、式が 1 本にまとまる。</div>
 
 <div class="grid-wrap">
 <div>
@@ -260,16 +281,22 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 <h2>多層パーセプトロン（MLP） — 計算点を層にして重ねる</h2>
 <div class="lead">計算点を並べて層にし、層を重ねる。第 $m$ 層の $j$ 番目から $i$ 番目へ向かう重みを
 $w^{(m)}_{ij}$ と書く。
-辺の数字が重み、丸の中の数字がその計算点がいま出している値。$x_1, x_2$ を動かすと、値が左から右へ更新される。</div>
+辺の数字が重み、丸の中の数字がその計算点がいま出している値。
+下のつまみで<strong>重み</strong>を動かすと、値が左から右へ更新される（入力は $x_1=-0.40,\; x_2=0.80$ に固定）。</div>
 
 <div class="nnfig wide"><svg id="fwSvg" width="470" height="316" viewBox="0 0 470 316"></svg></div>
 
 <div class="ctrls">
-  <div class="ctrl" style="flex:1;min-width:150px"><label>$x_1$ <span class="val" id="x1V">-0.40</span></label>
-    <input type="range" id="x1" min="-15" max="15" step="1" value="-4"></div>
-  <div class="ctrl" style="flex:1;min-width:150px"><label>$x_2$ <span class="val" id="x2V">0.80</span></label>
-    <input type="range" id="x2" min="-15" max="15" step="1" value="8"></div>
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(2)}_{11}$ <span class="val" id="u1V">1.10</span></label>
+    <input type="range" id="u1" min="-60" max="60" step="1" value="11"></div>
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(2)}_{21}$ <span class="val" id="u2V">-0.90</span></label>
+    <input type="range" id="u2" min="-60" max="60" step="1" value="-9"></div>
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(2)}_{31}$ <span class="val" id="u3V">0.60</span></label>
+    <input type="range" id="u3" min="-60" max="60" step="1" value="6"></div>
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$b^{(2)}_{1}$ <span class="val" id="u4V">0.10</span></label>
+    <input type="range" id="u4" min="-60" max="60" step="1" value="1"></div>
   <button class="btn" id="fwPlay">▶ 左から順に流す</button>
+  <button class="btn ghost" id="fwReset">重みを初期値に戻す</button>
 </div>
 <div class="readout" id="fwOut"></div>
 
@@ -278,16 +305,28 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad
 y_k = \textstyle\sum_j w^{(2)}_{jk}m_j + b^{(2)}_k$$
 </div>
 
-<h3>出力が 2 つある。境界はどこに出るのか</h3>
-<div class="lead">最初の節では出口が $y$ 1 個で、絵は「$y$ が閾値を超えるか」の 1 本の線だった。
-ここでは出口が $y_1, y_2$ の 2 個ある。<strong>答えは「大きいほうの番号」</strong>——だから絵に出るのは
-$y_1$ と $y_2$ の<strong>差</strong>で、境目は $y_1 = y_2$ の線になる。
-2 つなら線は 1 本に戻り、出口を 3 つに増やせば領域は 3 つに分かれる。</div>
+<h3>では、この多層パーセプトロンは「分けられる」か</h3>
+<div class="lead">① とまったく同じ問いを、同じデータで解かせてみる。出口が 2 つあるので、
+答えは<strong>「$y_1$ と $y_2$ の大きいほう」</strong>。したがって境界は $y_1 = y_2$ の線になる。
+上の 4 つのつまみ（重み）を動かして、点を正しく分けられるか試してほしい。</div>
 <div style="text-align:center;margin:14px 0 4px">
 <svg id="mlpSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
-<div class="gcap">青 = $y_1$ が大きい領域 ／ 赤 = $y_2$ が大きい領域。◎ がいまの $(x_1, x_2)$</div>
+<div class="gcap">青 = $y_1$ が大きい側 ／ 赤 = $y_2$ が大きい側</div>
+</div>
+<div class="chips">
+  <span class="chip on" data-ds2="easy">かんたんな例</span>
+  <span class="chip" data-ds2="xor">XOR（排他的論理和）</span>
 </div>
 <div class="readout" id="mlpOut"></div>
+
+<div class="formula" style="background:rgba(180,73,63,.07);border-color:rgba(180,73,63,.3);text-align:left">
+<b style="color:#b4493f">層を重ねたのに、引ける境界は「まっすぐな 1 本」のまま。</b>
+<div class="note" style="margin-top:8px">重み付きの和は 1 次式。1 次式に 1 次式を代入しても、出てくるのはまた 1 次式だからだ。
+$$W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2 = (W_2W_1)\mathbf{x} + (W_2\mathbf{b}_1+\mathbf{b}_2)$$
+3 層ぶんの計算が、入力 2 個の 1 次式にぴたりと一致する（上の読み取りに実際の式が出ている）。
+だから XOR は、重みをどう動かしても 75% で頭打ちになる。<strong>層を積むだけでは表現力は増えない。</strong>
+—— では、何を足せばよいのか。それが次の節。</div>
+</div>
 
 <div hidden>
 <!-- 巻末解説へ配る静止版（extract_nn_svgs.py が data-fig で拾う）。
@@ -348,21 +387,13 @@ $y_1$ と $y_2$ の<strong>差</strong>で、境目は $y_1 = y_2$ の線にな�
 </div>
 
 <div class="fig-stage" id="sec3">
-<h2>活性化関数 — 入力と重みを固定した、$h$ の比較</h2>
+<h2>活性化関数 — 非線形をはさむと、何が変わるか</h2>
 
-<div class="formula" style="background:rgba(180,73,63,.07);border-color:rgba(180,73,63,.3);text-align:left">
-<b style="color:#b4493f">ここまでのニューラルネットは、何層積んでもずっと 1 次式のまま。</b>
-<div class="note" style="margin-top:8px">1 次式に 1 次式を代入しても、出てくるのはまた 1 次式。
-$$W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2 = (W_2W_1)\mathbf{x} + (W_2\mathbf{b}_1+\mathbf{b}_2)$$
-だから前の節の境界も<strong>まっすぐな 1 本</strong>だった。層を足しても曲がらない。</div>
-</div>
-<p class="note"><b>確かめてみる:</b> 最初の節（パーセプトロン）の図で「XOR」を選び、3 つのつまみをどう動かしても
-4 点すべてを正しく分けられないことを試してほしい。層をいくら足しても結果は同じ。</p>
-
-<div class="lead">そこで、層と層のあいだに<strong>非線形な関数 $h(\cdot)$ を 1 つはさむ</strong>。
-中間層の値は、重み付きの和 $m_j$ をそのまま渡すのではなく $n_j = h(m_j)$ になる。
-重みも入力も前の節のまま、$h$ だけを取り替えて、丸の中の数字がどう変わるかを見比べる。
-「なし（恒等）」は $h$ を入れない状態＝前の節そのもので、3 層が 1 本の 1 次式に潰れていることが数字で出る。</div>
+<div class="lead">前の節で行き止まりになった理由は「重み付きの和は 1 次式」だから。
+そこで、層と層のあいだに<strong>非線形な関数 $h(\cdot)$ を 1 つはさむ</strong>。
+中間層の値は、和 $m_j$ をそのまま渡すのではなく $n_j = h(m_j)$ になる。
+$h$ を取り替えると丸の中の数字がどう変わるか、入口側の重みを動かすと $m$ ごとどう動くかを見比べる。
+「なし（恒等）」は $h$ を入れない状態＝前の節そのもの。</div>
 
 <div class="formula">
 $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
@@ -376,6 +407,18 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 </div>
 
 <div class="nnfig wide"><svg id="acSvg" width="470" height="316" viewBox="0 0 470 316"></svg></div>
+
+<div class="ctrls">
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{11}$ <span class="val" id="v1V">1.20</span></label>
+    <input type="range" id="v1" min="-60" max="60" step="1" value="12"></div>
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{12}$ <span class="val" id="v2V">-0.80</span></label>
+    <input type="range" id="v2" min="-60" max="60" step="1" value="-8"></div>
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$b^{(1)}_{1}$ <span class="val" id="v3V">0.30</span></label>
+    <input type="range" id="v3" min="-60" max="60" step="1" value="3"></div>
+  <button class="btn ghost" id="acReset">重みを初期値に戻す</button>
+</div>
+<p class="note">つまみは $n_1$ に入る 3 本の重み。$m_1$ が動き、$h$ の形に沿って $n_1$ が決まる。
+$h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイドなら大きく振っても $0 \sim 1$ に押し込まれる。</p>
 <div class="readout" id="acOut"></div>
 
 <div style="text-align:center;margin:18px 0 6px">
@@ -432,15 +475,27 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 </div>
 
 <div class="fig-stage" id="sec4">
-<h2>誤差逆伝播法（Back Propagation） — 出力側からの勾配の伝達</h2>
-<div class="lead">「出力 $y$ と正解値 $\hat{y}$ の差分を最小化する」とはどういうことか。
-差を 1 つの数にまとめたものが<strong>損失関数</strong> $L$ で、これを重みについて最小化する問題を解く。
-下は<strong>同じニューラルネット</strong>。ただし信号は右から左へ流れる。</div>
+<h2>誤差逆伝播法（Back Propagation） — 出口のズレから重みを直す</h2>
+<div class="lead">重みは最初どれもでたらめで、当然まちがった答えを出す。それを<strong>正解に近づける手続き</strong>が
+誤差逆伝播法で、次の 4 つを何度も繰り返すだけ。</div>
+
+<div class="steps">
+<div class="step"><b>1. 前へ計算する</b>入力を左から右へ流して、いまの重みでの答え $y$ を出す。</div>
+<div class="step"><b>2. 正解とのズレを測る</b>正解 $\hat{y}$ との差を 1 つの数にまとめる。これが<strong>損失</strong> $L$。</div>
+<div class="step"><b>3. ズレを上流へ配る</b>出口のズレを、通ってきた辺をさかのぼって「どの重みがどれだけ悪かったか」に割り振る。
+これが $\partial L/\partial w$。</div>
+<div class="step"><b>4. 重みを直す</b>悪かったぶんだけ、$L$ が<strong>減る向き</strong>へ重みをずらす。そして 1. に戻る。</div>
+</div>
 
 <div class="formula">
-例. 二乗和誤差 $$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
-\frac{\partial L}{\partial w}=\frac{\partial L}{\partial y}\cdot\frac{\partial y}{\partial m}\cdot\frac{\partial m}{\partial w}$$
+$$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
+\frac{\partial L}{\partial w}=\frac{\partial L}{\partial y}\cdot\frac{\partial y}{\partial m}\cdot\frac{\partial m}{\partial w}
+\qquad w \leftarrow w - \eta\,\frac{\partial L}{\partial w}$$
 </div>
+
+<p class="note">3 の「割り振る」は掛け算の連なり（連鎖律）でできている。
+1 層さかのぼるたびに、その層の重み $w$ と活性化関数の微分 $h'(m)$ が掛かる。
+下の図はその 3 の様子で、<strong>信号だけが右から左へ流れる</strong>（ニューラルネット自体は同じもの）。</p>
 
 <div class="hbadge">いまの活性化関数 <b id="hb2">なし</b> ・ 出口のズレから 1 層ずつ上流へ戻す</div>
 <div class="nnfig wide"><svg id="bwSvg" width="470" height="316" viewBox="0 0 470 316"></svg></div>
@@ -452,15 +507,21 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 </div>
 <div class="readout" id="bwOut" style="min-height:118px"></div>
 
-<h3>重みの更新</h3>
-<div class="lead">$\partial L/\partial w$ が分かれば、$L$ が減る向きへ重みをずらせる。
-実際にずらすと、前の 2 つの節の図の辺の数字も同時に変わる ―― 同じ 1 つのニューラルネットだから。</div>
+<h3>4. 重みを直す ―― 繰り返すと、答えは正解に届く</h3>
+<div class="lead">1〜4 を回すたびに $L$ が減り、出た答え $y$ が正解 $\hat{y}$ に寄っていく。
+これが「学習した」ということ。押して確かめてほしい。
+なお重みが動くと、前の節の図の辺の数字も同時に変わる ―― 同じ 1 つのニューラルネットだから。</div>
 <div class="ctrls">
-  <button class="btn" id="trOne">1 回更新する</button>
+  <button class="btn" id="trOne">1 回まわす</button>
   <button class="btn" id="trTen">10 回まとめて</button>
+  <button class="btn" id="trFit">正解に届くまで回す ▶</button>
   <button class="btn ghost" id="trReset">重みを初期値に戻す</button>
   <div class="ctrl" style="flex:1;min-width:170px"><label>一歩の大きさ $\eta$ <span class="val" id="lrV">0.10</span></label>
     <input type="range" id="lr" min="1" max="60" step="1" value="10"></div>
+</div>
+<div style="text-align:center;margin:14px 0 4px">
+<svg id="lossSvg" class="statfig" width="420" height="180" viewBox="0 0 420 180"></svg>
+<div class="gcap">回した回数（横）と損失 $L$（縦）。$L$ が 0 に近づくほど、答えは正解に一致している</div>
 </div>
 <div class="readout" id="trOut"></div>
 </div>
@@ -791,28 +852,32 @@ function xnet(x1,x2,f,k){
     drawMlpRegion();
   }
 
-  // ---- ② の続き。出口が 2 つのとき境界がどう出るか（読者の問い）。
-  // 答えは「大きいほうの番号」なので、絵に出るのは y₁ − y₂ の符号＝ y₁ = y₂ の線。
-  // ここは恒等のままのニューラルネットなので collapse()（1 次式への畳み込み）がそのまま使える。
+  // ---- ② の続き。① と同じ問い「分けられるか」を、同じデータで解かせる。
+  // 出口が 2 つなので答えは「大きいほう」＝境界は y₁ = y₂ の線。恒等のままなので
+  // collapse()（1 次式への畳み込み）がそのまま境界の式になる。
+  // ※ ① と同じ入力空間 [0,1]² で評価する。別の座標に写すと「同じ問い」でなくなる。
+  var curDs2='easy';
   function drawMlpRegion(){
     var svg=g('mlpSvg'); if(!svg) return;
-    var L=collapse(), R=1.5, pad=26, S=300, WD=S-pad*2;
+    var L=collapse();
     var d=function(u,v){
-      var a=-R+2*R*u, b=-R+2*R*v;
-      return (L[0][0]*a+L[0][1]*b+L[0][2]) > (L[1][0]*a+L[1][1]*b+L[1][2]) ? 1 : 0;
+      return (L[0][0]*u+L[0][1]*v+L[0][2]) > (L[1][0]*u+L[1][1]*v+L[1][2]) ? 1 : 0;
     };
-    plot(svg,[],d);
-    // いまのスライダの位置を重ねる。図と上のニューラルネットが同じ 1 点を指していることを見せる
-    var ux=(XIN[0]+R)/(2*R), uy=(XIN[1]+R)/(2*R);
-    svg.appendChild(el('circle',{cx:pad+ux*WD,cy:S-pad-uy*WD,r:7,
-      fill:'#fff',stroke:'#1A1A1A','stroke-width':2}));
-    svg.appendChild(el('circle',{cx:pad+ux*WD,cy:S-pad-uy*WD,r:2.6,fill:'#1A1A1A'}));
-    var f=fwd(true), win=f.y[0]>f.y[1]?1:2;
+    var acc=plot(svg,DS[curDs2],d);
+    var da=(L[0][0]-L[1][0]), db=(L[0][1]-L[1][1]), dc=(L[0][2]-L[1][2]);
     g('mlpOut').textContent =
-      'y₁ − y₂ = '+(L[0][0]-L[1][0]).toFixed(2)+'·x₁'+sgn(L[0][1]-L[1][1])+'·x₂'+sgn(L[0][2]-L[1][2])
-      +'\n境目は  y₁ − y₂ = 0  の直線。いま (x₁, x₂) = ( '+XIN[0].toFixed(2)+', '+XIN[1].toFixed(2)+' ) では '
-      +'y₁ = '+nf(f.y[0])+' , y₂ = '+nf(f.y[1])+'  ⇒  '+win+' 番と答える。';
+      '境界の式  y₁ − y₂ = '+da.toFixed(2)+'·x₁'+sgn(db)+'·x₂'+sgn(dc)+'  = 0'
+      +'\n正解率 '+Math.round(acc*100)+'%'
+      +(curDs2==='xor'
+        ? '\nXOR は、4 つのつまみをどう動かしても 75% を超えられない。境界が直線 1 本だから。'
+        : '\n直線 1 本で分けられる配置なら、つまみを合わせれば 100% にできる。');
   }
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-ds2]'),function(c){
+    c.addEventListener('click',function(){
+      document.querySelectorAll('.chip[data-ds2]').forEach(function(o){o.classList.remove('on');});
+      c.classList.add('on'); curDs2=c.getAttribute('data-ds2'); drawMlpRegion();
+    });
+  });
   function collapse(){
     // W2·W1 を実際に畳んで「1 次式に潰れる」ことを数字で見せる（h＝恒等のときだけ正しい）
     var out=[],k,i,j,s,c;
@@ -831,13 +896,35 @@ function xnet(x1,x2,f,k){
     fwTimer=setTimeout(go,700);
   }
   g('fwPlay').addEventListener('click',fwFlow);
-  function bindX(id,vid,idx){
+
+  // ※ ② のつまみは**入力ではなく重み**にした。読者の指摘:
+  //   「重みを学習させるのだから、重みを変化させるほうが理解としてよい」。
+  //   y₁ に入る 3 本の重みと、そのバイアス。これだけで境界（y₁ = y₂ の線）は
+  //   どんな直線にもできる（W1 の 3 行 + b の 3×3 行列が正則なため）。
+  function bindW(id,vid,get,set){
     g(id).addEventListener('input',function(e){
-      XIN[idx]=+e.target.value/10; g(vid).textContent=XIN[idx].toFixed(2);
-      fstage=2; redraw();
+      set(+e.target.value/10); g(vid).textContent=get().toFixed(2); fstage=2; redraw();
     });
   }
-  bindX('x1','x1V',0); bindX('x2','x2V',1);
+  bindW('u1','u1V',function(){return W2[0][0];},function(v){W2[0][0]=v;});
+  bindW('u2','u2V',function(){return W2[0][1];},function(v){W2[0][1]=v;});
+  bindW('u3','u3V',function(){return W2[0][2];},function(v){W2[0][2]=v;});
+  bindW('u4','u4V',function(){return B2[0];},   function(v){B2[0]=v;});
+  bindW('v1','v1V',function(){return W1[0][0];},function(v){W1[0][0]=v;});
+  bindW('v2','v2V',function(){return W1[0][1];},function(v){W1[0][1]=v;});
+  bindW('v3','v3V',function(){return B1[0];},   function(v){B1[0]=v;});
+  g('fwReset').addEventListener('click',function(){ resetW(); redraw(); });
+  g('acReset').addEventListener('click',function(){ resetW(); redraw(); });
+  // つまみの位置を、いまの重みに合わせ直す（学習ボタンや初期化でも重みは動く）
+  function syncW(){
+    var m=[['u1',W2[0][0]],['u2',W2[0][1]],['u3',W2[0][2]],['u4',B2[0]],
+           ['v1',W1[0][0]],['v2',W1[0][1]],['v3',B1[0]]];
+    m.forEach(function(p){
+      var s=g(p[0]); if(!s) return;
+      s.value=Math.max(-60,Math.min(60,Math.round(p[1]*10)));
+      g(p[0]+'V').textContent=p[1].toFixed(2);
+    });
+  }
 
   // ---- ③ 活性化関数（同じニューラルネット・同じ入力・同じ重みのまま h だけ差し替える）
   function drawAc(){
@@ -979,19 +1066,55 @@ function xnet(x1,x2,f,k){
   });
   g('lr').addEventListener('input',function(e){
     lr=+e.target.value/100; g('lrV').textContent=lr.toFixed(2); drawTr(); });
+  // 回すたびの L を憶えて折れ線にする。「繰り返すと誤差が減り、答えが正解に届く」を
+  // 言葉でなく形で見せるため（読者の指摘: そこが分からない）。
+  var LH=[fwd().L];
+  function drawLoss(){
+    var svg=g('lossSvg'); if(!svg) return;
+    svg.innerHTML='';
+    var W=420,H=180,pl=44,pr=12,pt=14,pb=28, iw=W-pl-pr, ih=H-pt-pb;
+    var top=Math.max.apply(null,LH.concat([1e-9])), n=LH.length;
+    var X=function(i){return pl + (n>1? iw*i/(n-1) : 0);};
+    var Y=function(v){return pt + ih*(1 - v/(top||1));};
+    svg.appendChild(el('line',{x1:pl,y1:pt+ih,x2:pl+iw,y2:pt+ih,stroke:'#E4E1D8'}));
+    svg.appendChild(el('line',{x1:pl,y1:pt,x2:pl,y2:pt+ih,stroke:'#E4E1D8'}));
+    svg.appendChild(el('text',{x:pl-6,y:pt+5,'font-size':11,fill:MUTED,'text-anchor':'end'},nf(top)));
+    svg.appendChild(el('text',{x:pl-6,y:pt+ih+4,'font-size':11,fill:MUTED,'text-anchor':'end'},'0'));
+    svg.appendChild(el('text',{x:pl+iw,y:H-8,'font-size':11,fill:MUTED,'text-anchor':'end'},
+      (n-1)+' 回まわした'));
+    svg.appendChild(el('text',{x:pl,y:H-8,'font-size':11,fill:MUTED},'0 回'));
+    if(n>1){
+      var dpt=[],i; for(i=0;i<n;i++) dpt.push(X(i)+','+Y(LH[i]));
+      svg.appendChild(el('polyline',{points:dpt.join(' '),fill:'none',stroke:ARC,'stroke-width':2}));
+    }
+    svg.appendChild(el('circle',{cx:X(n-1),cy:Y(LH[n-1]),r:4,fill:ARC}));
+  }
   function drawTr(){
-    var f=fwd();
+    var f=fwd(), near=Math.abs(f.y[0]-TGT[0])<0.05 && Math.abs(f.y[1]-TGT[1])<0.05;
     g('trOut').textContent =
-      '更新回数 '+epoch+'   η = '+lr.toFixed(2)+'\n'
-      +'y = '+vec(f.y)+'    正解 ŷ = '+vec(TGT,f2)+'    L = '+nf(f.L)+'\n'
+      '回した回数 '+epoch+'   η = '+lr.toFixed(2)+'\n'
+      +'出た答え y = '+vec(f.y)+'    正解 ŷ = '+vec(TGT,f2)+'    ズレ L = '+nf(f.L)+'\n'
       +'w⁽¹⁾ = '+vec(W1[0].concat(W1[1]).concat(W1[2]),f2)+'\n'
       +'w⁽²⁾ = '+vec(W2[0].concat(W2[1]),f2)
-      +(epoch?'\n※ ②③ の図の辺の数字も、同じだけ動いている。':'')
+      +(near?'\n※ y が ŷ とほぼ一致した。これが「学習が済んだ」状態。':'')
+      +(epoch&&!near?'\n※ 回すほど L が小さくなり、y が ŷ に寄っていく。②③ の図の辺の数字も同じだけ動いている。':'')
       +(diverged?'\n※ 発散したのでここで止めた。η が大きすぎると L は減らずに増え続ける。η を小さくして試す。':'');
+    drawLoss();
   }
-  g('trOne').addEventListener('click',function(){ train(1); redraw(); });
-  g('trTen').addEventListener('click',function(){ train(10); redraw(); });
-  g('trReset').addEventListener('click',function(){ resetW(); redraw(); });
+  function run(times){
+    var i; for(i=0;i<times;i++){ train(1); LH.push(fwd().L); if(diverged) break; }
+    if(LH.length>400) LH=LH.slice(LH.length-400);
+    redraw();
+  }
+  g('trOne').addEventListener('click',function(){ run(1); });
+  g('trTen').addEventListener('click',function(){ run(10); });
+  g('trFit').addEventListener('click',function(){
+    // 「正解に届く」まで回す。届かない設定（η が大きすぎる等）でも必ず止まるよう上限を置く
+    var i=0; while(i<600 && fwd().L>1e-4 && !diverged){ train(1); LH.push(fwd().L); i++; }
+    if(LH.length>400) LH=LH.slice(LH.length-400);
+    redraw();
+  });
+  g('trReset').addEventListener('click',function(){ resetW(); LH=[fwd().L]; redraw(); });
 
   // ---- ⑤ 勾配消失（同じニューラルネットを深くしたもの。描き手は renderNet で共通）
   var DSHAPE=[2,3,3,3,3,2], DW=[], DB=[];
@@ -1092,6 +1215,7 @@ function xnet(x1,x2,f,k){
     var A=ACTS[HK];
     // ※ hb1（② の節の活性化バッジ）は外した。② は恒等固定にしたので h を出さない。
     ['hb2','hb3'].forEach(function(id){var e=g(id); if(e) e.textContent=A.nm;});
+    syncW();
     drawFw(); drawAc(); drawX(); drawBw(); drawTr(); drawDeep();
     curve('sgSvg', A.f, A.yr[0], A.yr[1], null);
     curve('dsSvg', A.d, 0, 1, A.dmax);
