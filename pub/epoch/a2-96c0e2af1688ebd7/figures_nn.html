@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ニューラルネットの土台 — EPOCH Arc 2 図解</title>
+<title>ニューラルネット — 学習の仕組み — EPOCH Arc 2 図解</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
@@ -173,30 +173,14 @@ table{display:block;overflow-x:auto;max-width:100%}
 .fig-stage{scroll-margin-top:16px}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
-<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; ニューラルネットの土台</div>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; ニューラルネット — 学習の仕組み</div>
 <div class="fig-topnav"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene1" data-t="巻末解説に戻る（Scene 1「冬を越えた者たち」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="#" data-t="前の図解はありません" aria-label="前の図解はありません" aria-disabled="true" tabindex="-1">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_basis.html" data-t="一つ後の図解へ（学び方の枠組み）" aria-label="一つ後の図解へ（学び方の枠組み）">&#9655;</a></nav></div>
 <div class="intro">
 <div class="eyebrow">EPOCH Arc 2 ・ Scene 1「冬を越えた者たち」</div>
-<h1>ニューラルネットの土台 — 1 個の点から、学習する仕組みへ</h1>
-<p>マンガ Scene 1 は「深くすれば賢くなるはずだった」ところから始まる。その「はず」を支える仕組みを、
-ここでは<strong>記号と式</strong>で辿る。1 個の計算点 (パーセプトロン) に始まり、層を重ね、
-<strong>活性化関数</strong>で非線形をはさみ、<strong>誤差逆伝播法</strong>で重みを直す ――
-そして、その逆伝播が深いネットで<strong>消えてしまう</strong>ところまで。
-①〜⑤ は<strong>同じ 1 つのニューラルネット</strong>を、見る向きを変えながら追っていく。
-どこかで重みを動かすと、ほかの節の図の数字も一緒に動く。</p>
-
-<h2 style="font-size:1.05rem;margin:26px 0 6px">なぜ「分ける」なのか</h2>
-<p>この先ずっと「分ける」の話をする。先にその理由を書いておく。<br>
-機械にできるのは<strong>数を計算すること</strong>だけで、「猫」も「迷惑メール」も直接は分からない。
-そこで、対象を<strong>数の並び</strong>にしてしまう ―― 画像なら画素の明るさ、メールなら単語の出現回数。
-すると 1 つ 1 つの対象が、数の空間の中の<strong>1 点</strong>になる。<br>
-ここまで来ると、「これは猫か」という問いは
-<strong>「この点は、猫の点が集まっている側にあるか」</strong>という問いに化ける。
-つまり<strong>判断すること＝空間を分けること</strong>だ。手書き数字の判別も、翻訳の次の 1 語選びも、
-囲碁の一手選びも、突き詰めれば「候補の空間をどこで区切るか」に行きつく。<br>
-だから、この図解はまず<strong>分ける線を引く</strong>ところから始める。
-最初の図は入力が 2 つ（$x_1, x_2$）の場合で、1 点が 1 つの対象、色が正解の側を表す。
-現実の入力は何万次元にもなるが、やっていることは同じ。</p>
+<h1>ニューラルネット — 学習の仕組み</h1>
+<p>ニューラルネットは対象を<strong>数の並び</strong>にしてしまう ―― 画像なら画素の明るさ、
+メールなら単語の出現回数。すると、<strong>「この点は、正解が集まっている側にあるか」</strong>という問いになり、
+<strong>「判断すること＝空間を分けること」</strong>になる。</p>
 </div>
 
 <style>
@@ -212,11 +196,18 @@ table{display:block;overflow-x:auto;max-width:100%}
 @media(prefers-reduced-motion:reduce){.nnf,.nnfr{animation:none}}
 .fig-stage .formula{overflow-x:auto}
 .statfig{width:100%;max-width:420px;height:auto}
-/* ④ の「1〜4 を繰り返すだけ」を、番号付きの札で見せる */
-.steps{display:grid;gap:8px;margin:14px 0 4px}
-.steps .step{border:1px solid var(--border);border-left:3px solid var(--link);border-radius:8px;
- padding:10px 14px;font-size:13.5px;line-height:1.85;color:var(--ink-sub);background:#fff}
-.steps .step b{display:block;color:var(--ink);font-size:14px;margin-bottom:2px}
+/* ④ の 1〜4 を ◁ 現在地 ▷ で進退させる。工程は札ではなく図の中で見せる */
+.stepnav{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0 2px}
+.stepnav .ico{width:38px;height:34px;border:1px solid var(--border);border-radius:9px;background:#fff;
+ color:var(--ink);font-size:15px;line-height:1;cursor:pointer;position:relative;font-family:inherit}
+.stepnav .ico:hover{border-color:var(--link);color:var(--link)}
+.stepnav .ico::after{content:attr(data-t);position:absolute;left:50%;top:-32px;transform:translateX(-50%);
+ white-space:nowrap;background:#1A1A1A;color:#FAFAF7;font-size:11.5px;padding:4px 8px;border-radius:6px;
+ display:none;z-index:5}
+.stepnav .ico:hover::after{display:block}
+.stepnav .now{min-width:200px;text-align:center;font-size:13.5px;font-weight:700;color:var(--ink)}
+@media(max-width:520px){.stepnav .now{min-width:150px;font-size:12.5px}
+ .stepnav .ico::after{display:none!important}}
 @media(max-width:520px){.nnfig{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
 </style>
 
@@ -279,11 +270,17 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 
 <div class="fig-stage" id="sec2">
 <h2>多層パーセプトロン（MLP） — 計算点を層にして重ねる</h2>
-<div class="lead">計算点を並べて層にし、層を重ねる。第 $m$ 層の $j$ 番目から $i$ 番目へ向かう重みを
-$w^{(m)}_{ij}$ と書く。
+<div class="lead">計算点を並べて層にし、層を重ねる。第 $m$ 層の $i$ 番目から、次の層の $j$ 番目へ向かう重みを
+$w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
 辺の数字が重み、丸の中の数字がその計算点がいま出している値。
-下のつまみで<strong>重み</strong>を動かすと、値が左から右へ更新される（入力は $x_1=-0.40,\; x_2=0.80$ に固定）。</div>
+下のつまみで<strong>重み</strong>を動かすと、値が左から右へ更新される（入力は $x_1=-0.40,\; x_2=0.80$ に固定）。<br>
+どの辺がどの重みかは「辺に名前」で切り替えて確かめられる。
+<strong>バイアス $b^{(m)}_i$ は辺ではなく、丸そのものに足す数</strong>なので図の辺には出ない。</div>
 
+<div class="chips" id="elm" style="justify-content:center">
+  <span class="chip on" data-el="num">辺に数字</span>
+  <span class="chip" data-el="name">辺に名前（$w^{(m)}_{ij}$）</span>
+</div>
 <div class="nnfig wide"><svg id="fwSvg" width="470" height="316" viewBox="0 0 470 316"></svg></div>
 
 <div class="ctrls">
@@ -411,7 +408,7 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 <div class="ctrls">
   <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{11}$ <span class="val" id="v1V">1.20</span></label>
     <input type="range" id="v1" min="-60" max="60" step="1" value="12"></div>
-  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{12}$ <span class="val" id="v2V">-0.80</span></label>
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{21}$ <span class="val" id="v2V">-0.80</span></label>
     <input type="range" id="v2" min="-60" max="60" step="1" value="-8"></div>
   <div class="ctrl" style="flex:1;min-width:140px"><label>$b^{(1)}_{1}$ <span class="val" id="v3V">0.30</span></label>
     <input type="range" id="v3" min="-60" max="60" step="1" value="3"></div>
@@ -477,15 +474,9 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
 <div class="fig-stage" id="sec4">
 <h2>誤差逆伝播法（Back Propagation） — 出口のズレから重みを直す</h2>
 <div class="lead">重みは最初どれもでたらめで、当然まちがった答えを出す。それを<strong>正解に近づける手続き</strong>が
-誤差逆伝播法で、次の 4 つを何度も繰り返すだけ。</div>
-
-<div class="steps">
-<div class="step"><b>1. 前へ計算する</b>入力を左から右へ流して、いまの重みでの答え $y$ を出す。</div>
-<div class="step"><b>2. 正解とのズレを測る</b>正解 $\hat{y}$ との差を 1 つの数にまとめる。これが<strong>損失</strong> $L$。</div>
-<div class="step"><b>3. ズレを上流へ配る</b>出口のズレを、通ってきた辺をさかのぼって「どの重みがどれだけ悪かったか」に割り振る。
-これが $\partial L/\partial w$。</div>
-<div class="step"><b>4. 重みを直す</b>悪かったぶんだけ、$L$ が<strong>減る向き</strong>へ重みをずらす。そして 1. に戻る。</div>
-</div>
+誤差逆伝播法で、次の 4 つを何度も繰り返すだけ ――
+<strong>1. 前へ計算する → 2. 正解とのズレを測る → 3. ズレを上流へ配る → 4. 重みを直す → 1. へ戻る</strong>。
+下の図で ◁ ▷ を押すと 1 コマずつ進む（ダブルクリックで自動再生）。</div>
 
 <div class="formula">
 $$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
@@ -493,18 +484,13 @@ $$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
 \qquad w \leftarrow w - \eta\,\frac{\partial L}{\partial w}$$
 </div>
 
-<p class="note">3 の「割り振る」は掛け算の連なり（連鎖律）でできている。
-1 層さかのぼるたびに、その層の重み $w$ と活性化関数の微分 $h'(m)$ が掛かる。
-下の図はその 3 の様子で、<strong>信号だけが右から左へ流れる</strong>（ニューラルネット自体は同じもの）。</p>
-
-<div class="hbadge">いまの活性化関数 <b id="hb2">なし</b> ・ 出口のズレから 1 層ずつ上流へ戻す</div>
-<div class="nnfig wide"><svg id="bwSvg" width="470" height="316" viewBox="0 0 470 316"></svg></div>
-
-<div class="ctrls">
-  <button class="btn" id="bwStep">1 層戻す ←</button>
-  <button class="btn ghost" id="bwAuto">自動再生 ▶</button>
-  <button class="btn ghost" id="bwReset">最初から</button>
+<div class="hbadge">いまの活性化関数 <b id="hb2">なし</b></div>
+<div class="stepnav">
+  <button class="ico" id="bwPrev" aria-label="ひとつ前へ" data-t="ひとつ前へ（ダブルクリックで自動再生）">◁</button>
+  <span class="now" id="bwNow">1. 前へ計算する</span>
+  <button class="ico" id="bwNext" aria-label="ひとつ先へ" data-t="ひとつ先へ（ダブルクリックで自動再生）">▷</button>
 </div>
+<div class="nnfig wide"><svg id="bwSvg" width="530" height="316" viewBox="0 0 530 316"></svg></div>
 <div class="readout" id="bwOut" style="min-height:118px"></div>
 
 <h3>4. 重みを直す ―― 繰り返すと、答えは正解に届く</h3>
@@ -703,6 +689,7 @@ function xnet(x1,x2,f,k){
   //   左右対称なニューラルネットでは中央で必ず重なる（x₁→n₂ と x₂→n₁ の中点が一致する）。
   //   下の T0/T1 は「隣り合うラベルが x で 43 単位以上離れるか、y で 20 単位以上離れる」
   //   ことを 12 本すべてについて実測して決めた値。数字の桁を増やすと崩れる。
+  var SUB=['₀','₁','₂','₃'];
   var T0=[0.42,0.76];
   var T1=[[0.16,0.27],[0.44,0.55],[0.74,0.84]];
 
@@ -759,6 +746,16 @@ function xnet(x1,x2,f,k){
     var i; for(i=0;i<labs.length;i++)
       svg.appendChild(el('text',{x:gg.xs[i].toFixed(1),y:y,'font-size':13,'text-anchor':'middle',
         fill:MUTED},labs[i]));
+  }
+
+  // ---- 辺のラベル。読者の指摘「どれが w11, w12, b1 なのか分からない」。
+  //   名前と数字を 1 つのラベルに詰めると幾何が崩れるので、**切り替え**にした。
+  //   記法は本文と同じ w^(m)_{ij}（i = 行き先、j = 送り元）。
+  var ELMODE='num';
+  function elab(i,j,k){
+    var v = (i===0?W1[k][j]:W2[k][j]);
+    if(ELMODE==='num') return v.toFixed(2);
+    return 'w'+(i===0?'¹':'²')+SUB[j+1]+SUB[k+1];
   }
 
   // ---- ②〜④ が共有するニューラルネット（入力 2 → 中間 3 → 出力 2）
@@ -829,7 +826,9 @@ function xnet(x1,x2,f,k){
       efs:12.5,
       edgeState:function(i){return fstage>i?2:0;},
       edgeT:function(i,j,k){return i===0?T0[j]:T1[j][k];},
-      edgeLabel:function(i,j,k){return (i===0?W1[k][j]:W2[k][j]).toFixed(2);},
+      edgeLabel:function(i,j,k){return elab(i,j,k);},
+      edgeInk:function(i,j,k){return (i===1&&k===0)?ARC:EDGE;},
+      edgeW:function(i,j,k){return (i===1&&k===0)?2.0:1.3;},
       nodeState:function(i){return fstage>=i?1:0;},
       nodeName:function(i,j){return [['x₁','x₂'],['n₁','n₂','n₃'],['y₁','y₂']][i][j];},
       nodeText:function(i,j){return i===0?XIN[j].toFixed(2):(i===1?nf(f.n[j]):nf(f.y[j]));},
@@ -839,7 +838,7 @@ function xnet(x1,x2,f,k){
       deco:function(svg){
         heads(svg,G,['入力','中間層','出力'],HEADY);
         svg.appendChild(el('text',{x:235,y:CAPY,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
-          '信号は左から右へ ——▶'));
+          '信号は左から右へ ——▶　　太い辺が、下のつまみで動かせる 3 本'));
       }
     });
     var o=g('fwOut');
@@ -872,6 +871,12 @@ function xnet(x1,x2,f,k){
         ? '\nXOR は、4 つのつまみをどう動かしても 75% を超えられない。境界が直線 1 本だから。'
         : '\n直線 1 本で分けられる配置なら、つまみを合わせれば 100% にできる。');
   }
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-el]'),function(c){
+    c.addEventListener('click',function(){
+      document.querySelectorAll('.chip[data-el]').forEach(function(o){o.classList.remove('on');});
+      c.classList.add('on'); ELMODE=c.getAttribute('data-el'); redraw();
+    });
+  });
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-ds2]'),function(c){
     c.addEventListener('click',function(){
       document.querySelectorAll('.chip[data-ds2]').forEach(function(o){o.classList.remove('on');});
@@ -934,7 +939,9 @@ function xnet(x1,x2,f,k){
       efs:12.5,
       edgeState:function(){return 1;},
       edgeT:function(i,j,k){return i===0?T0[j]:T1[j][k];},
-      edgeLabel:function(i,j,k){return (i===0?W1[k][j]:W2[k][j]).toFixed(2);},
+      edgeLabel:function(i,j,k){return elab(i,j,k);},
+      edgeInk:function(i,j,k){return (i===0&&k===0)?ARC:EDGE;},
+      edgeW:function(i,j,k){return (i===0&&k===0)?2.0:1.3;},
       nodeName:function(i,j){return [['x₁','x₂'],['n₁','n₂','n₃'],['y₁','y₂']][i][j];},
       nodeText:function(i,j){return i===0?XIN[j].toFixed(2):(i===1?nf(f.n[j]):nf(f.y[j]));},
       nodeFill:function(i,j){var v=i===0?Math.abs(XIN[j])/1.5:(i===1?Math.abs(f.n[j])/mx:Math.abs(f.y[j])/my);
@@ -1007,62 +1014,109 @@ function xnet(x1,x2,f,k){
       : 'h = '+ACTS[HK].nm+' ・ 正解率 '+Math.round(acc*100)+'%  →  曲がった境界が引けるので XOR を分けられる。';
   }
 
-  // ---- ④ 逆伝播（同じニューラルネットを右から左へ）
-  var bstage=0, bwTimer=null;
+  // ---- ④ 逆伝播。読者の指摘「工程をボックスで書き出すのではなく、
+  //   ニューラルネットの図でちゃんと表現してほしい」。1〜4 を 1 枚の図の状態にした。
+  //     1 前へ計算する  … 左から右へ流し、答え y を出す
+  //     2 正解とのズレ  … 右端に正解 ŷ の列を出し、y との差を見せる
+  //     3 ズレを配る    … 右から左へ、辺ごとの ∂L/∂w を出す
+  //     4 重みを直す    … 実際に 1 歩ぶん重みを動かす（◁ で戻ると元に戻す）
+  //   ※ 4 は重みを書き換えるので、戻れるように入る直前の値を控えておく。
+  //     控えずに戻すと、押すたびに学習が進んで「戻る」にならない。
+  var GB=geom([2,3,2,2],530,160,[78,92,116,116],21,44);   // 右端に正解の列を足した幾何
+  var bstage=1, bwTimer=null, bwSnap=null;
+  var STEPNM=['','1. 前へ計算する','2. 正解とのズレを測る','3. ズレを上流へ配る','4. 重みを直す'];
+  function enter(s){
+    if(bstage===4 && s!==4 && bwSnap){ restore(bwSnap); bwSnap=null; epoch=Math.max(0,epoch-1); }
+    if(s===4 && bstage!==4){ bwSnap=snap(); train(1); }
+    bstage=s; redraw();
+  }
   function drawBw(){
     var b=bwd(), f=b.f;
     var gmax=Math.max(1e-9,Math.max.apply(null,b.gn.map(Math.abs).concat(b.gy.map(Math.abs))));
-    renderNet(g('bwSvg'),G,{
-      efs:11.5, rev:true, labelInk:BAD, subInk:BAD,
-      edgeState:function(i){return i===1?(bstage>=1?2:0):(bstage>=3?2:0);},
+    var fw=(bstage<3), rv=(bstage===3);
+    g('bwNow').textContent=STEPNM[bstage];
+    renderNet(g('bwSvg'),GB,{
+      efs:11.5, rev:rv, labelInk:rv?BAD:'#565248', subInk:BAD,
+      // 3 列目→4 列目（正解の列）は辺を描かない。突き合わせるだけの関係なので
+      edgeState:function(i){return i===3?0:(i===2?0:(rv?2:(fw?2:1)));},
       edgeT:function(i,j,k){return i===0?T0[j]:T1[j][k];},
       edgeLabel:function(i,j,k){
-        if(i===1) return bstage>=1?ns(W2[k][j]*b.gy[k]):null;
-        return bstage>=3?ns(b.gm[k]*XIN[j]):null;
+        if(i>=2) return null;
+        if(rv) return i===1?ns(W2[k][j]*b.gy[k]):ns(b.gm[k]*XIN[j]);
+        return (i===0?W1[k][j]:W2[k][j]).toFixed(2);
       },
-      edgeInk:function(i){return (i===1?bstage>=1:bstage>=3)?BAD:EDGE;},
-      nodeState:function(i){return i===2?1:(i===1?(bstage>=2?1:0):(bstage>=3?1:0));},
-      nodeName:function(i,j){return [['x₁','x₂'],['n₁','n₂','n₃'],['y₁','y₂']][i][j];},
+      edgeInk:function(i){return i>=2?'#fff':(rv?BAD:EDGE);},
+      nodeState:function(i,j){ return (i===3) ? (bstage>=2?1:0) : 1; },
+      nodeName:function(i,j){return [['x₁','x₂'],['n₁','n₂','n₃'],['y₁','y₂'],['ŷ₁','ŷ₂']][i][j];},
       nodeText:function(i,j){
-        if(i===2) return ns(b.gy[j]);
-        if(i===1) return bstage>=2?ns(b.gn[j]):'';
-        return bstage>=3?XIN[j].toFixed(2):'';
+        if(i===3) return bstage>=2?TGT[j].toFixed(2):'';
+        if(rv) return i===2?ns(b.gy[j]):(i===1?ns(b.gn[j]):XIN[j].toFixed(2));
+        return i===0?XIN[j].toFixed(2):(i===1?nf(f.n[j]):nf(f.y[j]));
       },
       nodeFill:function(i,j){
-        if(i===2) return paint(Math.abs(b.gy[j])/gmax,true);
-        if(i===1) return bstage>=2?paint(Math.abs(b.gn[j])/gmax,true):'#F4F2EC';
-        return '#EAEDF7';
+        if(i===3) return '#FBEEE6';
+        if(rv) return i===0?'#EAEDF7':paint(Math.abs((i===2?b.gy[j]:b.gn[j]))/gmax,true);
+        return paint(i===0?Math.abs(XIN[j])/1.5:Math.abs((i===1?f.n[j]:f.y[j]))/2);
       },
-      nodeStroke:function(i){return i===0?'#6E7BA8':BAD;},
-      // ※ 中間層に h′ の注記を付けない。丸の下の注記と次の丸の名前が重なる（実測）。
-      //   h′ は下の読み取りに ∂L/∂m = ∂L/∂n × h′(m) として並べてある。
-      nodeSub:function(i,j){return i===2?('ズレ '+ns(b.gy[j])):null;},
+      nodeStroke:function(i){return i===3?'#C98A5E':(rv&&i>0?BAD:'#6E7BA8');},
+      nodeSub:function(i,j){
+        if(i===2 && bstage>=2) return 'ズレ '+ns(f.y[j]-TGT[j]);
+        return null;
+      },
       deco:function(svg){
-        heads(svg,G,['入口','∂L/∂n','∂L/∂y'],HEADY);
-        svg.appendChild(el('text',{x:235,y:CAPY,'font-size':12.5,'text-anchor':'middle',fill:BAD},
-          '◀—— 直す信号は右から左へ'));
+        heads(svg,GB,['入力','中間層','出力 y','正解 ŷ'],HEADY);
+        var i;
+        if(bstage>=2) for(i=0;i<2;i++)  // y と ŷ を点線で突き合わせる
+          svg.appendChild(el('line',{x1:GB.xs[2]+GB.r,y1:GB.ys[2][i],x2:GB.xs[3]-GB.r,y2:GB.ys[3][i],
+            stroke:BAD,'stroke-width':1.3,'stroke-dasharray':'4 3'}));
+        if(bstage===4){   // 動いた重みを図の上で示す
+          svg.appendChild(el('text',{x:265,y:CAPY-16,'font-size':12.5,'text-anchor':'middle',fill:ARC},
+            'いま辺の数字が動いた ＝ 重みを直した'));
+        }
+        svg.appendChild(el('text',{x:265,y:CAPY,'font-size':12.5,'text-anchor':'middle',
+          fill:rv?BAD:MUTED},
+          rv?'◀—— 直す信号は右から左へ':(bstage>=2?'y と ŷ のズレを測る':'信号は左から右へ ——▶')));
       }
     });
     var o=g('bwOut'), t='';
-    t+='正解 ŷ = '+vec(TGT,f2)+'    出た答え y = '+vec(f.y)+'    L = '+nf(f.L)+'\n';
-    t+='[0] 出口のズレ   ∂L/∂y = y − ŷ = '+vec(b.gy)+'\n';
-    if(bstage>=1) t+='[1] 辺ごと       ∂L/∂n = w × ∂L/∂y  ← 図の赤い数字がこの掛け算\n';
-    if(bstage>=2) t+='[2] 中間層       ∂L/∂n = '+vec(b.gn)+'（辺の和）\n'
-                    +'                 h\u2032(m) = '+vec(f.m1.map(HD))+'\n'
-                    +'                 ∂L/∂m = ∂L/∂n × h\u2032(m) = '+vec(b.gm)+'\n';
-    if(bstage>=3) t+='[3] 入口の重み   ∂L/∂w⁽¹⁾ = ∂L/∂m × x  ← 図の左半分の数字\n';
-    if(bstage>=3) t+='\n※ 1 層戻すたびに h\u2032(m) と w が掛かる。掛け算の連なりであることが、⑤ の勾配消失に直結する。';
-    else t+='\n「1 層戻す ←」で上流へ 1 層ずつ進む。';
+    if(bstage===1) t='いまの重みで、入力を左から右へ流す。\n'
+      +'x = ( '+XIN[0].toFixed(2)+', '+XIN[1].toFixed(2)+' )\n'
+      +'m = '+vec(f.m1)+'   n = h(m) = '+vec(f.n)+'\n'
+      +'出た答え y = '+vec(f.y)+'\n\n▷ で次へ。';
+    if(bstage===2) t='出た答え y = '+vec(f.y)+'\n正解     ŷ = '+vec(TGT,f2)+'\n'
+      +'ズレ y − ŷ = '+vec(b.gy)+'\n'
+      +'まとめた大きさ L = ½Σ(y−ŷ)² = '+nf(f.L)+'\n\n▷ で、このズレを上流へ配る。';
+    if(bstage===3) t='出口のズレ ∂L/∂y = '+vec(b.gy)+'\n'
+      +'[右の辺] ∂L/∂n = w × ∂L/∂y = '+vec(b.gn)+'  ← 図の赤い数字\n'
+      +'          h\u2032(m) = '+vec(f.m1.map(HD))+'\n'
+      +'          ∂L/∂m = ∂L/∂n × h\u2032(m) = '+vec(b.gm)+'\n'
+      +'[左の辺] ∂L/∂w⁽¹⁾ = ∂L/∂m × x  ← 図の左半分の数字\n\n'
+      +'※ 1 層さかのぼるたびに w と h\u2032(m) が掛かる。この掛け算の連なりが ⑤ の勾配消失に直結する。';
+    if(bstage===4) t='w ← w − η·∂L/∂w   （η = '+lr.toFixed(2)+'）\n'
+      +'重みを 1 歩ぶん動かした。図の辺の数字が変わっている。\n'
+      +'その結果  y = '+vec(f.y)+'  →  正解 ŷ = '+vec(TGT,f2)+'  ズレ L = '+nf(f.L)+'\n\n'
+      +'▷ で 1. に戻り、また前へ計算する。これを繰り返すのが「学習」。';
     o.textContent=t;
   }
-  g('bwStep').addEventListener('click',function(){ bstage=(bstage+1)%4; drawBw(); });
-  g('bwReset').addEventListener('click',function(){ bstage=0; drawBw(); });
-  g('bwAuto').addEventListener('click',function(){
-    var self=this;
-    if(bwTimer){ clearInterval(bwTimer); bwTimer=null;
-      self.textContent='自動再生 ▶'; self.classList.remove('on'); return; }
-    self.textContent='停止 ■'; self.classList.add('on');
-    bwTimer=setInterval(function(){ bstage=(bstage+1)%4; drawBw(); },1200);
+  function stepBy(d){ enter(((bstage-1+d)+4)%4+1); }
+  function autoPlay(btn){
+    if(bwTimer){ clearInterval(bwTimer); bwTimer=null; btn.textContent=btn.id==='bwNext'?'▷':'◁'; return; }
+    btn.textContent='■';
+    bwTimer=setInterval(function(){ stepBy(btn.id==='bwNext'?1:-1); },1500);
+  }
+  ['bwPrev','bwNext'].forEach(function(id){
+    var btn=g(id), d=(id==='bwNext')?1:-1, timer=null;
+    // シングルは 1 コマ、ダブルは自動再生。dblclick は click の後に来るので、
+    // 1 コマ進めるのを少し遅らせて、ダブルなら取り消す
+    btn.addEventListener('click',function(){
+      if(bwTimer){ clearInterval(bwTimer); bwTimer=null; btn.textContent=d>0?'▷':'◁'; return; }
+      if(timer) return;
+      timer=setTimeout(function(){ timer=null; stepBy(d); },230);
+    });
+    btn.addEventListener('dblclick',function(){
+      if(timer){ clearTimeout(timer); timer=null; }
+      autoPlay(btn);
+    });
   });
   g('lr').addEventListener('input',function(e){
     lr=+e.target.value/100; g('lrV').textContent=lr.toFixed(2); drawTr(); });
