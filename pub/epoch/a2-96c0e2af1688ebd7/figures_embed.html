@@ -305,7 +305,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 1 つの場所を指していて、近い意味の語は近い場所に来る。だから引き算や足し算ができる。</p>
 <p class="caveat">この図解が積んでいるのは、長さを 1 に揃えたうえで 1 次元 1 バイトに丸めた値
 （そのぶん小数第 3 位あたりが粗い）。丸めていない生の値は
-<a href="../../../notebooks.html">ノートブック</a>で見られる。</p>
+<a href="https://manga-epoch.github.io/viewer/notebooks.html">ノートブック</a>で見られる。</p>
 </div>
 
 <div class="fig-stage" id="sec2">
@@ -473,7 +473,7 @@ table{display:block;overflow-x:auto;max-width:100%}
   }
   function missMsg(w){
     return '<b>' + w + '</b> はこの 15,000 語に入っていない。右の一覧から探すか、'
-      + '語彙 40 万語を扱える<a href="../../../notebooks.html">'
+      + '語彙 40 万語を扱える<a href="https://manga-epoch.github.io/viewer/notebooks.html">'
       + 'ノートブック</a>へ。';
   }
 
@@ -721,7 +721,7 @@ table{display:block;overflow-x:auto;max-width:100%}
   function failed(e){
     var msg = '<b>単語ベクトルを読み込めませんでした。</b>（' + e + '）<br>'
       + 'このページはデータを別ファイルから読むため、保存したファイルを直接開くと動きません。'
-      + '<a href="../../../notebooks.html">ノートブック</a>'
+      + '<a href="https://manga-epoch.github.io/viewer/notebooks.html">ノートブック</a>'
       + 'なら同じ計算がその場でできます。';
     ['wv-vec-out', 'wv-out', 'wv-cmp-out', 'wv-why-out', 'wv-poly-out'].forEach(function(id){
       if ($(id)) $(id).innerHTML = msg;

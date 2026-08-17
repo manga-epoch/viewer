@@ -259,10 +259,9 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 <div class="fig-stage" id="sec2">
 <h2>多層パーセプトロン（MLP） — 同じ網の積み重ね</h2>
 <div class="lead">計算点を並べて層にし、層を重ねる。第 $m$ 層の $j$ 番目から $i$ 番目へ向かう重みを
-$w^{(m)}_{ij}$ と書く。下が<strong>これから最後まで使う網</strong>（入力 2・中間 3・出力 2）。
+$w^{(m)}_{ij}$ と書く。
 辺の数字が重み、丸の中の数字がその計算点がいま出している値。$x_1, x_2$ を動かすと、値が左から右へ更新される。</div>
 
-<div class="hbadge">いまの活性化関数 <b id="hb1">なし</b> ・「活性化関数」の節で切り替えると、この図も変わる</div>
 <div class="nnfig wide"><svg id="fwSvg" width="470" height="316" viewBox="0 0 470 316"></svg></div>
 
 <div class="ctrls">
@@ -275,18 +274,20 @@ $w^{(m)}_{ij}$ と書く。下が<strong>これから最後まで使う網</stro
 <div class="readout" id="fwOut"></div>
 
 <div class="formula">
-$$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
+$$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad
+y_k = \textstyle\sum_j w^{(2)}_{jk}m_j + b^{(2)}_k$$
 </div>
 
-<div class="formula" style="background:rgba(180,73,63,.07);border-color:rgba(180,73,63,.3);text-align:left">
-<b style="color:#b4493f">しかし、$h$ を入れないと、この網はずっと 1 次式のまま。</b>
-<div class="note" style="margin-top:8px">1 次式に 1 次式を代入しても、出てくるのはまた 1 次式。
-$$W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2 = (W_2W_1)\mathbf{x} + (W_2\mathbf{b}_1+\mathbf{b}_2)$$
-何層積んでも、引ける境界は<strong>まっすぐな 1 本</strong>のまま。「活性化関数」の節で「なし」を選ぶと、
-上の読み取りに<strong>その潰れた 1 次式そのもの</strong>が出る。ほかの $h$ を選ぶと、その式は消える。</div>
+<h3>出力が 2 つある。境界はどこに出るのか</h3>
+<div class="lead">最初の節では出口が $y$ 1 個で、絵は「$y$ が閾値を超えるか」の 1 本の線だった。
+ここでは出口が $y_1, y_2$ の 2 個ある。<strong>答えは「大きいほうの番号」</strong>——だから絵に出るのは
+$y_1$ と $y_2$ の<strong>差</strong>で、境目は $y_1 = y_2$ の線になる。
+2 つなら線は 1 本に戻り、出口を 3 つに増やせば領域は 3 つに分かれる。</div>
+<div style="text-align:center;margin:14px 0 4px">
+<svg id="mlpSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
+<div class="gcap">青 = $y_1$ が大きい領域 ／ 赤 = $y_2$ が大きい領域。◎ がいまの $(x_1, x_2)$</div>
 </div>
-<p class="note"><b>確かめてみる:</b> 最初の節（パーセプトロン）の図で「XOR」を選び、3 つのつまみをどう動かしても
-4 点すべてを正しく分けられないことを試してほしい。層をいくら足しても結果は同じ。</p>
+<div class="readout" id="mlpOut"></div>
 
 <div hidden>
 <!-- 巻末解説へ配る静止版（extract_nn_svgs.py が data-fig で拾う）。
@@ -348,9 +349,24 @@ $$W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2 = (W_2W_1)\mathbf{x} + (W_2\mathb
 
 <div class="fig-stage" id="sec3">
 <h2>活性化関数 — 入力と重みを固定した、$h$ の比較</h2>
-<div class="lead">層と層のあいだに、非線形な関数 $h(\cdot)$ を 1 つはさむ。重みも入力も「多層パーセプトロン」の節のまま、
-$h$ だけを取り替えて、丸の中の数字がどう変わるかを見比べる。
-「なし」を選ぶと、3 層がたった 1 本の 1 次式に潰れていることが数字で出る。</div>
+
+<div class="formula" style="background:rgba(180,73,63,.07);border-color:rgba(180,73,63,.3);text-align:left">
+<b style="color:#b4493f">ここまでの網は、何層積んでもずっと 1 次式のまま。</b>
+<div class="note" style="margin-top:8px">1 次式に 1 次式を代入しても、出てくるのはまた 1 次式。
+$$W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2 = (W_2W_1)\mathbf{x} + (W_2\mathbf{b}_1+\mathbf{b}_2)$$
+だから前の節の境界も<strong>まっすぐな 1 本</strong>だった。層を足しても曲がらない。</div>
+</div>
+<p class="note"><b>確かめてみる:</b> 最初の節（パーセプトロン）の図で「XOR」を選び、3 つのつまみをどう動かしても
+4 点すべてを正しく分けられないことを試してほしい。層をいくら足しても結果は同じ。</p>
+
+<div class="lead">そこで、層と層のあいだに<strong>非線形な関数 $h(\cdot)$ を 1 つはさむ</strong>。
+中間層の値は、重み付きの和 $m_j$ をそのまま渡すのではなく $n_j = h(m_j)$ になる。
+重みも入力も前の節のまま、$h$ だけを取り替えて、丸の中の数字がどう変わるかを見比べる。
+「なし（恒等）」は $h$ を入れない状態＝前の節そのもので、3 層が 1 本の 1 次式に潰れていることが数字で出る。</div>
+
+<div class="formula">
+$$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
+</div>
 
 <div class="chips" id="acts">
   <span class="chip on" data-h="none">なし（恒等）</span>
@@ -694,9 +710,12 @@ function xnet(x1,x2,f,k){
     W2=W2_0.map(function(r){return r.slice();}); B2=B2_0.slice(); epoch=0; diverged=false;
   }
   resetW();
-  function fwd(){
+  // lin=true で活性化関数を通さない（＝恒等）。② の節は「重み付きの和を積むだけ」を
+  // 見せる場所で、③ で h を切り替えても ② の図は動かさない。読者の指摘:
+  // 「多層パーセプトロンの節に活性化関数の話が先出しで混入していて分かりにくい」。
+  function fwd(lin){
     var m1=[],nn=[],y=[],i,j,k,s;
-    for(j=0;j<3;j++){s=B1[j]; for(i=0;i<2;i++) s+=W1[j][i]*XIN[i]; m1.push(s); nn.push(H(s));}
+    for(j=0;j<3;j++){s=B1[j]; for(i=0;i<2;i++) s+=W1[j][i]*XIN[i]; m1.push(s); nn.push(lin?s:H(s));}
     for(k=0;k<2;k++){s=B2[k]; for(j=0;j<3;j++) s+=W2[k][j]*nn[j]; y.push(s);}
     var L=0.5*((y[0]-TGT[0])*(y[0]-TGT[0])+(y[1]-TGT[1])*(y[1]-TGT[1]));
     return {m1:m1,n:nn,y:y,L:L};
@@ -743,7 +762,7 @@ function xnet(x1,x2,f,k){
   // ---- ② 順伝播
   var fstage=2, fwTimer=null;
   function drawFw(){
-    var f=fwd(), mx=Math.max(1e-9,Math.max.apply(null,f.n.map(Math.abs)));
+    var f=fwd(true), mx=Math.max(1e-9,Math.max.apply(null,f.n.map(Math.abs)));
     var my=Math.max(1e-9,Math.max.apply(null,f.y.map(Math.abs)));
     renderNet(g('fwSvg'),G,{
       efs:12.5,
@@ -757,23 +776,42 @@ function xnet(x1,x2,f,k){
         return paint(v);},
       nodeSub:function(i,j){return i===2?('正解 '+TGT[j].toFixed(1)):null;},
       deco:function(svg){
-        heads(svg,G,['入力','中間層 h(・)','出力'],HEADY);
+        heads(svg,G,['入力','中間層','出力'],HEADY);
         svg.appendChild(el('text',{x:235,y:CAPY,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
           '信号は左から右へ ——▶'));
       }
     });
-    var o=g('fwOut'), lin=collapse();
-    var t='h = '+ACTS[HK].nm+'    x₁ = '+XIN[0].toFixed(2)+'   x₂ = '+XIN[1].toFixed(2)+'\n';
-    t+='m = '+vec(f.m1)+'   ← 重み付きの和\n';
-    t+='n = h(m) = '+vec(f.n)+'\n';
+    var o=g('fwOut');
+    var t='x₁ = '+XIN[0].toFixed(2)+'   x₂ = '+XIN[1].toFixed(2)+'\n';
+    t+='m = '+vec(f.m1)+'   ← 中間層 3 個ぶんの重み付きの和\n';
     t+='y = '+vec(f.y)+'    正解 ŷ = '+vec(TGT,f2)+'    L = '+nf(f.L)+'\n';
     t+='例) m₁ = '+W1[0][0].toFixed(2)+'·x₁'+sgn(W1[0][1])+'·x₂'+sgn(B1[0])
-      +' = '+nf(f.m1[0])+'\n';
-    t+= (HK==='none')
-      ? '\n※ h なし ⇒ 3 層が 1 本の 1 次式に潰れている:\n   y₁ = '+lin[0][0].toFixed(3)
-        +'·x₁'+sgn(lin[0][1],3)+'·x₂'+sgn(lin[0][2],3)
-      : '\n※ h が入っているので、この 3 層は 1 本の 1 次式には潰せない。';
+      +' = '+nf(f.m1[0]);
     o.textContent=t;
+    drawMlpRegion();
+  }
+
+  // ---- ② の続き。出口が 2 つのとき境界がどう出るか（読者の問い）。
+  // 答えは「大きいほうの番号」なので、絵に出るのは y₁ − y₂ の符号＝ y₁ = y₂ の線。
+  // ここは恒等のままの網なので collapse()（1 次式への畳み込み）がそのまま使える。
+  function drawMlpRegion(){
+    var svg=g('mlpSvg'); if(!svg) return;
+    var L=collapse(), R=1.5, pad=26, S=300, WD=S-pad*2;
+    var d=function(u,v){
+      var a=-R+2*R*u, b=-R+2*R*v;
+      return (L[0][0]*a+L[0][1]*b+L[0][2]) > (L[1][0]*a+L[1][1]*b+L[1][2]) ? 1 : 0;
+    };
+    plot(svg,[],d);
+    // いまのスライダの位置を重ねる。図と上の網が同じ 1 点を指していることを見せる
+    var ux=(XIN[0]+R)/(2*R), uy=(XIN[1]+R)/(2*R);
+    svg.appendChild(el('circle',{cx:pad+ux*WD,cy:S-pad-uy*WD,r:7,
+      fill:'#fff',stroke:'#1A1A1A','stroke-width':2}));
+    svg.appendChild(el('circle',{cx:pad+ux*WD,cy:S-pad-uy*WD,r:2.6,fill:'#1A1A1A'}));
+    var f=fwd(true), win=f.y[0]>f.y[1]?1:2;
+    g('mlpOut').textContent =
+      'y₁ − y₂ = '+(L[0][0]-L[1][0]).toFixed(2)+'·x₁'+sgn(L[0][1]-L[1][1])+'·x₂'+sgn(L[0][2]-L[1][2])
+      +'\n境目は  y₁ − y₂ = 0  の直線。いま (x₁, x₂) = ( '+XIN[0].toFixed(2)+', '+XIN[1].toFixed(2)+' ) では '
+      +'y₁ = '+nf(f.y[0])+' , y₂ = '+nf(f.y[1])+'  ⇒  '+win+' 番と答える。';
   }
   function collapse(){
     // W2·W1 を実際に畳んで「1 次式に潰れる」ことを数字で見せる（h＝恒等のときだけ正しい）
@@ -1052,7 +1090,8 @@ function xnet(x1,x2,f,k){
   // ---- 全部を描き直す（h・入力・重みのどれが変わってもここを通す）
   function redraw(){
     var A=ACTS[HK];
-    g('hb1').textContent=A.nm; g('hb2').textContent=A.nm; g('hb3').textContent=A.nm;
+    // ※ hb1（② の節の活性化バッジ）は外した。② は恒等固定にしたので h を出さない。
+    ['hb2','hb3'].forEach(function(id){var e=g(id); if(e) e.textContent=A.nm;});
     drawFw(); drawAc(); drawX(); drawBw(); drawTr(); drawDeep();
     curve('sgSvg', A.f, A.yr[0], A.yr[1], null);
     curve('dsSvg', A.d, 0, 1, A.dmax);
