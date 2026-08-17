@@ -177,7 +177,8 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="fig-topnav"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene1" data-t="巻末解説に戻る（Scene 1「冬を越えた者たち」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="#" data-t="前の図解はありません" aria-label="前の図解はありません" aria-disabled="true" tabindex="-1">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="../../../#buy" data-t="一つ後の図解へ（学び方の枠組み）" aria-label="一つ後の図解へ（学び方の枠組み）">&#9655;</a></nav></div>
 <div class="intro">
 <div class="eyebrow">EPOCH Arc 2 ・ Scene 1「冬を越えた者たち」</div>
-<h1>ニューラルネット — 学習の仕組み</h1>
+<h1>ニューラルネット — 計算と学習の仕組み</h1>
+<p><strong>ニューラルネットの計算と学習の仕組みを、図解によって体感する。</strong></p>
 <p>ニューラルネットは対象を<strong>数の並び</strong>にしてしまう ―― 画像なら画素の明るさ、
 メールなら単語の出現回数。すると、<strong>「この点は、正解が集まっている側にあるか」</strong>という問いになり、
 <strong>「判断すること＝空間を分けること」</strong>になる。</p>
@@ -206,6 +207,10 @@ table{display:block;overflow-x:auto;max-width:100%}
  display:none;z-index:5}
 .stepnav .ico:hover::after{display:block}
 .stepnav .now{min-width:200px;text-align:center;font-size:13.5px;font-weight:700;color:var(--ink)}
+/* ② いま計算している層に対応する式を光らせる（図と式を同時に追えるように） */
+.formula.fsplit{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.fpart{padding:8px 14px;border-radius:9px;border:1px solid transparent;transition:background .18s,border-color .18s}
+.fpart.on{background:rgba(110,123,168,.16);border-color:rgba(110,123,168,.45)}
 @media(max-width:520px){.stepnav .now{min-width:150px;font-size:12.5px}
  .stepnav .ico::after{display:none!important}}
 @media(max-width:520px){.nnfig{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
@@ -270,18 +275,17 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 
 <div class="fig-stage" id="sec2">
 <h2>多層パーセプトロン（MLP） — 計算点を層にして重ねる</h2>
-<div class="lead">計算点を並べて層にし、層を重ねる。第 $m$ 層の $i$ 番目から、次の層の $j$ 番目へ向かう重みを
+<div class="lead"><strong>複雑な事象を表現するために</strong>、計算点を並べて層にし、層を重ねる。第 $m$ 層の $i$ 番目から、次の層の $j$ 番目へ向かう重みを
 $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
 辺の数字が重み、丸の中の数字がその計算点がいま出している値。
-下のつまみで<strong>重み</strong>を動かすと、値が左から右へ更新される（入力は $x_1=-0.40,\; x_2=0.80$ に固定）。<br>
-どの辺がどの重みかは「辺に名前」で切り替えて確かめられる。
+下のつまみで<strong>重み</strong>を動かすと、値が更新される（入力は $x_1=-0.40,\; x_2=0.80$ に固定）。
 <strong>バイアス $b^{(m)}_i$ は辺ではなく、丸そのものに足す数</strong>なので図の辺には出ない。</div>
 
-<div class="chips" id="elm" style="justify-content:center">
-  <span class="chip on" data-el="num">辺に数字</span>
-  <span class="chip" data-el="name">辺に名前（$w^{(m)}_{ij}$）</span>
+<div class="stepnav">
+  <span class="now" id="fwNow">入力</span>
+  <button class="ico" id="fwNext" aria-label="1 層すすめる" data-t="1 層すすめる">▷</button>
 </div>
-<div class="nnfig wide"><svg id="fwSvg" width="470" height="316" viewBox="0 0 470 316"></svg></div>
+<div class="nnfig wide"><svg id="fwSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
 
 <div class="ctrls">
   <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(2)}_{11}$ <span class="val" id="u1V">1.10</span></label>
@@ -292,19 +296,18 @@ $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
     <input type="range" id="u3" min="-60" max="60" step="1" value="6"></div>
   <div class="ctrl" style="flex:1;min-width:140px"><label>$b^{(2)}_{1}$ <span class="val" id="u4V">0.10</span></label>
     <input type="range" id="u4" min="-60" max="60" step="1" value="1"></div>
-  <button class="btn" id="fwPlay">▶ 左から順に流す</button>
   <button class="btn ghost" id="fwReset">重みを初期値に戻す</button>
 </div>
 <div class="readout" id="fwOut"></div>
 
-<div class="formula">
-$$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad
-y_k = \textstyle\sum_j w^{(2)}_{jk}m_j + b^{(2)}_k$$
+<div class="formula fsplit">
+<span class="fpart" id="fmA">$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j$</span>
+<span class="fpart" id="fmB">$y_k = \textstyle\sum_j w^{(2)}_{jk}m_j + b^{(2)}_k$</span>
 </div>
 
 <h3>では、この多層パーセプトロンは「分けられる」か</h3>
-<div class="lead">① とまったく同じ問いを、同じデータで解かせてみる。出口が 2 つあるので、
-答えは<strong>「$y_1$ と $y_2$ の大きいほう」</strong>。したがって境界は $y_1 = y_2$ の線になる。
+<div class="lead">① とまったく同じ問いを、同じデータで解かせてみる。
+ここでは、<strong>青 = $y_1 > y_2$、赤 = $y_1 < y_2$</strong> で境界を分ける。
 上の 4 つのつまみ（重み）を動かして、点を正しく分けられるか試してほしい。</div>
 <div style="text-align:center;margin:14px 0 4px">
 <svg id="mlpSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
@@ -403,7 +406,7 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
   <span class="chip" data-h="relu">ReLU</span>
 </div>
 
-<div class="nnfig wide"><svg id="acSvg" width="470" height="316" viewBox="0 0 470 316"></svg></div>
+<div class="nnfig wide"><svg id="acSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
 
 <div class="ctrls">
   <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{11}$ <span class="val" id="v1V">1.20</span></label>
@@ -715,11 +718,17 @@ function xnet(x1,x2,f,k){
         var t=o.edgeT(i,j,k), fs=o.efs||12.5;
         var ax=gg.xs[i]+gg.r, bx=gg.xs[i+1]-gg.r;
         var px=ax+(bx-ax)*t, py=gg.ys[i][j]+(gg.ys[i+1][k]-gg.ys[i][j])*t;
-        var wd=s.length*fs*0.60+6;
-        svg.appendChild(el('rect',{x:(px-wd/2).toFixed(1),y:(py-fs*0.80).toFixed(1),
-          width:wd.toFixed(1),height:(fs*1.6).toFixed(1),rx:3,fill:'#fff',opacity:0.93}));
-        svg.appendChild(el('text',{x:px.toFixed(1),y:(py+fs*0.35).toFixed(1),'font-size':fs,
-          'text-anchor':'middle',fill:o.labelInk||'#565248'},s));
+        // 配列で返ってきたら [名前, 数字] の 2 段。横に並べず縦に積むのは、
+        // 横幅を増やすと隣のラベルとぶつかるため（T0/T1 は実測で決めた値）。
+        var two=(typeof s!=='string'), nmS=two?s[0]:null, vS=two?s[1]:s;
+        var wd=Math.max(vS.length,(nmS||'').length)*fs*0.60+6;
+        var hh=two?fs*2.9:fs*1.6, top=py-(two?fs*1.80:fs*0.80);
+        svg.appendChild(el('rect',{x:(px-wd/2).toFixed(1),y:top.toFixed(1),
+          width:wd.toFixed(1),height:hh.toFixed(1),rx:3,fill:'#fff',opacity:0.93}));
+        if(two) svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
+          'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',fill:ARC},nmS));
+        svg.appendChild(el('text',{x:px.toFixed(1),y:(py+(two?fs*1.02:fs*0.35)).toFixed(1),
+          'font-size':fs,'text-anchor':'middle',fill:o.labelInk||'#565248'},vS));
       }
     }
     for(i=0;i<n;i++) for(j=0;j<gg.shape[i];j++){
@@ -748,18 +757,21 @@ function xnet(x1,x2,f,k){
         fill:MUTED},labs[i]));
   }
 
-  // ---- 辺のラベル。読者の指摘「どれが w11, w12, b1 なのか分からない」。
-  //   名前と数字を 1 つのラベルに詰めると幾何が崩れるので、**切り替え**にした。
-  //   記法は本文と同じ w^(m)_{ij}（i = 行き先、j = 送り元）。
-  var ELMODE='num';
+  // ---- 辺のラベル。名前と数字を**両方**出す（読者の希望: ビジーでもそれが一番分かる）。
+  //   ※ 横に並べると幅が 2 倍になり、実測で 4 組ぶつかった。この図の T0/T1 は
+  //     ラベル間隔を 12 本ぶん実測して決めた値で、横幅は増やせない。
+  //     そこで**上に名前・下に数字の 2 段**にした。幅は名前 5 文字ぶんで済む。
+  //   記法は本文と同じ w^(m)_{ij}（i = 送り元、j = 行き先）。
   function elab(i,j,k){
-    var v = (i===0?W1[k][j]:W2[k][j]);
-    if(ELMODE==='num') return v.toFixed(2);
-    return 'w'+(i===0?'¹':'²')+SUB[j+1]+SUB[k+1];
+    return ['w'+(i===0?'¹':'²')+SUB[j+1]+SUB[k+1], (i===0?W1[k][j]:W2[k][j]).toFixed(2)];
   }
 
   // ---- ②〜④ が共有するニューラルネット（入力 2 → 中間 3 → 出力 2）
   var G=geom([2,3,2],470,160,[78,92,116],21,44), VH=316, CAPY=306, HEADY=18;
+  // ※ ②③ は辺ラベルが「名前＋数字」の 2 段になり、高さが 1 段の 1.6 倍になった。
+  //   元の縦間隔（78/92/116）では実測で 13 組ぶつかる。②③ だけ縦に広げる。
+  //   ④⑤ は 1 段のままなので G を使い続ける。
+  var G2=geom([2,3,2],470,200,[104,126,150],21,44), VH2=400, CAPY2=388;
   var W1_0=[[1.2,-0.8],[-0.5,1.4],[0.9,0.7]], B1_0=[0.3,-0.2,-0.6];
   var W2_0=[[1.1,-0.9,0.6],[-0.7,1.2,0.8]],   B2_0=[0.1,-0.3];
   var W1,B1,W2,B2, TGT=[1,0], XIN=[-0.4,0.8], epoch=0, lr=0.10, diverged=false;
@@ -818,13 +830,13 @@ function xnet(x1,x2,f,k){
   }
 
   // ---- ② 順伝播
-  var fstage=2, fwTimer=null;
+  var fstage=2;
   function drawFw(){
     var f=fwd(true), mx=Math.max(1e-9,Math.max.apply(null,f.n.map(Math.abs)));
     var my=Math.max(1e-9,Math.max.apply(null,f.y.map(Math.abs)));
-    renderNet(g('fwSvg'),G,{
+    renderNet(g('fwSvg'),G2,{
       efs:12.5,
-      edgeState:function(i){return fstage>i?2:0;},
+      edgeState:function(i){return fstage>i?2:1;},
       edgeT:function(i,j,k){return i===0?T0[j]:T1[j][k];},
       edgeLabel:function(i,j,k){return elab(i,j,k);},
       edgeInk:function(i,j,k){return (i===1&&k===0)?ARC:EDGE;},
@@ -836,8 +848,8 @@ function xnet(x1,x2,f,k){
         return paint(v);},
       nodeSub:function(i,j){return i===2?('正解 '+TGT[j].toFixed(1)):null;},
       deco:function(svg){
-        heads(svg,G,['入力','中間層','出力'],HEADY);
-        svg.appendChild(el('text',{x:235,y:CAPY,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
+        heads(svg,G2,['入力','中間層','出力'],HEADY);
+        svg.appendChild(el('text',{x:235,y:CAPY2,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
           '信号は左から右へ ——▶　　太い辺が、下のつまみで動かせる 3 本'));
       }
     });
@@ -871,12 +883,6 @@ function xnet(x1,x2,f,k){
         ? '\nXOR は、4 つのつまみをどう動かしても 75% を超えられない。境界が直線 1 本だから。'
         : '\n直線 1 本で分けられる配置なら、つまみを合わせれば 100% にできる。');
   }
-  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-el]'),function(c){
-    c.addEventListener('click',function(){
-      document.querySelectorAll('.chip[data-el]').forEach(function(o){o.classList.remove('on');});
-      c.classList.add('on'); ELMODE=c.getAttribute('data-el'); redraw();
-    });
-  });
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-ds2]'),function(c){
     c.addEventListener('click',function(){
       document.querySelectorAll('.chip[data-ds2]').forEach(function(o){o.classList.remove('on');});
@@ -894,13 +900,16 @@ function xnet(x1,x2,f,k){
     }
     return out;
   }
-  function fwFlow(){
-    if(fwTimer){clearTimeout(fwTimer);fwTimer=null;}
-    fstage=0; drawFw();
-    var go=function(){ if(fstage<2){fstage++; drawFw(); fwTimer=setTimeout(go,700);} else fwTimer=null; };
-    fwTimer=setTimeout(go,700);
+  // ▷ を 1 回押すごとに 1 層すすむ（自動再生はしない。読者の指摘）。
+  // 進んだ層に対応する式を光らせて、図と式を同時に追えるようにする。
+  var FWNM=['入力を置いた','中間層まで計算した','出力まで計算した'];
+  function fwSync(){
+    g('fwNow').textContent=FWNM[fstage];
+    var a=g('fmA'), b=g('fmB');
+    if(a) a.classList.toggle('on',fstage===1);
+    if(b) b.classList.toggle('on',fstage===2);
   }
-  g('fwPlay').addEventListener('click',fwFlow);
+  g('fwNext').addEventListener('click',function(){ fstage=(fstage+1)%3; drawFw(); fwSync(); });
 
   // ※ ② のつまみは**入力ではなく重み**にした。読者の指摘:
   //   「重みを学習させるのだから、重みを変化させるほうが理解としてよい」。
@@ -935,7 +944,7 @@ function xnet(x1,x2,f,k){
   function drawAc(){
     var f=fwd(), mx=Math.max(1e-9,Math.max.apply(null,f.n.map(Math.abs)));
     var my=Math.max(1e-9,Math.max.apply(null,f.y.map(Math.abs)));
-    renderNet(g('acSvg'),G,{
+    renderNet(g('acSvg'),G2,{
       efs:12.5,
       edgeState:function(){return 1;},
       edgeT:function(i,j,k){return i===0?T0[j]:T1[j][k];},
@@ -948,8 +957,8 @@ function xnet(x1,x2,f,k){
         return paint(v);},
       nodeSub:function(i,j){return i===1?('m='+nf(f.m1[j])):null;},
       deco:function(svg){
-        heads(svg,G,['入力','中間層 h(・)','出力'],HEADY);
-        svg.appendChild(el('text',{x:235,y:CAPY,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
+        heads(svg,G2,['入力','中間層 h(・)','出力'],HEADY);
+        svg.appendChild(el('text',{x:235,y:CAPY2,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
           'm は h を変えても同じ。変わるのは丸の中の n = h(m)'));
       }
     });
@@ -1270,7 +1279,7 @@ function xnet(x1,x2,f,k){
     // ※ hb1（② の節の活性化バッジ）は外した。② は恒等固定にしたので h を出さない。
     ['hb2','hb3'].forEach(function(id){var e=g(id); if(e) e.textContent=A.nm;});
     syncW();
-    drawFw(); drawAc(); drawX(); drawBw(); drawTr(); drawDeep();
+    drawFw(); fwSync(); drawAc(); drawX(); drawBw(); drawTr(); drawDeep();
     curve('sgSvg', A.f, A.yr[0], A.yr[1], null);
     curve('dsSvg', A.d, 0, 1, A.dmax);
     g('sgCap').textContent='いま選んでいる h(x) ・ '+A.nm;
