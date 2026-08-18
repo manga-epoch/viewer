@@ -282,7 +282,8 @@ $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
 <strong>バイアス $b^{(m)}_i$ は辺ではなく、丸そのものに足す数</strong>なので図の辺には出ない。</div>
 
 <div class="stepnav">
-  <span class="now" id="fwNow">入力</span>
+  <button class="ico" id="fwPrev" aria-label="1 層もどす" data-t="1 層もどす">◁</button>
+  <span class="now" id="fwNow">出力まで計算した</span>
   <button class="ico" id="fwNext" aria-label="1 層すすめる" data-t="1 層すすめる">▷</button>
 </div>
 <div class="nnfig wide"><svg id="fwSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
@@ -853,12 +854,35 @@ function xnet(x1,x2,f,k){
           '信号は左から右へ ——▶　　太い辺が、下のつまみで動かせる 3 本'));
       }
     });
-    var o=g('fwOut');
-    var t='x₁ = '+XIN[0].toFixed(2)+'   x₂ = '+XIN[1].toFixed(2)+'\n';
-    t+='m = '+vec(f.m1)+'   ← 中間層 3 個ぶんの重み付きの和\n';
-    t+='y = '+vec(f.y)+'    正解 ŷ = '+vec(TGT,f2)+'    L = '+nf(f.L)+'\n';
-    t+='例) m₁ = '+W1[0][0].toFixed(2)+'·x₁'+sgn(W1[0][1])+'·x₂'+sgn(B1[0])
-      +' = '+nf(f.m1[0]);
+    // 読み取りは**いまの段階の計算だけ**を、数字を入れた形で出す。
+    // 読者の指摘「どう中間層の値が算出されたのか、どう出力の値が算出されたのかを
+    // 分かりやすくしたい」。全部を一度に出すと、どれが今の話か分からない。
+    var o=g('fwOut'), t='', j, k;
+    // 掛けられる側が負なら括弧でくくる。掛ける側（重み）は 2 項目以降、
+    // 「+ -0.90」ではなく「− 0.90」と書く（sgn と同じ書き方に揃える）。
+    var pr=function(v){ return (v<0?'(':'')+v.toFixed(2)+(v<0?')':''); };
+    var trm=function(w,v){ return (w<0?' − ':' + ')+Math.abs(w).toFixed(2)+'·'+pr(v); };
+    var bia=function(v){ return (v<0?' − ':' + ')+Math.abs(v).toFixed(2); };
+    if(fstage===0){
+      t ='入力を置いた。\n'
+        +'x₁ = '+XIN[0].toFixed(2)+'    x₂ = '+XIN[1].toFixed(2)+'\n\n'
+        +'▷ を押すと、この 2 つから中間層 m を計算する。';
+    } else if(fstage===1){
+      t ='中間層 m を計算した。   mⱼ = w¹₁ⱼ·x₁ + w¹₂ⱼ·x₂ + b¹ⱼ\n\n';
+      for(j=0;j<3;j++)
+        t+='m'+SUB[j+1]+' = '+W1[j][0].toFixed(2)+'·'+pr(XIN[0])
+          +trm(W1[j][1],XIN[1])+bia(B1[j])+' = '+nf(f.m1[j])+'\n';
+      t+='\n▷ を押すと、この 3 つから出力 y を計算する。';
+    } else {
+      t ='出力 y を計算した。   yₖ = w²₁ₖ·m₁ + w²₂ₖ·m₂ + w²₃ₖ·m₃ + b²ₖ\n\n';
+      for(k=0;k<2;k++){
+        t+='y'+SUB[k+1]+' = ';
+        for(j=0;j<3;j++)
+          t+= j===0 ? (W2[k][0].toFixed(2)+'·'+pr(f.m1[0])) : trm(W2[k][j],f.m1[j]);
+        t+=bia(B2[k])+' = '+nf(f.y[k])+'\n';
+      }
+      t+='\n正解 ŷ = '+vec(TGT,f2)+'    ズレ L = '+nf(f.L);
+    }
     o.textContent=t;
     drawMlpRegion();
   }
@@ -910,6 +934,7 @@ function xnet(x1,x2,f,k){
     if(b) b.classList.toggle('on',fstage===2);
   }
   g('fwNext').addEventListener('click',function(){ fstage=(fstage+1)%3; drawFw(); fwSync(); });
+  g('fwPrev').addEventListener('click',function(){ fstage=(fstage+2)%3; drawFw(); fwSync(); });
 
   // ※ ② のつまみは**入力ではなく重み**にした。読者の指摘:
   //   「重みを学習させるのだから、重みを変化させるほうが理解としてよい」。
