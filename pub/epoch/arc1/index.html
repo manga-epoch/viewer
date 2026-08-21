@@ -3,6 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+<!-- epoch-meta:start 共有されたときのカード。単一出典 = outputs/publish/epoch/epoch_meta.py -->
+<meta name="description" content="1956 年ダートマス会議から AI の冬まで。AI の 70 年史を 4 人の研究者の物語として描く学習マンガ EPOCH の第 1 巻。全 3 話・無料。">
+<meta property="og:title" content="Arc 1「黎明」 — EPOCH 時代の前夜">
+<meta property="og:description" content="1956 年ダートマス会議から AI の冬まで。AI の 70 年史を 4 人の研究者の物語として描く学習マンガ EPOCH の第 1 巻。全 3 話・無料。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="EPOCH — 時代の前夜">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:image" content="https://manga-epoch.github.io/viewer/og/arc1.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://manga-epoch.github.io/viewer/og/arc1.jpg">
+<!-- epoch-meta:end -->
 <title>Arc 1「黎明」 — EPOCH 時代の前夜</title>
 <style>
   * { box-sizing: border-box; }
@@ -168,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <div class="container">
   <div class="image-pane">
     <h1 id="page-title">Page 01</h1>
-    <div class="img-wrap"><img id="page-image" alt="page"></div>
+    <div class="img-wrap"><img id="page-image" alt=""></div>
     <div class="nav">
       <button id="next">← 次</button>
       <span class="counter" id="counter">1 / 12</span>
@@ -300,6 +311,21 @@ function render() {
   const p = PAGES[idx];
   $('page-title').textContent = `Page ${String(idx + 1).padStart(2, '0')} — ${p.title}`;
   $('page-image').src = p.image;
+  // 画像の代替テキスト。セリフはページ画像に焼き込まれているので、これが無いと
+  // 読み上げにも検索エンジンにも「文字が 1 つも無いページ」に見える。
+  (function(){
+    const lines = (p.dialogue || [])
+      .flatMap(d => Array.isArray(d.text) ? d.text : [d.text])
+      .map(t => (t || '').replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    let alt = `${p.title}`;
+    if (lines.length) {
+      let body = lines.join(' / ');
+      if (body.length > 200) body = body.slice(0, 200) + '…';
+      alt += ` — ${body}`;
+    }
+    $('page-image').alt = alt;
+  })();
   $('counter').textContent = `${idx + 1} / ${PAGES.length}`;
   $('prev').disabled = idx === 0;
   $('next').disabled = false; // last page allows next (redirects to commentary)

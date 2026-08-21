@@ -3,6 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+<!-- epoch-meta:start 共有されたときのカード。単一出典 = outputs/publish/epoch/epoch_meta.py -->
+<meta name="description" content="深層学習革命を描く EPOCH 第 2 巻「覚醒」。ニューラルネットが世界を「見る」目を獲得するまで。第 1 話は無料で読める。">
+<meta property="og:title" content="Arc 2「覚醒」 — EPOCH 時代の前夜">
+<meta property="og:description" content="深層学習革命を描く EPOCH 第 2 巻「覚醒」。ニューラルネットが世界を「見る」目を獲得するまで。第 1 話は無料で読める。">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="EPOCH — 時代の前夜">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:image" content="../../../og/arc2.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="../../../og/arc2.jpg">
+<!-- epoch-meta:end -->
 <title>Arc 2「覚醒」試読版 — EPOCH 時代の前夜</title>
 <style>
   * { box-sizing: border-box; }
@@ -208,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <div class="container">
   <div class="image-pane">
     <h1 id="page-title">Page 01</h1>
-    <div class="img-wrap"><img id="page-image" alt="page"></div>
+    <div class="img-wrap"><img id="page-image" alt=""></div>
     <div class="nav">
       <button id="next">← 次</button>
       <span class="counter" id="counter">1 / 12</span>
@@ -345,6 +356,21 @@ function render() {
   const p = PAGES[idx];
   $('page-title').textContent = `Page ${String(idx + 1).padStart(2, '0')} — ${p.title}`;
   $('page-image').src = p.image;
+  // 画像の代替テキスト。セリフはページ画像に焼き込まれているので、これが無いと
+  // 読み上げにも検索エンジンにも「文字が 1 つも無いページ」に見える。
+  (function(){
+    const lines = (p.dialogue || [])
+      .flatMap(d => Array.isArray(d.text) ? d.text : [d.text])
+      .map(t => (t || '').replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+    let alt = `${p.title}`;
+    if (lines.length) {
+      let body = lines.join(' / ');
+      if (body.length > 200) body = body.slice(0, 200) + '…';
+      alt += ` — ${body}`;
+    }
+    $('page-image').alt = alt;
+  })();
   $('counter').textContent = `${idx + 1} / ${PAGES.length}`;
   $('prev').disabled = idx === 0;
   $('next').disabled = false; // last page allows next (redirects to commentary)
