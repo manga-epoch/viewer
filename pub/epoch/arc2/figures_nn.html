@@ -217,6 +217,14 @@ table{display:block;overflow-x:auto;max-width:100%}
    別々の枠だと視線が 2 回切れる） */
 .calcbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;
  padding:12px 16px;margin:14px 0}
+.calcbox>summary{cursor:pointer;list-style:none;font-size:13px;font-weight:700;color:var(--ink-sub);
+ display:flex;align-items:center;gap:8px}
+.calcbox>summary::-webkit-details-marker{display:none}
+.calcbox>summary::before{content:"▾";font-size:11px;color:var(--link);transition:transform .15s}
+.calcbox:not([open])>summary::before{transform:rotate(-90deg)}
+.calcbox:not([open])>summary{margin:-2px 0}
+.calcbox .rst{margin-top:10px;text-align:center}
+.calcbox .rst .btn{font-size:12.5px;padding:7px 14px}
 .calcbox .formula,.calcbox .formula.fsplit{background:none;border:0;margin:0;padding:0 0 2px}
 .calcbox .readout{background:none;border:0;margin:0;padding:8px 0 0;border-top:1px solid var(--border)}
 .stepnav{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0 2px}
@@ -247,23 +255,22 @@ table{display:block;overflow-x:auto;max-width:100%}
 $b$ は「つねに 1 を入れる入力」への重みだと考えると、式が 1 本にまとまる。</div>
 
 <div style="text-align:center;margin:10px 0 4px">
-<svg id="pNet" class="statfig" width="320" height="210" viewBox="0 0 320 210"></svg>
+<svg id="pNet" class="statfig" width="320" height="232" viewBox="0 0 320 232"></svg>
 <div class="gcap">バイアス $b$ は「つねに 1 を入れる入力」への重み。<span style="color:#8a6b4f">▲▼</span> で重みを 0.1 ずつ動かす</div>
 </div>
 
-<div class="calcbox">
+<details class="calcbox" open>
+<summary>式と、いまの数字での計算</summary>
 <div class="formula">
 $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\end{cases}$$
 </div>
 
 <div class="readout" id="pCalc"></div>
-</div>
+<div class="rst"><button class="btn ghost" id="pReset">重みを初期値に戻す</button></div>
+</details>
 
-<div class="ctrls" style="justify-content:center">
-  <button class="btn ghost" id="pReset">重みを初期値に戻す</button>
-</div>
 <div class="chips">
-  <span class="chip on" data-ds="easy">かんたんな例</span>
+  <span class="chip on" data-ds="easy">AND（論理積）</span>
   <span class="chip" data-ds="xor">XOR（排他的論理和）</span>
 </div>
 
@@ -289,17 +296,16 @@ $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
 </div>
 <div class="nnfig wide"><svg id="fwSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
 
-<div class="calcbox">
+<details class="calcbox" open>
+<summary>式と、いまの数字での計算</summary>
 <div class="formula fsplit">
 <span class="fpart" id="fmA">$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j$</span>
 <span class="fpart" id="fmB">$y_k = \textstyle\sum_j w^{(2)}_{jk}m_j + b^{(2)}_k$</span>
 </div>
 <div class="readout" id="fwOut"></div>
-</div>
+<div class="rst"><button class="btn ghost" id="fwReset">重みを初期値に戻す</button></div>
+</details>
 
-<div class="ctrls" style="justify-content:center">
-  <button class="btn ghost" id="fwReset">重みを初期値に戻す</button>
-</div>
 
 <h3>では、この多層パーセプトロンは「分けられる」か</h3>
 <div class="lead">① とまったく同じ問いを、同じデータで解かせてみる。
@@ -310,7 +316,7 @@ $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
 <div class="gcap">青 = $y_1$ が大きい側 ／ 赤 = $y_2$ が大きい側</div>
 </div>
 <div class="chips">
-  <span class="chip on" data-ds2="easy">かんたんな例</span>
+  <span class="chip on" data-ds2="easy">AND（論理積）</span>
   <span class="chip" data-ds2="xor">XOR（排他的論理和）</span>
 </div>
 <div class="readout" id="mlpOut"></div>
@@ -446,13 +452,15 @@ $h$ を取り替えると丸の中の数字がどう変わるか、入口側の�
 
 <div class="nnfig wide"><svg id="acSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
 
-<div class="calcbox">
+<details class="calcbox" open>
+<summary>式と、いまの数字での計算</summary>
 <div class="formula">
 $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 </div>
 
 <div class="readout" id="acOut"></div>
-</div>
+<div class="rst"><button class="btn ghost" id="acReset">重みを初期値に戻す</button></div>
+</details>
 
 <div class="chips" id="acts">
   <span class="chip on" data-h="none">なし（恒等）</span>
@@ -464,9 +472,6 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 <div style="text-align:center;margin:8px 0 2px">
 <svg id="sgSvg" width="300" height="220" viewBox="0 0 300 220"></svg>
 <div class="gcap" id="sgCap">いま選んでいる $h(x)$</div>
-</div>
-<div class="ctrls" style="justify-content:center">
-  <button class="btn ghost" id="acReset">重みを初期値に戻す</button>
 </div>
 <p class="note">つまみは $n_1$ に入る 3 本の重み。$m_1$ が動き、$h$ の形に沿って $n_1$ が決まる。
 $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイドなら大きく振っても $0 \sim 1$ に押し込まれる。</p>
@@ -499,7 +504,8 @@ $h$ ごとに解ける重みは違う（大きな重みは ReLU では飽和し�
   <button class="ico" id="bwNext" aria-label="ひとつ先へ" data-t="ひとつ先へ（ダブルクリックで自動再生）">▷</button>
 </div>
 <div class="nnfig wide"><svg id="bwSvg" width="530" height="316" viewBox="0 0 530 316"></svg></div>
-<div class="calcbox">
+<details class="calcbox" open>
+<summary>式と、いまの数字での計算</summary>
 <div class="formula">
 $$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
 \frac{\partial L}{\partial w}=\frac{\partial L}{\partial y}\cdot\frac{\partial y}{\partial m}\cdot\frac{\partial m}{\partial w}
@@ -507,7 +513,7 @@ $$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
 </div>
 
 <div class="readout" id="bwOut" style="min-height:118px"></div>
-</div>
+</details>
 
 <h3>4. 重みを直す ―― 繰り返すと、答えは正解に届く</h3>
 <div class="lead">1〜4 を回すたびに $L$ が減り、出た答え $y$ が正解 $\hat{y}$ に寄っていく。
@@ -589,10 +595,12 @@ function sg(z){return 1/(1+Math.exp(-z));}
     // ※ かんたん例で四隅を使うと、点が境界線の**真上**に載って正解率が上がりきらない
     //   （既定の重みで 86% にしかならず「分けられる例」に見えない）。2 クラスタにする。
     var pts=[],i,j,r=function(){return (Math.random()-0.5)*0.20;};
+    // AND: 両方 1 のときだけ 1。XOR と同じ四隅を使うので、直線 1 本で
+    // 分けられる／分けられないの対比がそのまま出る。
     var spec = (kind==='xor')
       ? [[0,0,0],[0,1,1],[1,0,1],[1,1,0]]
-      : [[0.22,0.22,0],[0.78,0.78,1]];
-    for(i=0;i<spec.length;i++) for(j=0;j<(kind==='xor'?9:18);j++)
+      : [[0,0,0],[0,1,0],[1,0,0],[1,1,1]];
+    for(i=0;i<spec.length;i++) for(j=0;j<9;j++)
       pts.push({x:Math.min(1,Math.max(0,spec[i][0]+r())),
                 y:Math.min(1,Math.max(0,spec[i][1]+r())),l:spec[i][2]});
     return pts;
@@ -625,8 +633,8 @@ function sg(z){return 1/(1+Math.exp(-z));}
   }
 
   // ---- ① パーセプトロン
-  var w1=1.0,w2=1.0,bb=-1.0;
-  var GP=geom([3,1],320,105,[62,0],19,40);
+  var w1=1.0,w2=1.0,bb=-1.5;   // 境界 x₁+x₂=1.5 が AND を分ける
+  var GP=geom([3,1],320,116,[78,0],19,40);
   function drawPNet(){
     var W=[bb,w1,w2];                       // 入力 1 → b、x₁ → w₁、x₂ → w₂
     var NM=['b','w₁','w₂'];
@@ -643,8 +651,8 @@ function sg(z){return 1/(1+Math.exp(-z));}
                                           :(zP()>=0?'1':'0'); },
       nodeFill:function(i,j){ return i===0?'#EAEDF7':paint(zP()>=0?1:0.15); },
       deco:function(svg){
-        svg.appendChild(el('text',{x:160,y:198,'font-size':12,'text-anchor':'middle',fill:MUTED},
-          '重みを動かすと、下の境界が動く'));
+        svg.appendChild(el('text',{x:160,y:222,'font-size':12,'text-anchor':'middle',fill:MUTED},
+          '▲▼ で重みが 0.1 ずつ変わる。下の境界が動く'));
       }
     });
     bindStep(g('pNet'),
@@ -676,7 +684,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
           ? '\nXOR は、どんな w₁ w₂ b を選んでも 100% にはできない（直線 1 本では四隅を分けられない）。'
           : '\n直線 1 本で分けられる配置なら、パーセプトロン 1 個で足りる。');
   }
-  g('pReset').addEventListener('click',function(){ w1=1.0; w2=1.0; bb=-1.0; drawP(); });
+  g('pReset').addEventListener('click',function(){ w1=1.0; w2=1.0; bb=-1.5; drawP(); });
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-ds]'),function(c){
     c.addEventListener('click',function(){
       document.querySelectorAll('.chip[data-ds]').forEach(function(o){o.classList.remove('on');});
@@ -768,8 +776,9 @@ function sg(z){return 1/(1+Math.exp(-z));}
         if(edit){
           var ax=px+wd/2-7;
           [['▲',1,py-fs*0.52],['▼',-1,py+fs*1.02]].forEach(function(q){
-            var hit=el('rect',{x:ax-9,y:q[2]-fs*0.72,width:18,height:fs*1.0,
-              fill:'transparent',style:'cursor:pointer'});
+            var EX=9;   // 上下に伸ばすぶん（viewBox 単位）
+            var hit=el('rect',{x:px-wd/2-2,y:q[1]>0?(top-EX):(top+hh/2),
+              width:wd+4,height:hh/2+EX, fill:'transparent',style:'cursor:pointer'});
             hit.setAttribute('data-step',i+','+j+','+k+','+q[1]);
             svg.appendChild(el('text',{x:ax,y:q[2],'font-size':(fs*0.70).toFixed(1),
               'text-anchor':'middle',fill:ARC,style:'pointer-events:none;user-select:none'},q[0]));
@@ -780,10 +789,11 @@ function sg(z){return 1/(1+Math.exp(-z));}
         // ラベルの色は辺ごとに変えられる（まだ計算していない層は灰色に落とす）
         var ink=o.labelInkAt?o.labelInkAt(i,j,k):(o.labelInk||'#565248');
         var nInk=o.nameInkAt?o.nameInkAt(i,j,k):ARC;
+        var thru=edit?'pointer-events:none':'';
         if(two) svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
-          'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',fill:nInk},nmS));
+          'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',fill:nInk,style:thru},nmS));
         svg.appendChild(el('text',{x:px.toFixed(1),y:(py+(two?fs*1.02:fs*0.35)).toFixed(1),
-          'font-size':fs,'text-anchor':'middle',fill:ink},vS));
+          'font-size':fs,'text-anchor':'middle',fill:ink,style:thru},vS));
       }
     }
     for(i=0;i<n;i++) for(j=0;j<gg.shape[i];j++){
