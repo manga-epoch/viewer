@@ -530,9 +530,9 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
 
 <div class="fig-stage" id="sec5">
 <h2>勾配消失 — 層が深いほど手前へ届かなくなる勾配</h2>
-<div class="lead">連鎖律は掛け算の連なりだから、1 層さかのぼるたびに活性化関数の微分 $h'(m)$ が掛かる。
-Sigmoid の微分は<strong>どんなに大きくても 0.25</strong>。掛け続ければ、指数的に小さくなる。
-下は同じニューラルネットを深くしたもの（2-3-3-3-3-2）。<strong>「活性化関数」の節で選んだ $h$ が、そのまま減り方を決める</strong>。</div>
+<div class="lead">④ の 5 コマ目「ズレを上流へ配る」を、層を増やして続けるとどうなるか。
+下は同じニューラルネットを深くしたもの（2-3-3-3-3-2）。
+<strong>出口に生まれたズレが、1 層さかのぼるごとに何倍になるかを実際の数字で見る</strong>。</div>
 
 <div class="hbadge">いまの活性化関数 <b id="hb3">なし</b> ・「活性化関数」の節を切り替えて、届き方の違いを見る</div>
 <div class="nnfig wide"><svg id="dpSvg" width="470" height="226" viewBox="0 0 470 226"></svg></div>
@@ -544,18 +544,13 @@ Sigmoid の微分は<strong>どんなに大きくても 0.25</strong>。掛け�
 <div class="gcap" id="dsCap">いま選んでいる $h'(x)$</div>
 </div>
 <div style="max-width:330px">
-<div class="formula" style="text-align:left">
-$$\frac{\partial L}{\partial w^{(1)}} \propto \prod_{\ell} h'(m^{(\ell)})\,w^{(\ell)}$$
-</div>
 <div id="dpTable"></div>
 </div>
 </div>
 
-<p class="note">入口側の層には、ほとんど何も届かない。深いネットワークは
-「深く作った」のではなく「浅いネットワークの手前に、ランダムなゴミが積んである」状態になる。
-―― これが <strong>勾配消失問題</strong>。マンガ Scene 1 で 2000 年代の研究者たちを止めていた壁であり、
-Scene 5 の <a href="../../../#buy">残差接続</a>が越えることになる壁でもある。
-「活性化関数」の節で ReLU を選ぶと減り方が変わることも確かめてほしい ―― それが 2012 年以降の突破口のひとつだった。</p>
+<p class="note">出口では大きかったズレが、入口の層に着くころにはほとんど残らない
+―― これが <strong>勾配消失問題</strong>。のちに <a href="../../../#buy">残差接続</a>が越えることになる。
+「活性化関数」の節で ReLU を選ぶと減り方が変わるので、見比べてほしい。</p>
 </div>
 
 <div class="epoch-nb"><div class="k">④ 書く — 無料</div><h3>ニューラルネットを、NumPy だけで書く</h3><p>パーセプトロンから誤差逆伝播まで自分で書く。書いた勾配が数値微分と合うか、勾配消失がどれだけ効くかを測れる。</p><a class="go" href="https://colab.research.google.com/github/manga-epoch/viewer/blob/main/notebooks/nn_from_scratch.ipynb">Colab で開く →</a></div>
@@ -821,6 +816,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
         var q=node.getAttribute('data-step').split(','),
             i=+q[0], j=+q[1], k=+q[2], d=+q[3], t=null, iv=null;
         var bump=function(){
+          SEL={i:i,j:j,k:k};        // 押した重みをダイヤルの対象にする
           set(i,j,k, Math.max(-6,Math.min(6, Math.round((get(i,j,k)+d*0.1)*10)/10)));
           after();
         };
@@ -832,6 +828,65 @@ function sg(z){return 1/(1+Math.exp(-z));}
         window.addEventListener('pointerup',stop);
         window.addEventListener('pointercancel',stop);
       });
+    });
+  }
+  // ---- ダイヤル（構成図の右上）。読者の指摘「▲▼ はスマホで押しにくい。
+  //   インタラクティブが売りなので入力の気持ちよさが重要」。
+  //   横に払うと値が動き、指を離しても慣性で少し流れる。▲▼ で選んだ重みを回す。
+  var SEL=null;                       // {i,j,k} いま回している重み
+  function selName(){
+    if(!SEL) return '—';
+    return 'w'+(SEL.i===0?'¹':'²')+SUB[SEL.j+1]+SUB[SEL.k+1];
+  }
+  function drawDial(svg,x,y,w,h,get,set,after){
+    var v=SEL?get(SEL.i,SEL.j,SEL.k):0;
+    var gp=el('g',{});
+    gp.appendChild(el('rect',{x:x,y:y,width:w,height:h,rx:9,fill:'#fff',
+      stroke:SEL?ARC:'#E4E1D8','stroke-width':SEL?1.4:1}));
+    gp.appendChild(el('text',{x:x+10,y:y+15,'font-size':10.5,fill:MUTED},'ダイヤル'));
+    gp.appendChild(el('text',{x:x+w-10,y:y+15,'font-size':11,'text-anchor':'end',fill:ARC},selName()));
+    // 目盛り。値に合わせて流れる
+    var PXV=26, i2, cx=x+w/2;
+    var off=((v*PXV)%13+13)%13;
+    for(i2=-Math.ceil(w/26);i2<=Math.ceil(w/26);i2++){
+      var tx=cx+i2*13-off;
+      if(tx<x+6||tx>x+w-6) continue;
+      var big=Math.abs(Math.round((tx-cx+off)/13))%2===0;
+      gp.appendChild(el('line',{x1:tx,y1:y+h-20,x2:tx,y2:y+h-(big?8:12),
+        stroke:'#D8D4CB','stroke-width':big?1.3:0.8}));
+    }
+    gp.appendChild(el('line',{x1:cx,y1:y+h-24,x2:cx,y2:y+h-5,stroke:ARC,'stroke-width':2}));
+    gp.appendChild(el('text',{x:cx,y:y+h-28,'font-size':15,'text-anchor':'middle',fill:INK},
+      SEL?v.toFixed(2):'重みを選ぶ'));
+    var hit=el('rect',{x:x,y:y,width:w,height:h,fill:'transparent',
+      style:'cursor:'+(SEL?'ew-resize':'default')+';touch-action:none'});
+    gp.appendChild(hit);
+    svg.appendChild(gp);
+    if(!SEL) return;
+    hit.addEventListener('pointerdown',function(ev){
+      ev.preventDefault();
+      var r=svg.getBoundingClientRect(), sc=svg.viewBox.baseVal.width/r.width;
+      var last=ev.clientX, vel=0, raf=null, t0=null;
+      var apply=function(dx){
+        var nv=get(SEL.i,SEL.j,SEL.k)+dx*sc/PXV;
+        set(SEL.i,SEL.j,SEL.k, Math.max(-6,Math.min(6, Math.round(nv*20)/20)));
+        after();
+      };
+      var onMove=function(m){
+        var dx=m.clientX-last; last=m.clientX; vel=dx; apply(dx);
+      };
+      var glide=function(){        // 慣性。指を離したあと少し流れて止まる
+        vel*=0.90;
+        if(Math.abs(vel)<0.4){ raf=null; return; }
+        apply(vel); raf=requestAnimationFrame(glide);
+      };
+      var onUp=function(){
+        window.removeEventListener('pointermove',onMove);
+        window.removeEventListener('pointerup',onUp);
+        if(Math.abs(vel)>1.2) raf=requestAnimationFrame(glide);
+      };
+      window.addEventListener('pointermove',onMove);
+      window.addEventListener('pointerup',onUp);
     });
   }
   function heads(svg,gg,labs,y){
@@ -938,8 +993,12 @@ function sg(z){return 1/(1+Math.exp(-z));}
       nodeSub:function(i,j){return i===2?('正解 '+TGT[j].toFixed(1)):null;},
       deco:function(svg){
         heads(svg,G2,['入力','中間層','出力'],HEADY);
+        drawDial(svg,300,32,166,70,
+          function(i,j,k){ return i===0?W1[k][j]:W2[k][j]; },
+          function(i,j,k,v){ if(i===0) W1[k][j]=v; else W2[k][j]=v; },
+          function(){ redraw(); });
         svg.appendChild(el('text',{x:235,y:CAPY2,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
-          '信号は左から右へ ——▶　　▲▼ で重みが 0.1 ずつ変わる'));
+          '▲▼ で 0.1 ずつ。押した重みは右上のダイヤルで払って動かせる'));
       }
     });
     // 読み取りは**いまの段階の計算だけ**を、数字を入れた形で出す。
@@ -1056,8 +1115,12 @@ function sg(z){return 1/(1+Math.exp(-z));}
       nodeSub:function(i,j){return i===1?('m='+nf(f.m1[j])):null;},
       deco:function(svg){
         heads(svg,G2,['入力','中間層 h(・)','出力'],HEADY);
+        drawDial(svg,300,32,166,70,
+          function(i,j,k){ return i===0?W1[k][j]:W2[k][j]; },
+          function(i,j,k,v){ if(i===0) W1[k][j]=v; else W2[k][j]=v; },
+          function(){ redraw(); });
         svg.appendChild(el('text',{x:235,y:CAPY2,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
-          '▲▼ で重みが 0.1 ずつ変わる。m は h を変えても同じ'));
+          '▲▼ で 0.1 ずつ。押した重みは右上のダイヤルで払って動かせる'));
       }
     });
     bindStep(g('acSvg'),
