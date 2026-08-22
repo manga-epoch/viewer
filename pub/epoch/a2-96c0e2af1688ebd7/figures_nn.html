@@ -737,10 +737,13 @@ function xnet(x1,x2,f,k){
         var hh=two?fs*2.9:fs*1.6, top=py-(two?fs*1.80:fs*0.80);
         svg.appendChild(el('rect',{x:(px-wd/2).toFixed(1),y:top.toFixed(1),
           width:wd.toFixed(1),height:hh.toFixed(1),rx:3,fill:'#fff',opacity:0.93}));
+        // ラベルの色は辺ごとに変えられる（まだ計算していない層は灰色に落とす）
+        var ink=o.labelInkAt?o.labelInkAt(i,j,k):(o.labelInk||'#565248');
+        var nInk=o.nameInkAt?o.nameInkAt(i,j,k):ARC;
         if(two) svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
-          'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',fill:ARC},nmS));
+          'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',fill:nInk},nmS));
         svg.appendChild(el('text',{x:px.toFixed(1),y:(py+(two?fs*1.02:fs*0.35)).toFixed(1),
-          'font-size':fs,'text-anchor':'middle',fill:o.labelInk||'#565248'},vS));
+          'font-size':fs,'text-anchor':'middle',fill:ink},vS));
       }
     }
     for(i=0;i<n;i++) for(j=0;j<gg.shape[i];j++){
@@ -848,13 +851,19 @@ function xnet(x1,x2,f,k){
     var my=Math.max(1e-9,Math.max.apply(null,f.y.map(Math.abs)));
     renderNet(g('fwSvg'),G2,{
       efs:12.5,
+      // ※ まだ計算していない層は「消す」のではなく灰色に落とす。
+      //   消すと重みの数字ごと見えなくなる（読者は重みを見たい）。
       edgeState:function(i){return fstage>i?2:1;},
       edgeT:function(i,j,k){return i===0?T0[j]:T1[j][k];},
       edgeLabel:function(i,j,k){return elab(i,j,k);},
-      edgeInk:function(i,j,k){return (i===1&&k===0)?ARC:EDGE;},
-      edgeW:function(i,j,k){return (i===1&&k===0)?2.0:1.3;},
+      edgeInk:function(i,j,k){return dimF(i)?DIM:((i===1&&k===0)?ARC:EDGE);},
+      edgeW:function(i,j,k){return dimF(i)?1.0:((i===1&&k===0)?2.0:1.3);},
+      labelInkAt:function(i){return dimF(i)?DIMT:'#565248';},
+      nameInkAt:function(i){return dimF(i)?DIMT:ARC;},
       nodeState:function(i){return fstage>=i?1:0;},
-      nodeName:function(i,j){return [['x₁','x₂'],['n₁','n₂','n₃'],['y₁','y₂']][i][j];},
+      // ※ 中間層の丸の名前は m。この節には活性化関数がまだ無いので、丸の値は
+      //   重み付きの和そのもの＝下の式の m と同じ数。n を出すと式と食い違う（読者の指摘）。
+      nodeName:function(i,j){return [['x₁','x₂'],['m₁','m₂','m₃'],['y₁','y₂']][i][j];},
       nodeText:function(i,j){return i===0?XIN[j].toFixed(2):(i===1?nf(f.n[j]):nf(f.y[j]));},
       nodeFill:function(i,j){var v=i===0?Math.abs(XIN[j])/1.5:(i===1?Math.abs(f.n[j])/mx:Math.abs(f.y[j])/my);
         return paint(v);},
@@ -875,7 +884,7 @@ function xnet(x1,x2,f,k){
     var trm=function(w,v){ return (w<0?' − ':' + ')+Math.abs(w).toFixed(2)+'·'+pr(v); };
     var bia=function(v){ return (v<0?' − ':' + ')+Math.abs(v).toFixed(2); };
     if(fstage===0){
-      t ='入力を置いた。\n'
+      t ='入力を設定した。\n'
         +'x₁ = '+XIN[0].toFixed(2)+'    x₂ = '+XIN[1].toFixed(2)+'\n\n'
         +'▷ を押すと、この 2 つから中間層 m を計算する。';
     } else if(fstage===1){
@@ -937,7 +946,9 @@ function xnet(x1,x2,f,k){
   }
   // ▷ を 1 回押すごとに 1 層すすむ（自動再生はしない。読者の指摘）。
   // 進んだ層に対応する式を光らせて、図と式を同時に追えるようにする。
-  var FWNM=['入力を置いた','中間層まで計算した','出力まで計算した'];
+  var DIM='#DCD8CF', DIMT='#B6B1A7';
+  function dimF(i){ return i>=fstage; }   // 辺の層 i がまだ通っていないか
+  var FWNM=['入力の設定','中間層の計算','出力'];
   function fwSync(){
     g('fwNow').textContent=FWNM[fstage];
     var a=g('fmA'), b=g('fmB');
