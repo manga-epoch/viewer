@@ -199,6 +199,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 .nnfig{width:100%;margin:8px auto 2px;text-align:center;
  position:sticky;top:6px;z-index:3;background:var(--bg);
  padding-bottom:4px;box-shadow:0 6px 10px -8px rgba(0,0,0,.18)}
+@media(max-width:620px){.nnfig{position:static;box-shadow:none;padding-bottom:0}}
 
 .nnfig svg{width:100%;height:auto;display:block;margin:0 auto}
 .nnfig.wide svg{max-width:660px}
@@ -411,32 +412,6 @@ $$W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2 = (W_2W_1)\mathbf{x} + (W_2\mathb
 $h$ を取り替えると丸の中の数字がどう変わるか、入口側の重みを動かすと $m$ ごとどう動くかを見比べる。
 「なし（恒等）」は $h$ を入れない状態＝前の節そのもの。</div>
 
-<div class="nnfig wide"><svg id="acSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
-
-<div class="formula">
-$$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
-</div>
-
-<div class="readout" id="acOut"></div>
-
-<div class="chips" id="acts">
-  <span class="chip on" data-h="none">なし（恒等）</span>
-  <span class="chip" data-h="sigmoid">シグモイド</span>
-  <span class="chip" data-h="tanh">tanh</span>
-  <span class="chip" data-h="relu">ReLU</span>
-</div>
-
-<div class="ctrls">
-  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{11}$ <span class="val" id="v1V">1.20</span></label>
-    <input type="range" id="v1" min="-60" max="60" step="1" value="12"></div>
-  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{21}$ <span class="val" id="v2V">-0.80</span></label>
-    <input type="range" id="v2" min="-60" max="60" step="1" value="-8"></div>
-  <div class="ctrl" style="flex:1;min-width:140px"><label>$b^{(1)}_{1}$ <span class="val" id="v3V">0.30</span></label>
-    <input type="range" id="v3" min="-60" max="60" step="1" value="3"></div>
-  <button class="btn ghost" id="acReset">重みを初期値に戻す</button>
-</div>
-<p class="note">つまみは $n_1$ に入る 3 本の重み。$m_1$ が動き、$h$ の形に沿って $n_1$ が決まる。
-$h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイドなら大きく振っても $0 \sim 1$ に押し込まれる。</p>
 <div style="text-align:center;margin:18px 0 6px">
 <svg class="statfig" width="420" height="200" viewBox="0 0 420 200" data-fig="nn_activation">
   <text x="14" y="20" font-size="13.5" fill="#9A9488">前の層の値</text>
@@ -471,19 +446,47 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
 <div class="gcap">上の図の丸 1 個を開いたところ。<b>重み付きの和を活性化関数に通したもの</b>が、その丸の値になる</div>
 </div>
 
-<div class="grid-wrap">
-<div>
+<div class="nnfig wide"><svg id="acSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
+
+<div class="formula">
+$$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
+</div>
+
+<div class="readout" id="acOut"></div>
+
+<div class="chips" id="acts">
+  <span class="chip on" data-h="none">なし（恒等）</span>
+  <span class="chip" data-h="sigmoid">シグモイド</span>
+  <span class="chip" data-h="tanh">tanh</span>
+  <span class="chip" data-h="relu">ReLU</span>
+</div>
+
+<div style="text-align:center;margin:8px 0 2px">
 <svg id="sgSvg" width="300" height="220" viewBox="0 0 300 220"></svg>
 <div class="gcap" id="sgCap">いま選んでいる $h(x)$</div>
 </div>
-<div>
-<svg id="xSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
-<div class="gcap">同じ XOR を、いまの $h$ を入れた 2-2-1 ネットで分けたところ</div>
+<div class="ctrls">
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{11}$ <span class="val" id="v1V">1.20</span></label>
+    <input type="range" id="v1" min="-60" max="60" step="1" value="12"></div>
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{21}$ <span class="val" id="v2V">-0.80</span></label>
+    <input type="range" id="v2" min="-60" max="60" step="1" value="-8"></div>
+  <div class="ctrl" style="flex:1;min-width:140px"><label>$b^{(1)}_{1}$ <span class="val" id="v3V">0.30</span></label>
+    <input type="range" id="v3" min="-60" max="60" step="1" value="3"></div>
+  <button class="btn ghost" id="acReset">重みを初期値に戻す</button>
 </div>
+<p class="note">つまみは $n_1$ に入る 3 本の重み。$m_1$ が動き、$h$ の形に沿って $n_1$ が決まる。
+$h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイドなら大きく振っても $0 \sim 1$ に押し込まれる。</p>
+<div style="text-align:center;margin:10px 0 2px">
+<svg id="xSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
+<div class="gcap">同じ XOR を、<strong>いまのニューラルネット</strong>で分けたところ</div>
 </div>
 <div class="readout" id="xOut"></div>
-<p class="note">※ 右の XOR ネットだけは、$h$ ごとに通る重みが違う（大きな重みは ReLU では飽和しないため）。
-上のニューラルネットとは別物で、<strong>「非線形をはさめば曲がった境界が引ける」</strong>ことだけを見せている。</p>
+<div class="ctrls" style="justify-content:center">
+  <button class="btn" id="xSolve">XOR を解く重みを入れる</button>
+</div>
+<p class="note">※ この図は<strong>上と同じニューラルネット</strong>。上のつまみを動かすと境界も動く。
+$h$ ごとに解ける重みは違う（大きな重みは ReLU では飽和しないため）ので、ボタンで入れられるようにした。
+「なし（恒等）」だけは<strong>どんな重みを入れても解けない</strong> —— それがこの節の主題。</p>
 
 <div class="formula" style="background:rgba(180,73,63,.07);border-color:rgba(180,73,63,.3)">
 <b style="color:#b4493f">この多層ニューラルネットを、効率的に学習する仕組みが必要！</b>
@@ -573,19 +576,6 @@ Scene 5 の <a href="../../../#buy">残差接続</a>が越えることになる�
   function g(id){return document.getElementById(id);}
   
 function sg(z){return 1/(1+Math.exp(-z));}
-var XNET={
-  none:   {W1:[[20,20,-10],[20,20,-30]], W2:[24,-20,-12], thr:0.5},
-  sigmoid:{W1:[[20,20,-10],[20,20,-30]], W2:[24,-20,-12], thr:0.5},
-  tanh:   {W1:[[20,20,-10],[20,20,-30]], W2:[24,-20,-12], thr:0.0},
-  relu:   {W1:[[1,1,0],[1,1,-1]],        W2:[1,-2,0],     thr:0.5}
-};
-function xnet(x1,x2,f,k){
-  var N=XNET[k];
-  var a=f(N.W1[0][0]*x1+N.W1[0][1]*x2+N.W1[0][2]);
-  var b=f(N.W1[1][0]*x1+N.W1[1][1]*x2+N.W1[1][2]);
-  var z=f(N.W2[0]*a+N.W2[1]*b+N.W2[2]);
-  return 1/(1+Math.exp(-(z-N.thr)*6));
-}
 
 
   // ---- 数の見せ方。桁を出しすぎると辺のラベルが太って隣とぶつかる（幾何を実測して決めた）
@@ -1036,6 +1026,14 @@ function xnet(x1,x2,f,k){
       : '\n（h なしのときは、この 3 層が 1 次式 2 本に潰れていた。いまは潰せない ＝ 表現力が増えた）';
     o.textContent=t;
   }
+  g('xSolve').addEventListener('click',function(){
+    var q=XSOL[HK];
+    if(!q){ g('xOut').textContent='「なし（恒等）」には XOR を解く重みが存在しない。'
+      +'どんな値を入れても境界は直線 1 本のままだから。h を切り替えてから押す。'; return; }
+    W1=q[0].map(function(r){return r.slice();}); B1=q[1].slice();
+    W2=q[2].map(function(r){return r.slice();}); B2=q[3].slice(); epoch=0; diverged=false;
+    redraw();
+  });
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-h]'),function(c){
     c.addEventListener('click',function(){
       document.querySelectorAll('.chip[data-h]').forEach(function(x){x.classList.remove('on');});
@@ -1074,9 +1072,24 @@ function xnet(x1,x2,f,k){
     }
   }
 
-  // ---- ③ XOR の境界（h ごとに通る重みが違う。XNET を参照）
+  // ---- ③ XOR の境界。② と同じく「いまの網」で描く（argmax = y₁ > y₂）。
+  //   ※ 以前は h ごとに固定した別の 2-2-1 網を描いていたため、重みのつまみを
+  //     動かしても出力が 1px も動かなかった。入力と出力が繋がっていなかった。
+  function netOut(x1,x2){
+    var m=[],n=[],o=[],i,j,k,t;
+    for(j=0;j<3;j++){ t=B1[j]+W1[j][0]*x1+W1[j][1]*x2; m.push(t); n.push(H(t)); }
+    for(k=0;k<2;k++){ t=B2[k]; for(j=0;j<3;j++) t+=W2[k][j]*n[j]; o.push(t); }
+    return o;
+  }
+  // h ごとの「XOR を解く重み」。上の 2-3-2 のまま解ける値を手計算で確かめてある
+  // （恒等だけは解が無い ＝ それが ③ の主題）。
+  var XSOL={
+    sigmoid:[[[20,20],[20,20],[0,0]],[-10,-30,0],[[24,-20,0],[0,0,0]],[-12,0]],
+    tanh:   [[[20,20],[20,20],[0,0]],[-10,-30,0],[[24,-20,0],[0,0,0]],[-16,0]],
+    relu:   [[[1,1],[1,1],[0,0]],    [0,-1,0],   [[1,-2,0],[0,0,0]],  [-0.5,0]]
+  };
   function drawX(){
-    var acc=plot(g('xSvg'), DS.xor, function(x,y){ return xnet(x,y,ACTS[HK].f,HK); });
+    var acc=plot(g('xSvg'), DS.xor, function(x,y){ var o=netOut(x,y); return o[0]>o[1]?1:0; });
     var o=g('xOut');
     o.textContent = (HK==='none')
       ? 'h なし ・ 正解率 '+Math.round(acc*100)+'%  →  合成すると 1 次式に戻る。'
