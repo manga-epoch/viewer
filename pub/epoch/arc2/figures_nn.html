@@ -196,7 +196,10 @@ table{display:block;overflow-x:auto;max-width:100%}
 </div>
 
 <style>
-.nnfig{width:100%;margin:8px auto 2px;text-align:center}
+.nnfig{width:100%;margin:8px auto 2px;text-align:center;
+ position:sticky;top:6px;z-index:3;background:var(--bg);
+ padding-bottom:4px;box-shadow:0 6px 10px -8px rgba(0,0,0,.18)}
+
 .nnfig svg{width:100%;height:auto;display:block;margin:0 auto}
 .nnfig.wide svg{max-width:660px}
 .hbadge{font-size:12.5px;color:var(--ink-sub);text-align:center;margin:0 0 2px}
@@ -236,9 +239,8 @@ table{display:block;overflow-x:auto;max-width:100%}
 足す数（バイアス $b$）を変えると境界の<strong>位置</strong>がずれる。
 $b$ は「つねに 1 を入れる入力」への重みだと考えると、式が 1 本にまとまる。</div>
 
-<div class="grid-wrap">
-<div>
-<svg width="300" height="210" viewBox="0 0 300 210" data-fig="nn_perceptron">
+<div style="text-align:center;margin:10px 0 4px">
+<svg class="statfig" width="300" height="210" viewBox="0 0 300 210" data-fig="nn_perceptron">
   <text x="24" y="18" font-size="12" fill="#9A9488">入力層</text>
   <text x="120" y="18" font-size="12" fill="#9A9488">重み</text>
   <text x="228" y="18" font-size="12" fill="#9A9488">出力層</text>
@@ -259,15 +261,12 @@ $b$ は「つねに 1 を入れる入力」への重みだと考えると、式�
 </svg>
 <div class="gcap">バイアス $b$ は「入力 1」への重み</div>
 </div>
-<div>
-<svg id="pSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
-<div class="gcap">入力空間 ($x_1, x_2$) と、いま引けている境界</div>
-</div>
-</div>
 
 <div class="formula">
 $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\end{cases}$$
 </div>
+
+<div class="readout" id="pCalc"></div>
 
 <div class="ctrls">
   <div class="ctrl" style="flex:1;min-width:150px"><label>$w_1$ <span class="val" id="w1V">1.0</span></label>
@@ -280,6 +279,11 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 <div class="chips">
   <span class="chip on" data-ds="easy">かんたんな例</span>
   <span class="chip" data-ds="xor">XOR（排他的論理和）</span>
+</div>
+
+<div style="text-align:center;margin:14px 0 4px">
+<svg id="pSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
+<div class="gcap">入力空間 ($x_1, x_2$) と、いま引けている境界</div>
 </div>
 <div class="readout" id="pOut"></div>
 </div>
@@ -299,6 +303,12 @@ $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
 </div>
 <div class="nnfig wide"><svg id="fwSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
 
+<div class="formula fsplit">
+<span class="fpart" id="fmA">$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j$</span>
+<span class="fpart" id="fmB">$y_k = \textstyle\sum_j w^{(2)}_{jk}m_j + b^{(2)}_k$</span>
+</div>
+<div class="readout" id="fwOut"></div>
+
 <div class="ctrls">
   <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(2)}_{11}$ <span class="val" id="u1V">1.10</span></label>
     <input type="range" id="u1" min="-60" max="60" step="1" value="11"></div>
@@ -309,12 +319,6 @@ $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
   <div class="ctrl" style="flex:1;min-width:140px"><label>$b^{(2)}_{1}$ <span class="val" id="u4V">0.10</span></label>
     <input type="range" id="u4" min="-60" max="60" step="1" value="1"></div>
   <button class="btn ghost" id="fwReset">重みを初期値に戻す</button>
-</div>
-<div class="readout" id="fwOut"></div>
-
-<div class="formula fsplit">
-<span class="fpart" id="fmA">$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j$</span>
-<span class="fpart" id="fmB">$y_k = \textstyle\sum_j w^{(2)}_{jk}m_j + b^{(2)}_k$</span>
 </div>
 
 <h3>では、この多層パーセプトロンは「分けられる」か</h3>
@@ -407,9 +411,13 @@ $$W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2 = (W_2W_1)\mathbf{x} + (W_2\mathb
 $h$ を取り替えると丸の中の数字がどう変わるか、入口側の重みを動かすと $m$ ごとどう動くかを見比べる。
 「なし（恒等）」は $h$ を入れない状態＝前の節そのもの。</div>
 
+<div class="nnfig wide"><svg id="acSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
+
 <div class="formula">
 $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 </div>
+
+<div class="readout" id="acOut"></div>
 
 <div class="chips" id="acts">
   <span class="chip on" data-h="none">なし（恒等）</span>
@@ -417,8 +425,6 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
   <span class="chip" data-h="tanh">tanh</span>
   <span class="chip" data-h="relu">ReLU</span>
 </div>
-
-<div class="nnfig wide"><svg id="acSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
 
 <div class="ctrls">
   <div class="ctrl" style="flex:1;min-width:140px"><label>$w^{(1)}_{11}$ <span class="val" id="v1V">1.20</span></label>
@@ -431,8 +437,6 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 </div>
 <p class="note">つまみは $n_1$ に入る 3 本の重み。$m_1$ が動き、$h$ の形に沿って $n_1$ が決まる。
 $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイドなら大きく振っても $0 \sim 1$ に押し込まれる。</p>
-<div class="readout" id="acOut"></div>
-
 <div style="text-align:center;margin:18px 0 6px">
 <svg class="statfig" width="420" height="200" viewBox="0 0 420 200" data-fig="nn_activation">
   <text x="14" y="20" font-size="13.5" fill="#9A9488">前の層の値</text>
@@ -493,12 +497,6 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
 <strong>1. 前へ計算する → 2. 正解とのズレを測る → 3. ズレを上流へ配る → 4. 重みを直す → 1. へ戻る</strong>。
 下の図で ◁ ▷ を押すと 1 コマずつ進む（ダブルクリックで自動再生）。</div>
 
-<div class="formula">
-$$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
-\frac{\partial L}{\partial w}=\frac{\partial L}{\partial y}\cdot\frac{\partial y}{\partial m}\cdot\frac{\partial m}{\partial w}
-\qquad w \leftarrow w - \eta\,\frac{\partial L}{\partial w}$$
-</div>
-
 <div class="hbadge">いまの活性化関数 <b id="hb2">なし</b></div>
 <div class="stepnav">
   <button class="ico" id="bwPrev" aria-label="ひとつ前へ" data-t="ひとつ前へ（ダブルクリックで自動再生）">◁</button>
@@ -506,6 +504,12 @@ $$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
   <button class="ico" id="bwNext" aria-label="ひとつ先へ" data-t="ひとつ先へ（ダブルクリックで自動再生）">▷</button>
 </div>
 <div class="nnfig wide"><svg id="bwSvg" width="530" height="316" viewBox="0 0 530 316"></svg></div>
+<div class="formula">
+$$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
+\frac{\partial L}{\partial w}=\frac{\partial L}{\partial y}\cdot\frac{\partial y}{\partial m}\cdot\frac{\partial m}{\partial w}
+\qquad w \leftarrow w - \eta\,\frac{\partial L}{\partial w}$$
+</div>
+
 <div class="readout" id="bwOut" style="min-height:118px"></div>
 
 <h3>4. 重みを直す ―― 繰り返すと、答えは正解に届く</h3>
@@ -641,6 +645,17 @@ function xnet(x1,x2,f,k){
   function drawP(){
     var acc=plot(g('pSvg'), DS[curDs],
                  function(x,y){ return (w1*x+w2*y+bb)>=0?1:0; });
+    // 計算内容詳細: データの 1 点を取り出し、数字を入れた式で出す。
+    // ② の読み取りと同じ形にしてある（やっていることは同じ、という橋渡し）。
+    var pt=DS[curDs][DS[curDs].length-1];
+    var z=w1*pt.x+w2*pt.y+bb;
+    var sg2=function(v){ return (v<0?' − ':' + ')+Math.abs(v).toFixed(2); };
+    g('pCalc').textContent =
+      '1 点で確かめる。   z = w₁·x₁ + w₂·x₂ + b、  z ≥ 0 なら y = 1\n\n'
+      +'x = ( '+pt.x.toFixed(2)+', '+pt.y.toFixed(2)+' )   正解 '+pt.l+'\n'
+      +'z = '+w1.toFixed(2)+'·'+pt.x.toFixed(2)+sg2(w2)+'·'+pt.y.toFixed(2)+sg2(bb)
+      +' = '+z.toFixed(2)+'   ⇒  y = '+(z>=0?1:0)
+      +((z>=0?1:0)===pt.l?'（正解と一致）':'（正解と食い違う）');
     var o=g('pOut');
     o.textContent = 'w₁='+w1.toFixed(1)+'  w₂='+w2.toFixed(1)+'  b='+bb.toFixed(1)
       + '   →  正解率 '+Math.round(acc*100)+'%'
