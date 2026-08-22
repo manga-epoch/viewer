@@ -231,7 +231,9 @@ table{display:block;overflow-x:auto;max-width:100%}
 .figrow .nnfig{flex:1 1 380px;min-width:280px}
 .dials{display:flex;flex-direction:column;gap:10px;padding-top:26px}
 
-.dial{display:flex;flex-direction:column;align-items:center;width:78px}
+.dial{display:flex;flex-direction:column;align-items:center;width:78px;
+ touch-action:none;-webkit-user-select:none;user-select:none;
+ -webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .dial .dname{font-size:11.5px;color:#8a6b4f;margin-bottom:3px;letter-spacing:.02em}
 .dial .dbtn{width:100%;height:22px;border:1px solid var(--border);background:#FCFBF8;color:var(--ink-sub);
  font-size:10px;line-height:1;cursor:pointer;padding:0;font-family:inherit;touch-action:manipulation}
@@ -254,14 +256,17 @@ table{display:block;overflow-x:auto;max-width:100%}
 /* ※ ここは上の .dial 系より後ろに置くこと。同じ強さなら後勝ちなので、
    前に置くと height:66px などに負けて効かない（実際に効いていなかった）。 */
 @media(max-width:620px){
- .dials{flex-direction:row;justify-content:center;padding-top:4px;flex-wrap:nowrap;gap:8px}
- .dial{width:31%;max-width:104px}
- .dial .dname{font-size:10.5px;margin-bottom:2px}
- .dial .dbtn{height:19px;font-size:9px}
- .dial .dwin{height:48px}
- .dial .dcol span{height:16px;line-height:16px;font-size:11.5px}
- .dial .dcol span.cur{font-size:13px}
- .dial .dwin::after{top:16px;height:16px}
+ /* 図とダイヤルを縦に積む。横並びのままだとダイヤル列が 80px まで潰れる（実測） */
+ .figrow{display:block;position:static;box-shadow:none;padding-bottom:0}
+ .dials{flex-direction:row;justify-content:center;padding-top:6px;flex-wrap:nowrap;
+   gap:10px;width:100%}
+ .dial{flex:1 1 0;width:auto;max-width:118px;min-width:88px}
+ .dial .dname{font-size:11px;margin-bottom:2px}
+ .dial .dbtn{height:26px;font-size:11px}
+ .dial .dwin{height:54px}
+ .dial .dcol span{height:18px;line-height:18px;font-size:13px}
+ .dial .dcol span.cur{font-size:15px}
+ .dial .dwin::after{top:18px;height:18px}
 }
 .outrow .chips{flex-direction:column;align-items:stretch;margin:6px 0 0;min-width:150px}
 @media(max-width:560px){.outrow .chips{flex-direction:row;min-width:0}}
@@ -906,7 +911,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
         h+='<span'+(o===0?' class="cur"':'')+'>'+(v+o*0.1).toFixed(1)+'</span>';
       });
       w._col.innerHTML=h;
-      var rowh=(window.matchMedia('(max-width:620px)').matches)?16:22;
+      var rowh=(window.matchMedia('(max-width:620px)').matches)?18:22;
       w._col.style.transform='translateY(-'+rowh+'px)';
     });
   }
