@@ -224,6 +224,10 @@ table{display:block;overflow-x:auto;max-width:100%}
 .calcbox:not([open])>summary::before{transform:rotate(-90deg)}
 .calcbox:not([open])>summary{margin:-2px 0}
 .calcbox .rst{margin-top:10px;text-align:center}
+/* 出力の図と、その切り替えを横に並べる（縦に間延びさせない） */
+.outrow{display:flex;gap:16px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.outrow .chips{flex-direction:column;align-items:stretch;margin:6px 0 0;min-width:150px}
+@media(max-width:560px){.outrow .chips{flex-direction:row;min-width:0}}
 .calcbox .rst .btn{font-size:12.5px;padding:7px 14px}
 .calcbox .formula,.calcbox .formula.fsplit{background:none;border:0;margin:0;padding:0 0 2px}
 .calcbox .readout{background:none;border:0;margin:0;padding:8px 0 0;border-top:1px solid var(--border)}
@@ -239,7 +243,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 /* ② いま計算している層に対応する式を光らせる（図と式を同時に追えるように） */
 .formula.fsplit{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .fpart{padding:8px 14px;border-radius:9px;border:1px solid transparent;transition:background .18s,border-color .18s}
-.fpart.on{background:rgba(110,123,168,.16);border-color:rgba(110,123,168,.45)}
+.fpart{display:block}
 @media(max-width:520px){.stepnav .now{min-width:150px;font-size:12.5px}
  .stepnav .ico::after{display:none!important}}
 @media(max-width:520px){.nnfig{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
@@ -249,18 +253,16 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="fig-stage" id="sec1">
 <h2>パーセプトロン — バイアスを含めた重み付き和</h2>
 <div class="lead">1 個の計算点がやることは、次の 2 つだけ。
-<strong>(1) 入力それぞれに重みを掛けて足す。(2) その和が 0 以上なら 1、そうでなければ 0 を出す。</strong>
-掛ける数（重み $w$）を変えると、引ける境界の<strong>向き</strong>が変わり、
-足す数（バイアス $b$）を変えると境界の<strong>位置</strong>がずれる。
-$b$ は「つねに 1 を入れる入力」への重みだと考えると、式が 1 本にまとまる。</div>
+<strong>(1) 入力それぞれに重みを掛けて足す（＝ $z$）。(2) $z$ が 0 以上なら 1、そうでなければ 0 を出す。</strong>
+そして <strong>$y$ が正解に近づくように、重みを学習させる</strong> —— それがニューラルネットの学習。</div>
 
 <div style="text-align:center;margin:10px 0 4px">
 <svg id="pNet" class="statfig" width="320" height="232" viewBox="0 0 320 232"></svg>
 <div class="gcap">バイアス $b$ は「つねに 1 を入れる入力」への重み。<span style="color:#8a6b4f">▲▼</span> で重みを 0.1 ずつ動かす</div>
 </div>
 
-<details class="calcbox" open>
-<summary>式と、いまの数字での計算</summary>
+<details class="calcbox">
+<summary>式と計算</summary>
 <div class="formula">
 $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\end{cases}$$
 </div>
@@ -269,14 +271,15 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 <div class="rst"><button class="btn ghost" id="pReset">重みを初期値に戻す</button></div>
 </details>
 
+<div class="outrow">
+<div style="text-align:center">
+<svg id="pSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
+<div class="gcap">入力空間 ($x_1, x_2$) と、いま引けている境界</div>
+</div>
 <div class="chips">
   <span class="chip on" data-ds="easy">AND（論理積）</span>
   <span class="chip" data-ds="xor">XOR（排他的論理和）</span>
 </div>
-
-<div style="text-align:center;margin:14px 0 4px">
-<svg id="pSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
-<div class="gcap">入力空間 ($x_1, x_2$) と、いま引けている境界</div>
 </div>
 <div class="readout" id="pOut"></div>
 </div>
@@ -285,19 +288,17 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 <h2>多層パーセプトロン（MLP） — 計算点を層にして重ねる</h2>
 <div class="lead"><strong>複雑な事象を表現するために</strong>、計算点を並べて層にし、層を重ねる。第 $m$ 層の $i$ 番目から、次の層の $j$ 番目へ向かう重みを
 $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
-辺の数字が重み、丸の中の数字がその計算点がいま出している値。
-下のつまみで<strong>重み</strong>を動かすと、値が更新される（入力は $x_1=-0.40,\; x_2=0.80$ に固定）。
-<strong>バイアス $b^{(m)}_i$ は辺ではなく、丸そのものに足す数</strong>なので図の辺には出ない。</div>
+辺の数字が重み、丸の中の数字がその計算点がいま出している値。</div>
 
+<div class="nnfig wide"><svg id="fwSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
+
+<details class="calcbox">
+<summary>式と計算</summary>
 <div class="stepnav">
   <button class="ico" id="fwPrev" aria-label="1 層もどす" data-t="1 層もどす">◁</button>
   <span class="now" id="fwNow">出力まで計算した</span>
   <button class="ico" id="fwNext" aria-label="1 層すすめる" data-t="1 層すすめる">▷</button>
 </div>
-<div class="nnfig wide"><svg id="fwSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
-
-<details class="calcbox" open>
-<summary>式と、いまの数字での計算</summary>
 <div class="formula fsplit">
 <span class="fpart" id="fmA">$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j$</span>
 <span class="fpart" id="fmB">$y_k = \textstyle\sum_j w^{(2)}_{jk}m_j + b^{(2)}_k$</span>
@@ -311,13 +312,15 @@ $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
 <div class="lead">① とまったく同じ問いを、同じデータで解かせてみる。
 ここでは、<strong>青 = $y_1 > y_2$、赤 = $y_1 < y_2$</strong> で境界を分ける。
 上の 4 つのつまみ（重み）を動かして、点を正しく分けられるか試してほしい。</div>
-<div style="text-align:center;margin:14px 0 4px">
+<div class="outrow">
+<div style="text-align:center">
 <svg id="mlpSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
 <div class="gcap">青 = $y_1$ が大きい側 ／ 赤 = $y_2$ が大きい側</div>
 </div>
 <div class="chips">
   <span class="chip on" data-ds2="easy">AND（論理積）</span>
   <span class="chip" data-ds2="xor">XOR（排他的論理和）</span>
+</div>
 </div>
 <div class="readout" id="mlpOut"></div>
 
@@ -452,8 +455,8 @@ $h$ を取り替えると丸の中の数字がどう変わるか、入口側の�
 
 <div class="nnfig wide"><svg id="acSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
 
-<details class="calcbox" open>
-<summary>式と、いまの数字での計算</summary>
+<details class="calcbox">
+<summary>式と計算</summary>
 <div class="formula">
 $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
 </div>
@@ -481,13 +484,7 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
 </div>
 <div class="readout" id="xOut"></div>
 
-<p class="note">※ この図は<strong>上と同じニューラルネット</strong>。上のつまみを動かすと境界も動く。
-$h$ ごとに解ける重みは違う（大きな重みは ReLU では飽和しないため）ので、ボタンで入れられるようにした。
-「なし（恒等）」だけは<strong>どんな重みを入れても解けない</strong> —— それがこの節の主題。</p>
 
-<div class="formula" style="background:rgba(180,73,63,.07);border-color:rgba(180,73,63,.3)">
-<b style="color:#b4493f">この多層ニューラルネットを、効率的に学習する仕組みが必要！</b>
-</div>
 </div>
 
 <div class="fig-stage" id="sec4">
@@ -504,8 +501,8 @@ $h$ ごとに解ける重みは違う（大きな重みは ReLU では飽和し�
   <button class="ico" id="bwNext" aria-label="ひとつ先へ" data-t="ひとつ先へ（ダブルクリックで自動再生）">▷</button>
 </div>
 <div class="nnfig wide"><svg id="bwSvg" width="530" height="316" viewBox="0 0 530 316"></svg></div>
-<details class="calcbox" open>
-<summary>式と、いまの数字での計算</summary>
+<details class="calcbox">
+<summary>式と計算</summary>
 <div class="formula">
 $$L=\tfrac{1}{2}\textstyle\sum_k (y_k-\hat{y}_k)^2 \qquad
 \frac{\partial L}{\partial w}=\frac{\partial L}{\partial y}\cdot\frac{\partial y}{\partial m}\cdot\frac{\partial m}{\partial w}
@@ -650,9 +647,12 @@ function sg(z){return 1/(1+Math.exp(-z));}
       nodeText:function(i,j){ return i===0?['1.00',XP[0].toFixed(2),XP[1].toFixed(2)][j]
                                           :(zP()>=0?'1':'0'); },
       nodeFill:function(i,j){ return i===0?'#EAEDF7':paint(zP()>=0?1:0.15); },
+      // y は 0 か 1 しか出ないので、重みを動かしても変化が見えにくい。
+      // 手前の重み付き和 z を出して、連続的に動くところを見せる（読者の指摘）。
+      nodeSub:function(i,j){ return i===1?('z = '+zP().toFixed(2)):null; },
       deco:function(svg){
         svg.appendChild(el('text',{x:160,y:222,'font-size':12,'text-anchor':'middle',fill:MUTED},
-          '▲▼ で重みが 0.1 ずつ変わる。下の境界が動く'));
+          '▲▼ で重みが 0.1 ずつ変わる。z が動き、0 を跨ぐと y が変わる'));
       }
     });
     bindStep(g('pNet'),
@@ -1026,9 +1026,10 @@ function sg(z){return 1/(1+Math.exp(-z));}
   var FWNM=['入力の設定','中間層の計算','出力'];
   function fwSync(){
     g('fwNow').textContent=FWNM[fstage];
+    // 段階ごとに、いま使う式だけを出す（並べてハイライトより分かりやすい）
     var a=g('fmA'), b=g('fmB');
-    if(a) a.classList.toggle('on',fstage===1);
-    if(b) b.classList.toggle('on',fstage===2);
+    if(a) a.style.display=(fstage===1)?'':'none';
+    if(b) b.style.display=(fstage===2)?'':'none';
   }
   g('fwNext').addEventListener('click',function(){ fstage=(fstage+1)%3; drawFw(); fwSync(); });
   g('fwPrev').addEventListener('click',function(){ fstage=(fstage+2)%3; drawFw(); fwSync(); });
