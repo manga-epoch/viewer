@@ -257,7 +257,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 そして <strong>$y$ が正解に近づくように、重みを学習させる</strong> —— それがニューラルネットの学習。</div>
 
 <div style="text-align:center;margin:10px 0 4px">
-<svg id="pNet" class="statfig" width="320" height="232" viewBox="0 0 320 232"></svg>
+<svg id="pNet" class="statfig" width="320" height="262" viewBox="0 0 320 262"></svg>
 <div class="gcap">バイアス $b$ は「つねに 1 を入れる入力」への重み。<span style="color:#8a6b4f">▲▼</span> で重みを 0.1 ずつ動かす</div>
 </div>
 
@@ -290,7 +290,7 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
 辺の数字が重み、丸の中の数字がその計算点がいま出している値。</div>
 
-<div class="nnfig wide"><svg id="fwSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
+<div class="nnfig wide"><svg id="fwSvg" width="470" height="460" viewBox="0 0 470 460"></svg></div>
 
 <details class="calcbox">
 <summary>式と計算</summary>
@@ -453,7 +453,7 @@ $h$ を取り替えると丸の中の数字がどう変わるか、入口側の�
 <div class="gcap">上の図の丸 1 個を開いたところ。<b>重み付きの和を活性化関数に通したもの</b>が、その丸の値になる</div>
 </div>
 
-<div class="nnfig wide"><svg id="acSvg" width="470" height="400" viewBox="0 0 470 400"></svg></div>
+<div class="nnfig wide"><svg id="acSvg" width="470" height="460" viewBox="0 0 470 460"></svg></div>
 
 <details class="calcbox">
 <summary>式と計算</summary>
@@ -534,7 +534,12 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
 下は同じニューラルネットを深くしたもの（2-3-3-3-3-2）。
 <strong>出口に生まれたズレが、1 層さかのぼるごとに何倍になるかを実際の数字で見る</strong>。</div>
 
-<div class="hbadge">いまの活性化関数 <b id="hb3">なし</b> ・「活性化関数」の節を切り替えて、届き方の違いを見る</div>
+<div class="hbadge">いまの活性化関数 <b id="hb3">なし</b></div>
+<div class="stepnav">
+  <button class="ico" id="dpPrev" aria-label="1 層もどす" data-t="1 層もどす">◁</button>
+  <span class="now" id="dpNow">出口</span>
+  <button class="ico" id="dpNext" aria-label="1 層さかのぼる" data-t="1 層さかのぼる（ダブルクリックで自動再生）">▷</button>
+</div>
 <div class="nnfig wide"><svg id="dpSvg" width="470" height="226" viewBox="0 0 470 226"></svg></div>
 <div class="readout" id="dpOut"></div>
 
@@ -643,11 +648,11 @@ function sg(z){return 1/(1+Math.exp(-z));}
       // 手前の重み付き和 z を出して、連続的に動くところを見せる（読者の指摘）。
       nodeSub:function(i,j){ return i===1?('z = '+zP().toFixed(2)):null; },
       deco:function(svg){
-        svg.appendChild(el('text',{x:160,y:222,'font-size':12,'text-anchor':'middle',fill:MUTED},
-          '▲▼ で重みが 0.1 ずつ変わる。z が動き、0 を跨ぐと y が変わる'));
+        svg.appendChild(el('text',{x:160,y:252,'font-size':12,'text-anchor':'middle',fill:MUTED},
+          '重みの枠を上下に払うと数が回る。z が動き、0 を跨ぐと y が変わる'));
       }
     });
-    bindStep(g('pNet'),
+    bindRoll(g('pNet'),
       function(i,j){ return [bb,w1,w2][j]; },
       function(i,j,k,v){ if(j===0) bb=v; else if(j===1) w1=v; else w2=v; },
       function(){ drawP(); });
@@ -730,7 +735,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
   var T1=[[0.16,0.27],[0.44,0.55],[0.74,0.84]];
   // ※ ②③ はラベルが 2 行＋▲▼ で幅も高さも違うので、専用の位置表を持つ。
   //   ④⑤（1 行ラベル）と共用すると、片方を直すともう片方が崩れる。
-  var T0B=[0.36,0.80], T1B=[[0.13,0.29],[0.42,0.58],[0.80,0.88]];
+  var T0B=[0.36,0.80], T1B=[[0.36,0.66],[0.36,0.74],[0.36,0.84]];
 
   function renderNet(svg,gg,o){
     svg.innerHTML='';
@@ -759,29 +764,39 @@ function sg(z){return 1/(1+Math.exp(-z));}
         var two=(typeof s!=='string'), nmS=two?s[0]:null, vS=two?s[1]:s;
         var wd=Math.max(vS.length,(nmS||'').length)*fs*0.60+6;
         var hh=two?fs*2.9:fs*1.6, top=py-(two?fs*1.80:fs*0.80);
-        // 編集できる辺は、ラベルの右に △▽ を出す。読者の指摘「掴むのは直感的でない。
-        // 気付きにくく操作性も悪い」。押せば動く形にし、色を変えて目立たせる。
+        // 編集できる重みは**縦スロット**にする（読者の指摘: 重みごとにダイヤルが要る）。
+        // ひとつ上とひとつ下の数を薄く見せることで、回せることが図だけで分かる。
+        // 上に払うと増える。軽く触れただけなら上半分＝+0.1、下半分＝−0.1。
         var edit=o.step?o.step(i,j,k):false;
-        if(edit) wd+=13;
+        if(edit){
+          var v0=(i===0?W1[k][j]:W2[k][j]);
+          var rw=Math.max(wd,48), rh=fs*5.9, rt=py-rh/2;
+          svg.appendChild(el('rect',{x:(px-rw/2).toFixed(1),y:rt.toFixed(1),width:rw.toFixed(1),
+            height:rh.toFixed(1),rx:6,fill:'#fff',stroke:ARC,'stroke-width':1.1}));
+          svg.appendChild(el('text',{x:px.toFixed(1),y:(rt+fs*0.95).toFixed(1),
+            'font-size':(fs*0.80).toFixed(1),'text-anchor':'middle',fill:ARC,
+            style:'pointer-events:none'},s[0]));
+          svg.appendChild(el('line',{x1:px-rw/2+5,y1:rt+fs*1.25,x2:px+rw/2-5,y2:rt+fs*1.25,
+            stroke:'#EDEAE3','stroke-width':1}));
+          [[1,fs*2.55,0.38],[0,fs*3.90,1],[-1,fs*5.25,0.38]].forEach(function(q){
+            svg.appendChild(el('text',{x:px.toFixed(1),y:(rt+q[1]).toFixed(1),
+              'font-size':(fs*(q[0]===0?1.02:0.80)).toFixed(1),'text-anchor':'middle',
+              fill: q[0]===0?INK:'#B6B1A7', opacity:q[2],
+              style:'pointer-events:none'},(v0+q[0]*0.1).toFixed(2)));
+          });
+          var hit=el('rect',{x:(px-rw/2).toFixed(1),y:rt.toFixed(1),width:rw.toFixed(1),
+            height:rh.toFixed(1),rx:6,fill:'transparent',
+            style:'cursor:ns-resize;touch-action:none'});
+          hit.setAttribute('data-roll',i+','+j+','+k);
+          svg.appendChild(hit);
+          continue;                       // 通常のラベルは描かない
+        }
+        // 編集しない辺は、これまでどおり白地に名前と数値の 2 段
         svg.appendChild(el('rect',{x:(px-wd/2).toFixed(1),y:top.toFixed(1),
           width:wd.toFixed(1),height:hh.toFixed(1),rx:3,fill:'#fff',opacity:0.93}));
-        if(edit){
-          var ax=px+wd/2-7;
-          [['▲',1,py-fs*0.52],['▼',-1,py+fs*1.02]].forEach(function(q){
-            var EX=9;   // 上下に伸ばすぶん（viewBox 単位）
-            var hit=el('rect',{x:px-wd/2-2,y:q[1]>0?(top-EX):(top+hh/2),
-              width:wd+4,height:hh/2+EX, fill:'transparent',style:'cursor:pointer'});
-            hit.setAttribute('data-step',i+','+j+','+k+','+q[1]);
-            svg.appendChild(el('text',{x:ax,y:q[2],'font-size':(fs*0.70).toFixed(1),
-              'text-anchor':'middle',fill:ARC,style:'pointer-events:none;user-select:none'},q[0]));
-            svg.appendChild(hit);
-          });
-          px-=6;
-        }
-        // ラベルの色は辺ごとに変えられる（まだ計算していない層は灰色に落とす）
         var ink=o.labelInkAt?o.labelInkAt(i,j,k):(o.labelInk||'#565248');
         var nInk=o.nameInkAt?o.nameInkAt(i,j,k):ARC;
-        var thru=edit?'pointer-events:none':'';
+        var thru='';
         if(two) svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
           'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',fill:nInk,style:thru},nmS));
         svg.appendChild(el('text',{x:px.toFixed(1),y:(py+(two?fs*1.02:fs*0.35)).toFixed(1),
@@ -808,85 +823,43 @@ function sg(z){return 1/(1+Math.exp(-z));}
     }
     if(o.deco) o.deco(svg);
   }
-  // △▽ を結びつける。押すと ±0.1、押しっぱなしで連続して動く。
-  function bindStep(svg,get,set,after){
-    Array.prototype.forEach.call(svg.querySelectorAll('[data-step]'),function(node){
+  // 縦スロットを結びつける。払うと回り、離しても慣性で少し流れる。
+  // 動かさずに離したら、上半分＝+0.1／下半分＝−0.1（軽いタップでも使える）。
+  function bindRoll(svg,get,set,after){
+    Array.prototype.forEach.call(svg.querySelectorAll('[data-roll]'),function(node){
       node.addEventListener('pointerdown',function(ev){
         ev.preventDefault();
-        var q=node.getAttribute('data-step').split(','),
-            i=+q[0], j=+q[1], k=+q[2], d=+q[3], t=null, iv=null;
-        var bump=function(){
-          SEL={i:i,j:j,k:k};        // 押した重みをダイヤルの対象にする
-          set(i,j,k, Math.max(-6,Math.min(6, Math.round((get(i,j,k)+d*0.1)*10)/10)));
+        var q=node.getAttribute('data-roll').split(','),
+            i=+q[0], j=+q[1], k=+q[2];
+        var r=svg.getBoundingClientRect(), sc=svg.viewBox.baseVal.height/r.height;
+        var box=node.getBoundingClientRect();
+        var upper=(ev.clientY-box.top)<box.height/2;
+        var last=ev.clientY, moved=0, vel=0, raf=null;
+        var apply=function(dy){
+          var nv=get(i,j,k) - dy*sc/12*0.1;      // 1 行ぶん（12 単位）で 0.1
+          set(i,j,k, Math.max(-6,Math.min(6, Math.round(nv*20)/20)));
           after();
         };
-        bump();
-        t=setTimeout(function(){ iv=setInterval(bump,90); },420);
-        var stop=function(){ clearTimeout(t); if(iv)clearInterval(iv);
-          window.removeEventListener('pointerup',stop);
-          window.removeEventListener('pointercancel',stop); };
-        window.addEventListener('pointerup',stop);
-        window.addEventListener('pointercancel',stop);
+        var onMove=function(m){
+          var dy=m.clientY-last; last=m.clientY; vel=dy; moved+=Math.abs(dy); apply(dy);
+        };
+        var glide=function(){
+          vel*=0.90;
+          if(Math.abs(vel)<0.5){ raf=null; return; }
+          apply(vel); raf=requestAnimationFrame(glide);
+        };
+        var onUp=function(){
+          window.removeEventListener('pointermove',onMove);
+          window.removeEventListener('pointerup',onUp);
+          if(moved<3){                            // 触れただけ＝1 段
+            set(i,j,k, Math.max(-6,Math.min(6,
+              Math.round((get(i,j,k)+(upper?0.1:-0.1))*10)/10)));
+            after();
+          } else if(Math.abs(vel)>1.4) raf=requestAnimationFrame(glide);
+        };
+        window.addEventListener('pointermove',onMove);
+        window.addEventListener('pointerup',onUp);
       });
-    });
-  }
-  // ---- ダイヤル（構成図の右上）。読者の指摘「▲▼ はスマホで押しにくい。
-  //   インタラクティブが売りなので入力の気持ちよさが重要」。
-  //   横に払うと値が動き、指を離しても慣性で少し流れる。▲▼ で選んだ重みを回す。
-  var SEL=null;                       // {i,j,k} いま回している重み
-  function selName(){
-    if(!SEL) return '—';
-    return 'w'+(SEL.i===0?'¹':'²')+SUB[SEL.j+1]+SUB[SEL.k+1];
-  }
-  function drawDial(svg,x,y,w,h,get,set,after){
-    var v=SEL?get(SEL.i,SEL.j,SEL.k):0;
-    var gp=el('g',{});
-    gp.appendChild(el('rect',{x:x,y:y,width:w,height:h,rx:9,fill:'#fff',
-      stroke:SEL?ARC:'#E4E1D8','stroke-width':SEL?1.4:1}));
-    gp.appendChild(el('text',{x:x+10,y:y+15,'font-size':10.5,fill:MUTED},'ダイヤル'));
-    gp.appendChild(el('text',{x:x+w-10,y:y+15,'font-size':11,'text-anchor':'end',fill:ARC},selName()));
-    // 目盛り。値に合わせて流れる
-    var PXV=26, i2, cx=x+w/2;
-    var off=((v*PXV)%13+13)%13;
-    for(i2=-Math.ceil(w/26);i2<=Math.ceil(w/26);i2++){
-      var tx=cx+i2*13-off;
-      if(tx<x+6||tx>x+w-6) continue;
-      var big=Math.abs(Math.round((tx-cx+off)/13))%2===0;
-      gp.appendChild(el('line',{x1:tx,y1:y+h-20,x2:tx,y2:y+h-(big?8:12),
-        stroke:'#D8D4CB','stroke-width':big?1.3:0.8}));
-    }
-    gp.appendChild(el('line',{x1:cx,y1:y+h-24,x2:cx,y2:y+h-5,stroke:ARC,'stroke-width':2}));
-    gp.appendChild(el('text',{x:cx,y:y+h-28,'font-size':15,'text-anchor':'middle',fill:INK},
-      SEL?v.toFixed(2):'重みを選ぶ'));
-    var hit=el('rect',{x:x,y:y,width:w,height:h,fill:'transparent',
-      style:'cursor:'+(SEL?'ew-resize':'default')+';touch-action:none'});
-    gp.appendChild(hit);
-    svg.appendChild(gp);
-    if(!SEL) return;
-    hit.addEventListener('pointerdown',function(ev){
-      ev.preventDefault();
-      var r=svg.getBoundingClientRect(), sc=svg.viewBox.baseVal.width/r.width;
-      var last=ev.clientX, vel=0, raf=null, t0=null;
-      var apply=function(dx){
-        var nv=get(SEL.i,SEL.j,SEL.k)+dx*sc/PXV;
-        set(SEL.i,SEL.j,SEL.k, Math.max(-6,Math.min(6, Math.round(nv*20)/20)));
-        after();
-      };
-      var onMove=function(m){
-        var dx=m.clientX-last; last=m.clientX; vel=dx; apply(dx);
-      };
-      var glide=function(){        // 慣性。指を離したあと少し流れて止まる
-        vel*=0.90;
-        if(Math.abs(vel)<0.4){ raf=null; return; }
-        apply(vel); raf=requestAnimationFrame(glide);
-      };
-      var onUp=function(){
-        window.removeEventListener('pointermove',onMove);
-        window.removeEventListener('pointerup',onUp);
-        if(Math.abs(vel)>1.2) raf=requestAnimationFrame(glide);
-      };
-      window.addEventListener('pointermove',onMove);
-      window.addEventListener('pointerup',onUp);
     });
   }
   function heads(svg,gg,labs,y){
@@ -909,7 +882,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
   // ※ ②③ は辺ラベルが「名前＋数字」の 2 段になり、高さが 1 段の 1.6 倍になった。
   //   元の縦間隔（78/92/116）では実測で 13 組ぶつかる。②③ だけ縦に広げる。
   //   ④⑤ は 1 段のままなので G を使い続ける。
-  var G2=geom([2,3,2],470,200,[104,126,150],21,44), VH2=400, CAPY2=388;
+  var G2=geom([2,3,2],470,230,[124,150,178],21,44), VH2=460, CAPY2=448;
   var W1_0=[[1.2,-0.8],[-0.5,1.4],[0.9,0.7]], B1_0=[0.3,-0.2,-0.6];
   var W2_0=[[1.1,-0.9,0.6],[-0.7,1.2,0.8]],   B2_0=[0.1,-0.3];
   var W1,B1,W2,B2, TGT=[1,0], XIN=[-0.4,0.8], epoch=0, lr=0.10, diverged=false;
@@ -993,18 +966,14 @@ function sg(z){return 1/(1+Math.exp(-z));}
       nodeSub:function(i,j){return i===2?('正解 '+TGT[j].toFixed(1)):null;},
       deco:function(svg){
         heads(svg,G2,['入力','中間層','出力'],HEADY);
-        drawDial(svg,300,32,166,70,
-          function(i,j,k){ return i===0?W1[k][j]:W2[k][j]; },
-          function(i,j,k,v){ if(i===0) W1[k][j]=v; else W2[k][j]=v; },
-          function(){ redraw(); });
         svg.appendChild(el('text',{x:235,y:CAPY2,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
-          '▲▼ で 0.1 ずつ。押した重みは右上のダイヤルで払って動かせる'));
+          '重みの枠を上下に払うと数が回る（軽く触れると 0.1 ずつ）'));
       }
     });
     // 読み取りは**いまの段階の計算だけ**を、数字を入れた形で出す。
     // 読者の指摘「どう中間層の値が算出されたのか、どう出力の値が算出されたのかを
     // 分かりやすくしたい」。全部を一度に出すと、どれが今の話か分からない。
-    bindStep(g('fwSvg'),
+    bindRoll(g('fwSvg'),
       function(i,j,k){ return i===0?W1[k][j]:W2[k][j]; },
       function(i,j,k,v){ if(i===0) W1[k][j]=v; else W2[k][j]=v; },
       function(){ redraw(); });
@@ -1115,15 +1084,11 @@ function sg(z){return 1/(1+Math.exp(-z));}
       nodeSub:function(i,j){return i===1?('m='+nf(f.m1[j])):null;},
       deco:function(svg){
         heads(svg,G2,['入力','中間層 h(・)','出力'],HEADY);
-        drawDial(svg,300,32,166,70,
-          function(i,j,k){ return i===0?W1[k][j]:W2[k][j]; },
-          function(i,j,k,v){ if(i===0) W1[k][j]=v; else W2[k][j]=v; },
-          function(){ redraw(); });
         svg.appendChild(el('text',{x:235,y:CAPY2,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
-          '▲▼ で 0.1 ずつ。押した重みは右上のダイヤルで払って動かせる'));
+          '重みの枠を上下に払うと数が回る（軽く触れると 0.1 ずつ）'));
       }
     });
-    bindStep(g('acSvg'),
+    bindRoll(g('acSvg'),
       function(i,j,k){ return i===0?W1[k][j]:W2[k][j]; },
       function(i,j,k,v){ if(i===0) W1[k][j]=v; else W2[k][j]=v; },
       function(){ redraw(); });
@@ -1410,6 +1375,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
       return Math.sqrt(t/v.length);});
     return {a:a,gA:gA,rms:rms};
   }
+  var dstage=0;   // 出口から何層さかのぼったか（0 = 出口だけ）
   function drawDeep(){
     var d=deepRun(), n=DSHAPE.length, top=Math.max(1e-30,d.rms[n-1]), i;
     var lo=1e30; for(i=0;i<n;i++) if(d.rms[i]>0) lo=Math.min(lo,d.rms[i]);
@@ -1418,28 +1384,35 @@ function sg(z){return 1/(1+Math.exp(-z));}
     renderNet(g('dpSvg'),DG,{
       rev:true,
       edgeW:function(){return 0.9;},
-      edgeState:function(i2){var v=tone(d.rms[i2+1]); return v>0.35?2:(v>0.06?1:0);},
+      edgeState:function(i2){ return (n-2-i2)<dstage?2:0; },   // さかのぼった層だけ流す
       edgeInk:function(i2){return tone(d.rms[i2+1])>0.35?BAD:'#D8CFCB';},
-      nodeStroke:function(i2){return tone(d.rms[i2])>0.3?BAD:'#D0C7C4';},
-      nodeFill:function(i2){return paint(tone(d.rms[i2]),true);},
+      nodeStroke:function(i2){ return (n-1-i2)<=dstage?BAD:'#D8D4CB'; },
+      nodeFill:function(i2){ return (n-1-i2)<=dstage?paint(tone(d.rms[i2]),true):'#F4F2EC'; },
       nodeText:function(){return null;},
       deco:function(svg){
         svg.appendChild(el('text',{x:DG.xs[0],y:20,'font-size':12.5,'text-anchor':'middle',fill:MUTED},'入口'));
         svg.appendChild(el('text',{x:235,y:20,'font-size':12.5,'text-anchor':'middle',fill:MUTED},'直す信号の強さ ∂L/∂a'));
         svg.appendChild(el('text',{x:DG.xs[n-1],y:20,'font-size':12.5,'text-anchor':'middle',fill:MUTED},'出口'));
         var i3;
-        for(i3=0;i3<n;i3++)
+        for(i3=0;i3<n;i3++){
+          if((n-1-i3)>dstage) continue;                 // まだ着いていない層は数を出さない
           svg.appendChild(el('text',{x:DG.xs[i3].toFixed(1),y:46,'font-size':14,'text-anchor':'middle',
-            fill: tone(d.rms[i3])>0.35?INK:MUTED}, nf(d.rms[i3])));
-        for(i3=0;i3<n-1;i3++)
+            fill:INK}, nf(d.rms[i3])));
+        }
+        for(i3=0;i3<n-1;i3++){
+          if((n-2-i3)>=dstage) continue;
           svg.appendChild(el('text',{x:((DG.xs[i3]+DG.xs[i3+1])/2).toFixed(1),y:68,'font-size':12.5,
             'text-anchor':'middle',fill:BAD},
             '×'+nf(d.rms[i3+1]>0?d.rms[i3]/d.rms[i3+1]:0)));
+        }
         svg.appendChild(el('line',{x1:DG.xs[n-1],y1:86,x2:DG.xs[0]+9,y2:86,stroke:BAD,'stroke-width':1.6}));
         svg.appendChild(el('path',{d:'M'+DG.xs[0]+' 86 L'+(DG.xs[0]+9)+' 82 L'+(DG.xs[0]+9)+' 90 Z',fill:BAD}));
       }
     });
     var ratio=d.rms[n-1]>0?d.rms[0]/d.rms[n-1]:0;
+    function verdict2(r){ return r>2 ? ' ← 減らないどころか増えている（勾配爆発）'
+      : r>0.5 ? ' ← ほぼ保たれている' : r>0.05 ? ' ← 減ってはいるが、まだ届いている'
+      : ' ← ほとんど何も届いていない ＝ 勾配消失'; }
     // ※ 「減っている」前提で文言を書かない。h＝恒等では逆に増える（勾配爆発）ので、
     //   そこを「ほぼ保たれている」と書くと画面の 7.03 倍と食い違う（実際に食い違った）。
     var verdict = ratio>2   ? '   ← 減らないどころか、増えすぎている（勾配爆発）'
@@ -1451,10 +1424,17 @@ function sg(z){return 1/(1+Math.exp(-z));}
       : (HK==='sigmoid'
          ? '\n※ 1 層ごとに h\u2032(m) ≤ 0.25 が掛かる。これが 2000 年代に深いニューラルネットを止めていた壁。'
          : '\n※ ③ でシグモイドに戻すと、同じニューラルネット・同じ重みのまま届き方だけが変わる。');
+    g('dpNow').textContent = dstage===0 ? '出口' : (dstage+' 層さかのぼった');
+    var here=d.rms[n-1-dstage], out0=d.rms[n-1];
     g('dpOut').textContent =
-      'h = '+ACTS[HK].nm+'    h\u2032(x) の最大値 = '+ACTS[HK].dmax+'\n'
-      +'出口に生まれた信号 '+nf(d.rms[n-1])+' が、5 層さかのぼって入口では '+nf(d.rms[0])+'\n'
-      +'入口に届く割合 = '+nf(ratio)+' 倍'+verdict+tail;
+      'h = '+ACTS[HK].nm+'\n'
+      +'出口に生まれたズレの大きさ  '+nf(out0)+'\n'
+      +(dstage===0
+        ? '▷ を押すと 1 層ずつさかのぼる。数がどう変わるかを見る。'
+        : (dstage+' 層さかのぼると  '+nf(here)+'   （出口の '+nf(here/out0)+' 倍）\n'
+           +' 1 層ごとの倍率 = '+nf(d.rms[n-1-dstage]/d.rms[n-dstage])+' 倍\n'
+           +verdict2(here/out0)))
+      +tail;
     var rows='<table class="mini"><tr><th>さかのぼる層数</th><th>出口を 1 としたときの大きさ</th></tr>',k2;
     for(k2=1;k2<n;k2++){
       var v=d.rms[n-1]>0?d.rms[n-1-k2]/d.rms[n-1]:0;
@@ -1462,6 +1442,29 @@ function sg(z){return 1/(1+Math.exp(-z));}
     }
     g('dpTable').innerHTML=rows+'</table>';
   }
+
+  // ⑤ の段階送り（④ の 5 コマ目の続きとして、1 層ずつさかのぼる）
+  var dpTimer=null;
+  ['dpPrev','dpNext'].forEach(function(id){
+    var btn=g(id), d=(id==='dpNext')?1:-1, timer=null, N=DSHAPE.length-1;
+    if(!btn) return;
+    var go=function(){ dstage=Math.max(0,Math.min(N,dstage+d)); redraw(); };
+    btn.addEventListener('click',function(){
+      if(dpTimer){ clearInterval(dpTimer); dpTimer=null; btn.textContent=d>0?'▷':'◁'; return; }
+      if(timer) return;
+      timer=setTimeout(function(){ timer=null; go(); },230);
+    });
+    btn.addEventListener('dblclick',function(){
+      if(timer){ clearTimeout(timer); timer=null; }
+      if(d<0) return;
+      if(dpTimer){ clearInterval(dpTimer); dpTimer=null; btn.textContent='▷'; return; }
+      btn.textContent='■'; dstage=0; redraw();
+      dpTimer=setInterval(function(){
+        if(dstage>=N){ clearInterval(dpTimer); dpTimer=null; btn.textContent='▷'; return; }
+        dstage++; redraw();
+      },900);
+    });
+  });
 
   // ---- 全部を描き直す（h・入力・重みのどれが変わってもここを通す）
   function redraw(){
