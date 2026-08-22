@@ -284,7 +284,7 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 
 <div style="text-align:center;margin:14px 0 4px">
 <svg id="pSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
-<div class="gcap">入力空間 ($x_1, x_2$) と、いま引けている境界</div>
+<div class="gcap">入力空間 ($x_1, x_2$) と、いま引けている境界。<strong>線をつかんで動かす／端の丸で回す</strong></div>
 </div>
 <div class="readout" id="pOut"></div>
 </div>
@@ -632,9 +632,85 @@ function sg(z){return 1/(1+Math.exp(-z));}
 
   // ---- ① パーセプトロン
   var w1=1.0,w2=1.0,bb=-1.0;
+
+  // 境界線を直接つかんで動かす。読者の指摘「バー方式は掴みにくい」への答え。
+  // バーは『動かす物』と『変わる物』が別の場所にあるのが原因なので、
+  // **変わる物（境界線）そのものを掴めるように**した。
+  //   線の胴  … 平行移動（b が変わる）
+  //   両端の丸 … 回転（w₁ : w₂ の向きが変わる。長さは保つ）
+  var PAD=26, PS=300, PW=PS-PAD*2;
+  var toU=function(px){ return (px-PAD)/PW; };            // 画面 → 入力座標
+  var toV=function(py){ return (PS-PAD-py)/PW; };
+  var toX=function(u){ return PAD+u*PW; };
+  var toY=function(v){ return PS-PAD-v*PW; };
+  function clampW(){                                       // つまみの範囲に収める
+    var m=Math.max(Math.abs(w1),Math.abs(w2));
+    if(m>3){ w1=w1*3/m; w2=w2*3/m; }
+    bb=Math.max(-3,Math.min(3,bb));
+  }
+  function lineEnds(){                                     // 境界線と枠の交点
+    var pts=[], t;
+    if(Math.abs(w2)>1e-9){
+      t=(-bb-w1*0)/w2; if(t>=-0.001&&t<=1.001) pts.push([0,t]);
+      t=(-bb-w1*1)/w2; if(t>=-0.001&&t<=1.001) pts.push([1,t]);
+    }
+    if(Math.abs(w1)>1e-9){
+      t=(-bb-w2*0)/w1; if(t>=-0.001&&t<=1.001) pts.push([t,0]);
+      t=(-bb-w2*1)/w1; if(t>=-0.001&&t<=1.001) pts.push([t,1]);
+    }
+    return pts.length>=2?[pts[0],pts[1]]:null;
+  }
+  function drawHandles(svg){
+    var e=lineEnds(); if(!e) return;
+    var a={x:toX(e[0][0]),y:toY(e[0][1])}, b={x:toX(e[1][0]),y:toY(e[1][1])};
+    var mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    svg.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'#1A1A1A',
+      'stroke-width':2.4,'stroke-linecap':'round'}));
+    var hit=el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:'transparent',
+      'stroke-width':22,style:'cursor:move'});
+    svg.appendChild(hit); grab(hit,'move');
+    [[a,'r0'],[b,'r1']].forEach(function(q){
+      var c=el('circle',{cx:q[0].x,cy:q[0].y,r:8,fill:'#fff',stroke:'#1A1A1A',
+        'stroke-width':2.2,style:'cursor:grab'});
+      svg.appendChild(c); grab(c,'rot');
+    });
+    svg.appendChild(el('circle',{cx:mid.x,cy:mid.y,r:3.4,fill:'#1A1A1A',
+      style:'pointer-events:none'}));
+  }
+  function grab(node,mode){
+    node.addEventListener('pointerdown',function(ev){
+      ev.preventDefault();
+      var svg=g('pSvg'), pivot=null;
+      if(mode==='rot'){ var e=lineEnds(); if(e) pivot={u:(e[0][0]+e[1][0])/2,v:(e[0][1]+e[1][1])/2}; }
+      var mag=Math.sqrt(w1*w1+w2*w2)||1;
+      var onMove=function(m){
+        var r=svg.getBoundingClientRect();
+        var u=toU((m.clientX-r.left)*PS/r.width), v=toV((m.clientY-r.top)*PS/r.height);
+        if(mode==='move'){ bb=-(w1*u+w2*v); }
+        else if(pivot){
+          var dx=u-pivot.u, dy=v-pivot.v, L=Math.sqrt(dx*dx+dy*dy);
+          if(L<0.02) return;
+          w1=-dy/L*mag; w2=dx/L*mag; bb=-(w1*pivot.u+w2*pivot.v);
+        }
+        clampW(); syncP(); drawP();
+      };
+      var onUp=function(){ window.removeEventListener('pointermove',onMove);
+                           window.removeEventListener('pointerup',onUp); };
+      window.addEventListener('pointermove',onMove);
+      window.addEventListener('pointerup',onUp);
+    });
+  }
+  function syncP(){                                        // つまみの位置を合わせ直す
+    [['w1','w1V',w1],['w2','w2V',w2],['bb','bV',bb]].forEach(function(q){
+      var e=g(q[0]); if(!e) return;
+      e.value=Math.round(q[2]*10); g(q[1]).textContent=q[2].toFixed(1);
+    });
+  }
+
   function drawP(){
     var acc=plot(g('pSvg'), DS[curDs],
                  function(x,y){ return (w1*x+w2*y+bb)>=0?1:0; });
+    drawHandles(g('pSvg'));
     // 計算内容詳細: データの 1 点を取り出し、数字を入れた式で出す。
     // ② の読み取りと同じ形にしてある（やっていることは同じ、という橋渡し）。
     var pt=DS[curDs][DS[curDs].length-1];
@@ -726,6 +802,14 @@ function sg(z){return 1/(1+Math.exp(-z));}
                opacity:(st?1:0.14).toFixed(2)};
         if(st===2) a['class']=o.rev?'nnfr':'nnf';
         svg.appendChild(el('line',a));
+        // 辺を直接つかんで重みを変えられるようにする（読者の指摘への答え。
+        // つまみと違い『動かす物＝変わる物』になるので、図から目を離さずに済む）
+        if(o.drag){
+          var hit=el('line',{x1:a.x1,y1:a.y1,x2:a.x2,y2:a.y2,stroke:'transparent',
+            'stroke-width':14,style:'cursor:ns-resize'});
+          hit.setAttribute('data-e',i+','+j+','+k);
+          svg.appendChild(hit);
+        }
       }
     }
     if(o.edgeLabel) for(i=0;i<n-1;i++){
@@ -740,8 +824,10 @@ function sg(z){return 1/(1+Math.exp(-z));}
         var two=(typeof s!=='string'), nmS=two?s[0]:null, vS=two?s[1]:s;
         var wd=Math.max(vS.length,(nmS||'').length)*fs*0.60+6;
         var hh=two?fs*2.9:fs*1.6, top=py-(two?fs*1.80:fs*0.80);
-        svg.appendChild(el('rect',{x:(px-wd/2).toFixed(1),y:top.toFixed(1),
-          width:wd.toFixed(1),height:hh.toFixed(1),rx:3,fill:'#fff',opacity:0.93}));
+        var lr=el('rect',{x:(px-wd/2).toFixed(1),y:top.toFixed(1),
+          width:wd.toFixed(1),height:hh.toFixed(1),rx:3,fill:'#fff',opacity:0.93});
+        if(o.drag){ lr.setAttribute('style','cursor:ns-resize'); lr.setAttribute('data-e',i+','+j+','+k); }
+        svg.appendChild(lr);
         // ラベルの色は辺ごとに変えられる（まだ計算していない層は灰色に落とす）
         var ink=o.labelInkAt?o.labelInkAt(i,j,k):(o.labelInk||'#565248');
         var nInk=o.nameInkAt?o.nameInkAt(i,j,k):ARC;
@@ -770,6 +856,25 @@ function sg(z){return 1/(1+Math.exp(-z));}
         'text-anchor':'middle',fill:o.subInk||MUTED,opacity:(lit?1:0.3).toFixed(2)},sb));
     }
     if(o.deco) o.deco(svg);
+  }
+  // 辺のドラッグを結びつける。get/set は呼び出し側が渡す（② は W2、③ は W1 …）
+  function bindEdgeDrag(svg,get,set,after){
+    Array.prototype.forEach.call(svg.querySelectorAll('[data-e]'),function(node){
+      node.addEventListener('pointerdown',function(ev){
+        ev.preventDefault();
+        var q=node.getAttribute('data-e').split(','),
+            i=+q[0], j=+q[1], k=+q[2], y0=ev.clientY, v0=get(i,j,k);
+        var onMove=function(m){
+          var v=v0-(m.clientY-y0)/40;                 // 上へ 40px で +1.0
+          set(i,j,k, Math.max(-6,Math.min(6, Math.round(v*20)/20)));
+          after();
+        };
+        var onUp=function(){ window.removeEventListener('pointermove',onMove);
+                             window.removeEventListener('pointerup',onUp); };
+        window.addEventListener('pointermove',onMove);
+        window.addEventListener('pointerup',onUp);
+      });
+    });
   }
   function heads(svg,gg,labs,y){
     var i; for(i=0;i<labs.length;i++)
@@ -855,7 +960,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
     var f=fwd(true), mx=Math.max(1e-9,Math.max.apply(null,f.n.map(Math.abs)));
     var my=Math.max(1e-9,Math.max.apply(null,f.y.map(Math.abs)));
     renderNet(g('fwSvg'),G2,{
-      efs:12.5,
+      efs:12.5, drag:true,
       // ※ まだ計算していない層は「消す」のではなく灰色に落とす。
       //   消すと重みの数字ごと見えなくなる（読者は重みを見たい）。
       edgeState:function(i){return fstage>i?2:1;},
@@ -876,12 +981,16 @@ function sg(z){return 1/(1+Math.exp(-z));}
       deco:function(svg){
         heads(svg,G2,['入力','中間層','出力'],HEADY);
         svg.appendChild(el('text',{x:235,y:CAPY2,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
-          '信号は左から右へ ——▶　　太い辺が、下のつまみで動かせる 3 本'));
+          '信号は左から右へ ——▶　　辺をつかんで上下に動かすと重みが変わる'));
       }
     });
     // 読み取りは**いまの段階の計算だけ**を、数字を入れた形で出す。
     // 読者の指摘「どう中間層の値が算出されたのか、どう出力の値が算出されたのかを
     // 分かりやすくしたい」。全部を一度に出すと、どれが今の話か分からない。
+    bindEdgeDrag(g('fwSvg'),
+      function(i,j,k){ return i===0?W1[k][j]:W2[k][j]; },
+      function(i,j,k,v){ if(i===0) W1[k][j]=v; else W2[k][j]=v; },
+      function(){ redraw(); });
     var o=g('fwOut'), t='', j, k;
     // 掛けられる側が負なら括弧でくくる。掛ける側（重み）は 2 項目以降、
     // 「+ -0.90」ではなく「− 0.90」と書く（sgn と同じ書き方に揃える）。
@@ -997,7 +1106,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
     var f=fwd(), mx=Math.max(1e-9,Math.max.apply(null,f.n.map(Math.abs)));
     var my=Math.max(1e-9,Math.max.apply(null,f.y.map(Math.abs)));
     renderNet(g('acSvg'),G2,{
-      efs:12.5,
+      efs:12.5, drag:true,
       edgeState:function(){return 1;},
       edgeT:function(i,j,k){return i===0?T0[j]:T1[j][k];},
       edgeLabel:function(i,j,k){return elab(i,j,k);},
@@ -1011,9 +1120,13 @@ function sg(z){return 1/(1+Math.exp(-z));}
       deco:function(svg){
         heads(svg,G2,['入力','中間層 h(・)','出力'],HEADY);
         svg.appendChild(el('text',{x:235,y:CAPY2,'font-size':12.5,'text-anchor':'middle',fill:MUTED},
-          'm は h を変えても同じ。変わるのは丸の中の n = h(m)'));
+          '辺をつかんで上下に動かすと重みが変わる。m は h を変えても同じ'));
       }
     });
+    bindEdgeDrag(g('acSvg'),
+      function(i,j,k){ return i===0?W1[k][j]:W2[k][j]; },
+      function(i,j,k,v){ if(i===0) W1[k][j]=v; else W2[k][j]=v; },
+      function(){ redraw(); });
     var o=g('acOut'), lin=collapse();
     var t='h = '+ACTS[HK].nm+'\n';
     t+='m = '+vec(f.m1)+'   ← どの h でも変わらない（重みも入力も同じ）\n';
