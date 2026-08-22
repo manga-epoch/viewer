@@ -233,19 +233,23 @@ table{display:block;overflow-x:auto;max-width:100%}
 @media(max-width:620px){.dials{flex-direction:row;justify-content:center;padding-top:4px;flex-wrap:wrap}}
 .dial{display:flex;flex-direction:column;align-items:center;width:78px}
 .dial .dname{font-size:11.5px;color:#8a6b4f;margin-bottom:3px;letter-spacing:.02em}
-.dial .dbtn{width:100%;height:22px;border:1px solid var(--border);background:#F7F5F0;color:var(--ink-sub);
- font-size:10px;line-height:1;cursor:pointer;padding:0;font-family:inherit}
+.dial .dbtn{width:100%;height:22px;border:1px solid var(--border);background:#FCFBF8;color:var(--ink-sub);
+ font-size:10px;line-height:1;cursor:pointer;padding:0;font-family:inherit;touch-action:manipulation}
 .dial .dbtn:hover{background:#EFECE4;color:var(--ink)}
 .dial .dbtn:active{background:#E2DED4}
-.dial .dwin{width:100%;height:66px;overflow:hidden;position:relative;background:#20242C;
- border-left:1px solid #12151A;border-right:1px solid #12151A;
- box-shadow:inset 0 6px 8px -6px #000, inset 0 -6px 8px -6px #000}
+/* ※ touch-action:none が無いと、スマホで回そうとした指をブラウザが
+   ページのスクロールとして横取りする（pointerdown の preventDefault では止まらない）。 */
+.dial .dwin{width:100%;height:66px;overflow:hidden;position:relative;background:#F6F4EF;
+ border-left:1px solid var(--border);border-right:1px solid var(--border);
+ box-shadow:inset 0 7px 7px -7px rgba(60,50,35,.45), inset 0 -7px 7px -7px rgba(60,50,35,.45);
+ touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
 .dial .dcol{position:absolute;left:0;right:0;top:0;transition:transform .11s cubic-bezier(.2,.9,.3,1.4)}
-.dial .dcol span{display:block;height:22px;line-height:22px;text-align:center;color:#C9CEDA;
+.dial .dcol span{display:block;height:22px;line-height:22px;text-align:center;color:#A9A399;
  font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;font-variant-numeric:tabular-nums}
-.dial .dcol span.cur{color:#fff;font-size:14.5px;font-weight:600}
+.dial .dcol span.cur{color:var(--ink);font-size:14.5px;font-weight:700}
 .dial .dwin::after{content:"";position:absolute;left:0;right:0;top:22px;height:22px;
- border-top:1px solid rgba(255,255,255,.22);border-bottom:1px solid rgba(255,255,255,.22);
+ background:rgba(110,123,168,.07);
+ border-top:1px solid rgba(110,123,168,.45);border-bottom:1px solid rgba(110,123,168,.45);
  pointer-events:none}
 .outrow .chips{flex-direction:column;align-items:stretch;margin:6px 0 0;min-width:150px}
 @media(max-width:560px){.outrow .chips{flex-direction:row;min-width:0}}
