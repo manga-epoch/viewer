@@ -200,6 +200,18 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -274,7 +286,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 <p>いま機械が使っている式は、これ 1 本だけだ。動かしているのは
 $w_0, w_1, w_2$ の <b>3 つの数</b>（$w_0$ は閾値にあたる下駄）。</p>
 </details>
-<details class="foldbox" open><summary>式と計算</summary>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula" id="f2"></div>
 </details>
 
@@ -340,7 +352,7 @@ $w_0, w_1, w_2$ の <b>3 つの数</b>（$w_0$ は閾値にあたる下駄）。
 <details class="foldbox" open><summary>補足</summary>
 <p class="fig-legend"><span class="lg-dot fill"></span>この入力では 1 と答えてほしい<span class="lg-dot"></span>この入力では 0 と答えてほしい<span class="lg-dot bad"></span>線の反対側にあって答えを間違える</p>
 </details>
-<details class="foldbox" open><summary>式と計算</summary>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula" id="f3"></div>
 </details>
 <div class="readout" id="r3"></div>
