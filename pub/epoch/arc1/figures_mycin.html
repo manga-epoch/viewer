@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- epoch-meta:start 共有されたときのカード。単一出典 = outputs/publish/epoch/epoch_meta.py -->
 <meta name="description" content="MYCIN の推論チェーンを 1 ステップずつたどる図解。エキスパートシステムが IF-THEN で診断していた仕組みを動かして確かめる。無料。">
-<meta property="og:title" content="MYCIN — 機械が「なぜ」を答えた最初の専門家 — EPOCH Arc 1 図解">
+<meta property="og:title" content="MYCIN — 目標から遡って質問を決める — EPOCH Arc 1 図解">
 <meta property="og:description" content="MYCIN の推論チェーンを 1 ステップずつたどる図解。エキスパートシステムが IF-THEN で診断していた仕組みを動かして確かめる。無料。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="EPOCH — 時代の前夜">
@@ -14,7 +14,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://manga-epoch.github.io/viewer/og/arc1-figures_mycin.jpg">
 <!-- epoch-meta:end -->
-<title>MYCIN — 機械が「なぜ」を答えた最初の専門家 — EPOCH Arc 1 図解</title>
+<title>MYCIN — 目標から遡って質問を決める — EPOCH Arc 1 図解</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
@@ -183,32 +183,30 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 @media(max-width:560px){.outrow .chips{flex-direction:row;min-width:0}}
 .calcbox .rst .btn{font-size:12.5px;padding:7px 14px}
 
-.qbox{max-width:520px;margin:10px auto 0;padding:14px 16px;background:#fff;
+.qbox{max-width:540px;margin:12px auto 0;padding:14px 16px;background:#fff;
  border:1px solid var(--border);border-radius:12px}
-.qbox .qh{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ink-muted);margin-bottom:6px}
+.qbox .qh{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--ink-muted);margin-bottom:6px}
 .qbox .qt{font-size:15.5px;font-weight:700;margin-bottom:10px}
 .qbox .qa{display:flex;gap:8px;flex-wrap:wrap}
 .qbox .qa button{flex:1 1 auto;min-width:96px}
-.askcount{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:10px 0 0}
-.askcount div{background:var(--surface);border:1px solid var(--border);border-radius:9px;
- padding:7px 14px;font-size:13px}
-.askcount b{font-size:17px;color:var(--ink)}
-.log{max-width:520px;margin:8px auto 0;font-size:13px;color:var(--ink-sub)}
-.log div{padding:3px 0;border-bottom:1px dotted var(--border)}
-.log .dead{color:#b4493f}
-.log .dead b{color:#b4493f}
-.why{max-width:560px;margin:10px auto 0;padding:12px 15px;background:var(--surface);
- border:1px solid var(--border);border-radius:10px;font-size:13.5px;line-height:1.85}
-.why code{font-family:"SFMono-Regular",Menlo,monospace;font-size:12.5px}
-.cfbar{height:16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;
- overflow:hidden;position:relative;max-width:320px;margin:6px auto}
+.stack{max-width:620px;margin:12px auto 0;font-size:13px;line-height:1.95;
+ background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 15px}
+.stack .sh{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--ink-muted);margin-bottom:4px}
+.stack .now{background:rgba(110,123,168,.18);border-radius:4px;padding:1px 4px;font-weight:700}
+.rulelist{font-family:"SFMono-Regular",Menlo,monospace;font-size:12px;line-height:1.95}
+.rulelist .off{opacity:.42}
+.rulelist .hit{background:rgba(110,123,168,.14)}
+.cfbar{height:16px;background:#fff;border:1px solid var(--border);border-radius:8px;
+ overflow:hidden;max-width:320px;margin:6px auto}
 .cfbar i{display:block;height:100%;background:#6E7BA8}
 .cfbar.neg i{background:#b4493f}
-.plotbox{flex:0 0 auto}
-.figrow .nnfig svg{max-width:420px}
-.nextfig{margin:18px auto 0;max-width:620px;padding:14px 18px;background:var(--surface);
- border:1px solid var(--border);border-radius:12px;font-size:13.5px}
-.srcnote{max-width:620px;margin:12px auto 0;font-size:12.5px;color:var(--ink-muted);line-height:1.8}
+.figrow .nnfig svg{max-width:430px}
+.facts{margin:18px auto 0;max-width:640px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px;font-size:13.5px;line-height:1.9}
+.facts dt{font-weight:700;margin-top:8px}
+.facts dd{margin:0 0 0 1em}
+.facts code{font-family:"SFMono-Regular",Menlo,monospace;font-size:12.5px}
+.srcnote{max-width:640px;margin:10px auto 0;font-size:12.5px;color:var(--ink-muted);line-height:1.8}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -275,53 +273,52 @@ table{display:block;overflow-x:auto;max-width:100%}
 .fig-stage{scroll-margin-top:16px}
 </style></head>
 <body>
-<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; MYCIN — 機械が「なぜ」を答えた最初の専門家</div>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; MYCIN — 目標から遡って質問を決める</div>
 <div class="fig-topnav"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene3" data-t="巻末解説に戻る（Scene 3「専門家の時代」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_neuron.html" data-t="一つ前の図解へ（1 個の計算点）" aria-label="一つ前の図解へ（1 個の計算点）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_cyc.html" data-t="一つ後の図解へ（Cyc 常識推論）" aria-label="一つ後の図解へ（Cyc 常識推論）">&#9655;</a></nav></div>
 <div class="intro">
 <div class="eyebrow">ARC 1 ／ SCENE 3 — 専門家を機械に閉じ込める</div>
-<h1>MYCIN — 機械が「なぜ」を答えた最初の専門家</h1>
-<p><strong>IF-THEN 自体は当たり前。新しかったのは、機械が聞く順番を自分で決めたこと、
-「たぶん」を数で扱ったこと、そして「なぜそれを聞くのか」に答えられたことだ。</strong></p>
-<p>1972 年からスタンフォードで作られた感染症の診断システム。血液や髄液の感染で、
-<b>どの菌が原因か</b>を絞り、抗生物質を選ぶ。ルールは 450〜600 本あった。
-ここでは 4 本の小さな例で、その 3 つの新しさを順に動かす。</p>
+<h1>MYCIN — 目標から遡って質問を決める</h1>
+<p><strong>ルールの前提には、どのルールも結論しないもの（＝人に聞く）と、
+別のルールが結論するもの（＝新しい目標にして潜る）がある。</strong></p>
+<p>1972 年からスタンフォードで作られた、細菌血症と髄膜炎の診断システム。
+ゴールは「原因菌は何か」。ルールは 450〜600 本あった。
+ここでは 6 本の小さな例で、次の質問がどう決まるかを追う。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">機械が、聞く順番を決める</a></li><li><a href="#sec2">「たぶん」を数にする</a></li><li><a href="#sec3">なぜそれを聞くのか</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">次の質問はどう決まるか</a></li><li><a href="#sec2">確信度（CF）</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>機械が、聞く順番を決める — 後ろ向き推論</h2>
+<h2>次の質問はどう決まるか</h2>
 
 <details class="foldbox" open><summary>説明</summary>
-<p>入力はフォームから来ない。<b>機械が質問を作って、あなたに聞く</b>。
-しかも全部は聞かない。ゴール「原因菌は何か」から<b>逆向きに</b>たどり、
-いま追いかけている菌を確かめるのに要る質問だけを出す。</p>
-<p>だから<b>答えると、この先の質問が消える</b>。グラム染色が陽性だと分かった瞬間、
-陰性の菌を調べるための質問はもう聞かれない。あなたは医師役だ。答えてみてほしい。</p>
+<p>目標「原因菌」を結論に持つルールを上から試し、その前提を左から確かめる。
+前提が<b>別のルールの結論なら、それを新しい目標にして潜る</b>。
+<b>どのルールも結論しない前提に行き当たったときだけ、人に聞く</b>。
+前提が偽と分かったら、そのルールを捨てて次のルールへ移る。</p>
+<p>下の「いまの推論」は、推論エンジンが持っている<b>目標スタックそのもの</b>を表示している。</p>
 </details>
 
 <details class="foldbox figfold" open><summary>構成図</summary>
-<div class="nnfig"><svg id="tree" viewBox="0 0 578 372"></svg></div>
-<p class="fig-legend">濃い枝＝いま追っている　薄い枝＝まだ　×＝前提が崩れて捨てた</p>
+<div class="nnfig"><svg id="tree" viewBox="0 0 600 340"></svg></div>
+<p class="fig-legend">◆ 目標　□ 試しているルール　● 人に聞く前提　○ ルールで導ける前提（潜る）</p>
 </details>
 
+<div class="stack" id="stack"></div>
 <div class="qbox" id="qbox"></div>
-<div class="askcount" id="cnt"></div>
-<div class="log" id="log"></div>
 
-<details class="calcbox"><summary>ルール（4 本）</summary>
-<div class="readout" id="rules"></div>
+<details class="calcbox"><summary>ルール 6 本と、いま分かっていること</summary>
+<div class="readout rulelist" id="rules"></div>
+<div class="readout" id="facts1"></div>
 <div class="rst"><button class="btn ghost" id="rs1">最初からやり直す</button></div>
 </details>
 <div class="readout" id="r1"></div>
 </div>
 <div class="fig-stage" id="sec2">
-<h2>「たぶん」を数にする — 確信度 CF</h2>
+<h2>確信度（CF）</h2>
 
 <details class="foldbox" open><summary>説明</summary>
-<p>検査は白黒つかない。「たぶん嫌気性」「どちらかといえば桿菌」。
-MYCIN はそれを <b>−1 から +1 の確信度</b>で持ち、掛け算と合成で伝えた。
-確率を全部そろえるのは当時も今も無理だったので、<b>足りない情報でも進める計算</b>を作った。</p>
-<p>つまみで証拠の確かさを動かすと、結論の確信度がどう育つか（あるいは伝わらないか）が見える。</p>
+<p>MYCIN は各事実に <b>−1 から +1 の確信度</b>を持たせた。
+前提の確信度は<b>いちばん小さいもの</b>を取り、<b>0.2 以下ならそのルールを使わない</b>。
+使うときは<b>ルールの CF を掛ける</b>。同じ結論を出すルールが複数あれば合成する。</p>
 </details>
 
 <details class="foldbox figfold" open><summary>構成図</summary>
@@ -336,43 +333,24 @@ MYCIN はそれを <b>−1 から +1 の確信度</b>で持ち、掛け算と合
 <div class="readout" id="q2"></div>
 </details>
 
-<div class="outrow">
-  <div style="flex:1 1 260px;min-width:240px">
-    <div class="readout" id="r2"></div>
-  </div>
-</div>
-</div>
-<div class="fig-stage" id="sec3">
-<h2>なぜそれを聞くのか — 説明できる機械</h2>
+<div class="readout" id="r2"></div>
 
-<details class="foldbox" open><summary>説明</summary>
-<p>医師は、理由の言えない機械の指示には従えない。MYCIN は対話の途中で
-<b>WHY</b>（なぜ今これを聞くのか）と <b>HOW</b>（その結論をどう出したのか）に答えられた。
-答えは作文ではなく、<b>いま使っているルールそのもの</b>を人の言葉に直したものだ。</p>
-<p>節 1 の対話がどこまで進んでいても、ここで聞き返せる。</p>
-</details>
-
-<div class="stepnav">
-  <button class="btn" id="bWhy">WHY — なぜ今それを聞く？</button>
-  <button class="btn ghost" id="bHow">HOW — どう結論した？</button>
-</div>
-<div class="why" id="why"></div>
-
-<div class="nextfig">
-<b>知識と推論を分けたことが、産業になった。</b>
-ルールの束を外すと「推論する殻」だけが残る。中身を別の分野の知識に入れ替えれば、
-そのまま別の専門家システムになる —— これが <b>EMYCIN</b>（Essential MYCIN）で、
-1980 年代のエキスパートシステム産業はここから広がった。
-</div>
+<dl class="facts">
+<dt>説明機能</dt>
+<dd>対話の途中で <code>WHY</code> と <code>HOW</code> を打てた。WHY は試している最中のルール、
+HOW は結論を出したルールと前提を表示する。上の「いまの推論」がその中身にあたる。</dd>
+<dt>EMYCIN</dt>
+<dd>ルールを取り除くと推論部分だけが残る。別分野のルールを入れれば別のシステムになる。
+1980 年代のエキスパートシステムはこの形で作られた。</dd>
+<dt>成績（Yu ほか, JAMA 1979）</dt>
+<dd>髄膜炎 10 症例を伏せて評価した試験で、処方が「受け入れられる」と判定された割合は
+MYCIN が <b>65%</b>、比較された感染症専門医 5 人が <b>42.5〜62.5%</b>。</dd>
+<dt>臨床では使われなかった</dt>
+<dd>誤診の責任の所在が決まらず、当時は大型計算機の端末に 1 症例あたり数十分を要した。</dd>
+</dl>
 
 <div class="srcnote">
-<b>成績と、それでも使われなかったこと。</b>
-髄膜炎 10 症例を伏せて評価した 1979 年の試験で、MYCIN の処方が専門家に
-「受け入れられる」と判定された割合は <b>65%</b>。比較された感染症専門医 5 人は
-<b>42.5〜62.5%</b> だった（Yu ほか, JAMA 1979）。
-それでも MYCIN が臨床で使われることはなかった。誤診の責任を誰が負うのかが決まらず、
-当時は大型計算機の端末に 1 症例あたり数十分かけて打ち込む必要もあった。<br>
-※ このページのルールは Buchanan &amp; Shortliffe (1984) の書式に沿った<b>小さな例</b>で、
+※ このページのルールは Buchanan &amp; Shortliffe (1984) の書式に沿った 6 本の例で、
 RULE037 以外は説明のために構成したもの。実物の 450〜600 本のルール表ではない。
 </div>
 </div>
@@ -620,198 +598,226 @@ RULE037 以外は説明のために構成したもの。実物の 450〜600 本�
 
 
 
-  /* ============ 節 1: 後ろ向き推論 ============ */
-  /* 質問できること（MYCIN の「パラメータ」にあたる）。全部聞けば 7 問。 */
-  var PARAMS=[
-    {k:'stain', q:'グラム染色の結果は？',        o:[['gramneg','陰性'],['grampos','陽性']]},
-    {k:'morph', q:'菌の形は？',                  o:[['rod','桿菌（棒状）'],['coccus','球菌（丸)']]},
-    {k:'air',   q:'酸素があると育つか？',        o:[['anaerobic','嫌気性（育たない）'],['aerobic','好気性（育つ）']]},
-    {k:'portal',q:'どこから入ったと考えられる？',o:[['gi','消化管'],['other','それ以外']]},
-    {k:'burn',  q:'患者に重い熱傷はあるか？',    o:[['yes','ある'],['no','ない']]},
-    {k:'group', q:'球菌の並び方は？',            o:[['cluster','ブドウの房状'],['chain','鎖状']]},
-    {k:'site',  q:'検体はどこから採った？',      o:[['blood','血液'],['csf','髄液']]}
-  ];
-  var PN={}; PARAMS.forEach(function(p){ PN[p.k]=p; });
-  function lab(k,v){ var p=PN[k],i; for(i=0;i<p.o.length;i++) if(p.o[i][0]===v) return p.o[i][1]; return v; }
+  /* ===== 知識ベース =====
+     ルールが結論しない項目 ＝ 人に聞くもの。organism がゴール。 */
+  var PARAM={
+    site:  {q:'検体はどこから採ったか？', o:[['csf','髄液'],['blood','血液']]},
+    wbc:   {q:'髄液の白血球数は？',       o:[['high','高い'],['normal','正常']]},
+    age:   {q:'患者の年齢層は？',         o:[['newborn','新生児'],['adult','成人']]},
+    stain: {q:'グラム染色の結果は？',     o:[['neg','陰性'],['pos','陽性']]},
+    morph: {q:'菌の形は？',               o:[['rod','桿菌'],['coccus','球菌']]},
+    air:   {q:'酸素があると育つか？',     o:[['anaerobic','嫌気性'],['aerobic','好気性']]},
+    burn:  {q:'患者に重い熱傷はあるか？', o:[['yes','ある'],['no','ない']]},
+    infection:{q:null, o:[['meningitis','髄膜炎'],['bacteremia','菌血症']]},
+    organism: {q:null, o:[]}
+  };
+  var PJ={site:'採取部位',wbc:'白血球数',age:'年齢層',stain:'グラム染色',morph:'菌の形',
+          air:'酸素要求',burn:'熱傷',infection:'感染の種類',organism:'原因菌'};
+  function vlab(p,v){ var o=PARAM[p].o,i; for(i=0;i<o.length;i++) if(o[i][0]===v) return o[i][1]; return v; }
 
-  /* ルール。上から順に試す。RULE037 は実物に基づく。 */
   var RULES=[
-    {id:'RULE037', org:'バクテロイデス', cf:0.6,
-     pre:[['stain','gramneg'],['morph','rod'],['air','anaerobic']]},
-    {id:'RULE108', org:'緑膿菌',         cf:0.4,
-     pre:[['stain','gramneg'],['morph','rod'],['burn','yes']]},
-    {id:'RULE145', org:'腸内細菌科',     cf:0.5,
-     pre:[['stain','gramneg'],['morph','rod'],['air','aerobic'],['portal','gi']]},
-    {id:'RULE060', org:'ブドウ球菌',     cf:0.7,
-     pre:[['stain','grampos'],['morph','coccus'],['group','cluster']]}
+    {id:'RULE052', out:['organism','大腸菌'],        cf:0.5,
+     pre:[['infection','meningitis'],['age','newborn']]},
+    {id:'RULE037', out:['organism','バクテロイデス'], cf:0.6,
+     pre:[['stain','neg'],['morph','rod'],['air','anaerobic']]},
+    {id:'RULE108', out:['organism','緑膿菌'],        cf:0.4,
+     pre:[['infection','bacteremia'],['burn','yes'],['stain','neg']]},
+    {id:'RULE060', out:['organism','ブドウ球菌'],    cf:0.7,
+     pre:[['stain','pos'],['morph','coccus']]},
+    {id:'RULE010', out:['infection','meningitis'],   cf:0.8,
+     pre:[['site','csf'],['wbc','high']]},
+    {id:'RULE011', out:['infection','bacteremia'],   cf:0.7,
+     pre:[['site','blood']]}
   ];
+  function rulesFor(p){ return RULES.filter(function(r){ return r.out[0]===p; }); }
+  function askable(p){ return rulesFor(p).length===0; }
 
-  var known={}, asked=0, log=[], cur=null, done=false, mode='back';
-  /* cur = {ri: ルール番号, pi: 前提番号}。いま何を確かめようとしているか＝WHY の答え */
+  /* ===== 後ろ向き推論エンジン。stack の各枠 = {goal, ri, pi} ===== */
+  var known={}, stack=[], ask=null, fired=[], nAsk=0;
+  function reset(){
+    known={}; stack=[{goal:'organism',ri:0,pi:0}]; ask=null; fired=[]; nAsk=0;
+    advance(); draw1();
+  }
+  function advance(){
+    ask=null;
+    for(var guard=0; guard<400; guard++){
+      if(!stack.length) return;
+      var f=stack[stack.length-1], cand=rulesFor(f.goal);
+      if(f.ri>=cand.length){                       /* この目標は導けなかった */
+        known[f.goal]='(不明)'; stack.pop();
+        if(stack.length){ var pf=stack[stack.length-1]; pf.ri++; pf.pi=0; }
+        continue;
+      }
+      var r=cand[f.ri];
+      if(f.pi>=r.pre.length){                      /* 前提が全部そろった＝発火 */
+        known[r.out[0]]=r.out[1];
+        if(fired.indexOf(r.id)<0) fired.push(r.id);
+        stack.pop();
+        if(stack.length) stack[stack.length-1].pi++;
+        continue;
+      }
+      var pre=r.pre[f.pi], p=pre[0];
+      if(known[p]!==undefined){
+        if(known[p]===pre[1]) f.pi++;              /* 成り立つ → 次の前提 */
+        else { f.ri++; f.pi=0; }                   /* 偽 → このルールを捨てる */
+        continue;
+      }
+      if(askable(p)){ ask={param:p}; return; }     /* 誰も結論しない → 人に聞く */
+      stack.push({goal:p,ri:0,pi:0});              /* ルールで導ける → 潜る */
+    }
+  }
+  function answer(v){ if(!ask) return; known[ask.param]=v; nAsk++; advance(); draw1(); }
 
-  function ruleDead(r){                    /* 前提のどれかが既に否定されている */
-    for(var i=0;i<r.pre.length;i++){
-      var k=r.pre[i][0];
-      if(known[k]!==undefined && known[k]!==r.pre[i][1]) return i;
-    }
-    return -1;
-  }
-  function ruleFired(r){
-    for(var i=0;i<r.pre.length;i++) if(known[r.pre[i][0]]!==r.pre[i][1]) return false;
-    return true;
-  }
-  /* 後ろ向き: 上から順にルールを見て、まだ分からない前提を 1 つだけ聞く */
-  function nextAsk(){
-    if(mode==='fwd'){                      /* 比較用: 全部聞く */
-      for(var j=0;j<PARAMS.length;j++) if(known[PARAMS[j].k]===undefined)
-        return {ri:-1, pi:-1, k:PARAMS[j].k};
-      return null;
-    }
-    for(var i=0;i<RULES.length;i++){
-      var r=RULES[i];
-      if(ruleDead(r)>=0) continue;
-      for(var p=0;p<r.pre.length;p++)
-        if(known[r.pre[p][0]]===undefined) return {ri:i, pi:p, k:r.pre[p][0]};
-    }
-    return null;
-  }
-  function answer(v){
-    if(!cur) return;
-    known[cur.k]=v; asked++;
-    log.push({k:cur.k, v:v, rule:(cur.ri>=0?RULES[cur.ri].id:null)});
-    /* この答えで死んだルールを記録する（「質問が消えた」を見せるため） */
-    RULES.forEach(function(r){
-      if(r._dead) return;
-      var d=ruleDead(r);
-      if(d>=0){ r._dead=true; log.push({dead:r.id, org:r.org, why:lab(r.pre[d][0],known[r.pre[d][0]])}); }
-    });
-    step();
-  }
-  function step(){ cur=nextAsk(); done=!cur; draw1(); }
-
+  /* ===== 描画: 目標スタックをそのまま木にする ===== */
   function drawTree(){
     var svg=g('tree'); svg.innerHTML='';
-    var GX=140, W=[GX, 298, 480];
-    svg.appendChild(el('text',{x:GX,y:24,'font-size':12.5,'text-anchor':'middle',fill:MUTED},'ゴール'));
-    svg.appendChild(el('rect',{x:GX-70,y:32,width:140,height:34,rx:9,fill:'#EAEDF7',stroke:ARC}));
-    svg.appendChild(el('text',{x:GX,y:54,'font-size':13.5,'text-anchor':'middle',fill:INK,'font-weight':'700'},'原因菌は何か'));
-    svg.appendChild(el('text',{x:W[1],y:24,'font-size':12.5,'text-anchor':'middle',fill:MUTED},'候補とルール'));
-    svg.appendChild(el('text',{x:W[2],y:24,'font-size':12.5,'text-anchor':'middle',fill:MUTED},'確かめること'));
-    var y0=98, dy=68;
-    RULES.forEach(function(r,i){
-      var y=y0+i*dy, dead=r._dead, active=(cur&&cur.ri===i), fired=ruleFired(r);
-      var op = dead?0.28:(active?1:0.55);
-      svg.appendChild(el('path',{d:'M'+(GX+72)+' 49 C 236 49, 236 '+y+', '+(W[1]-64)+' '+y,
-        fill:'none',stroke:dead?'#c9c4ba':(active?ARC:'#b9c0d8'),'stroke-width':active?2.4:1.4,
-        opacity:op.toFixed(2)}));
-      svg.appendChild(el('rect',{x:W[1]-64,y:y-18,width:132,height:44,rx:9,
-        fill:fired?'#DDE3F3':'#fff',stroke:dead?'#d8d4cb':(active?ARC:'var(--border)'),
-        'stroke-width':active?2:1,opacity:op.toFixed(2)}));
-      svg.appendChild(el('text',{x:W[1],y:y-6,'font-size':11,'text-anchor':'middle',
-        fill:MUTED,opacity:op.toFixed(2)},r.id+'（CF '+r.cf.toFixed(1)+'）'));
-      svg.appendChild(el('text',{x:W[1],y:y+15,'font-size':13,'text-anchor':'middle',
-        fill:INK,'font-weight':'700',opacity:op.toFixed(2)},r.org));
-      if(dead) svg.appendChild(el('text',{x:W[1]+74,y:y+5,'font-size':16,'text-anchor':'middle',
-        fill:BAD},'\u00d7'));
-      /* 前提（確かめること）を小さく縦に */
-      r.pre.forEach(function(pr,pi){
-        var yy=y-(r.pre.length-1)*8.5+pi*17, ok=(known[pr[0]]===pr[1]),
-            ng=(known[pr[0]]!==undefined&&!ok);
-        svg.appendChild(el('text',{x:W[2],y:yy+4,'font-size':9.5,'text-anchor':'middle',
-          fill:ng?BAD:(ok?INK:MUTED),
-          opacity:(dead?0.3:(active&&cur.pi===pi?1:0.6)).toFixed(2)},
-          (ok?'\u2713 ':(ng?'\u00d7 ':'? '))+lab(pr[0],pr[1])));
+    if(!stack.length){
+      svg.appendChild(el('text',{x:300,y:44,'font-size':13.5,'text-anchor':'middle',fill:MUTED},'推論おわり'));
+      var yy=84;
+      fired.forEach(function(id){
+        var r=RULES.filter(function(x){return x.id===id;})[0];
+        svg.appendChild(el('text',{x:300,y:yy,'font-size':13,'text-anchor':'middle',fill:INK},
+          r.id+' → '+PJ[r.out[0]]+' = '+vlab(r.out[0],r.out[1])+'（CF '+r.cf.toFixed(1)+'）'));
+        yy+=28;
       });
+      return;
+    }
+    var y=36, dx=40;
+    stack.forEach(function(f,d){
+      var cand=rulesFor(f.goal), r=cand[f.ri], x=20+d*dx;
+      svg.appendChild(el('text',{x:x,y:y+5,'font-size':12,fill:ARC},'\u25c6'));
+      svg.appendChild(el('text',{x:x+16,y:y+5,'font-size':13,fill:INK,'font-weight':'700'},
+        '目標: '+PJ[f.goal]));
+      y+=27;
+      if(!r) return;
+      var ov=vlab(r.out[0], r.out[1]);
+      svg.appendChild(el('path',{d:'M'+(x+5)+' '+(y-19)+' L'+(x+5)+' '+(y+1)+' L'+(x+17)+' '+(y+1),
+        fill:'none',stroke:'#c9c4ba','stroke-width':1.2}));
+      svg.appendChild(el('text',{x:x+21,y:y+6,'font-size':12,fill:MUTED},'\u25a1'));
+      svg.appendChild(el('text',{x:x+37,y:y+6,'font-size':12.5,fill:INK},
+        r.id+' → '+PJ[r.out[0]]+' = '+ov+'（CF '+r.cf.toFixed(1)+'）'));
+      y+=25;
+      r.pre.forEach(function(pre,pi){
+        var p=pre[0], cur=(pi===f.pi&&d===stack.length-1);
+        var st=(known[p]===undefined)?'?':((known[p]===pre[1])?'ok':'ng');
+        svg.appendChild(el('path',{d:'M'+(x+26)+' '+(y-17)+' L'+(x+26)+' '+(y+1)+' L'+(x+38)+' '+(y+1),
+          fill:'none',stroke:'#c9c4ba','stroke-width':1.2}));
+        if(cur) svg.appendChild(el('rect',{x:x+34,y:y-12,width:544-x,height:22,rx:5,
+          fill:'rgba(110,123,168,.16)'}));
+        svg.appendChild(el('text',{x:x+42,y:y+5,'font-size':11.5,fill:askable(p)?ARC:MUTED},
+          askable(p)?'\u25cf':'\u25cb'));
+        svg.appendChild(el('text',{x:x+58,y:y+5,'font-size':12,
+          fill:st==='ng'?BAD:(st==='ok'?INK:MUTED),'font-weight':cur?'700':'400'},
+          PJ[p]+' = '+vlab(p,pre[1])
+          +(st==='ok' ? '　\u2713'
+            : (st==='ng' ? ('　\u00d7 実際は '+vlab(p,known[p]))
+              : (askable(p) ? '　どのルールも結論しない → 人に聞く'
+                            : ('　'+rulesFor(p).map(function(x){return x.id;}).join('・')
+                               +' が結論する → 潜る'))))));
+        y+=22;
+      });
+      y+=5;
     });
   }
   function draw1(){
     drawTree();
+    var lines=[];
+    stack.forEach(function(f,d){
+      var pad='　　'.repeat(d), cand=rulesFor(f.goal), r=cand[f.ri];
+      lines.push(pad+'目標 <b>'+PJ[f.goal]+'</b>');
+      if(r){
+        lines.push(pad+'　'+r.id+' を試す（結論 '+PJ[r.out[0]]+' = '+vlab(r.out[0],r.out[1])+'）');
+        var pre=r.pre[f.pi];
+        if(pre) lines.push(pad+'　　前提 '+(f.pi+1)+'「'+PJ[pre[0]]+' = '+vlab(pre[0],pre[1])+'」'
+          +(askable(pre[0])
+            ? ' <span class="now">どのルールも結論しない → 人に聞く</span>'
+            : ' <span class="now">'+rulesFor(pre[0]).map(function(x){return x.id;}).join('・')
+              +' が結論する → 新しい目標にして潜る</span>'));
+      }
+    });
+    g('stack').innerHTML='<div class="sh">いまの推論（目標スタック）</div>'
+      +(lines.length?lines.join('<br>'):'推論は終わった。');
     var q=g('qbox');
-    if(done){
-      q.innerHTML='<div class="qh">対話おわり</div><div class="qt">これ以上、聞くことはない。</div>';
-    }else{
-      var p=PN[cur.k];
-      q.innerHTML='<div class="qh">MYCIN からの質問 '+(asked+1)+'</div>'
-        +'<div class="qt">'+p.q+'</div><div class="qa"></div>';
+    if(ask){
+      q.style.display='';
+      q.innerHTML='<div class="qh">MYCIN からの質問</div><div class="qt">'
+        +PARAM[ask.param].q+'</div><div class="qa"></div>';
       var qa=q.querySelector('.qa');
-      p.o.forEach(function(o){
+      PARAM[ask.param].o.forEach(function(o){
         var b=document.createElement('button'); b.className='btn ghost'; b.textContent=o[1];
         b.onclick=function(){ answer(o[0]); }; qa.appendChild(b);
       });
-    }
-    var saved=PARAMS.length-asked;
-    g('cnt').innerHTML='<div>聞かれた質問 <b>'+asked+'</b></div>'
-      +'<div>全部聞くなら <b>'+PARAMS.length+'</b></div>'
-      +'<div>'+(done?('省けた質問 <b>'+saved+'</b>'):'残り候補 <b>'
-        +RULES.filter(function(r){return !r._dead;}).length+'</b>')+'</div>';
-    g('log').innerHTML=log.map(function(e){
-      return e.dead
-        ? '<div class="dead">'+e.why+' と分かったので <b>'+e.org+'（'+e.dead+'）</b>を捨てた —— この枝の質問はもう聞かれない</div>'
-        : '<div>'+PN[e.k].q+' → <b>'+lab(e.k,e.v)+'</b>'+(e.rule?'　<span style="color:var(--ink-muted)">'+e.rule+' を確かめるため</span>':'')+'</div>';
+    }else{ q.style.display='none'; q.innerHTML=''; }
+    g('rules').innerHTML=RULES.map(function(r){
+      var live=stack.some(function(f){ var c=rulesFor(f.goal); return c[f.ri]&&c[f.ri].id===r.id; });
+      var cls=(fired.indexOf(r.id)>=0)?'hit':(live?'':'off');
+      return '<div class="'+cls+'">'+r.id+': IF '
+        +r.pre.map(function(p){ return PJ[p[0]]+'='+vlab(p[0],p[1]); }).join(' かつ ')
+        +' THEN '+PJ[r.out[0]]+'='+vlab(r.out[0],r.out[1])+'（CF '+r.cf.toFixed(1)+'）</div>';
     }).join('');
-    /* 結論。MYCIN は 1 つに絞らず、確信度を付けて候補を並べる */
-    var hit=RULES.filter(ruleFired).sort(function(a,b){ return b.cf-a.cf; });
-    var list=hit.map(function(r){
-      return '<b>'+r.org+'</b>（'+r.id+'、確信度 '+r.cf.toFixed(1)+'）'; }).join(' と ');
-    g('r1').innerHTML = done
-      ? (hit.length
-        ? '<b>結論: '+list+'</b>。<br>聞かれたのは <b>'+asked+' 問</b>で、'+PARAMS.length
-          +' 問すべてではない。<b>答えるたびに、要らなくなった質問が消えていった</b>のが後ろ向き推論だ。'
-          +(hit.length>1?'　候補を 1 つに絞りきらないのも MYCIN の作りで、確信度を付けたまま並べて薬を選ぶ。':'')
-        : 'どのルールも最後まで通らなかった。<b>MYCIN は「分からない」と言える</b>。'
-          +'聞かれたのは '+asked+' 問だけ —— 望みの無い枝を早く捨てたからだ。')
-      : (hit.length
-        ? 'いま分かっていること: '+list+'。まだ他の候補が残っているので質問は続く。'
-        : 'いま <b>'+RULES[cur.ri].id+'</b>（'+RULES[cur.ri].org+'）が成り立つかを確かめている。'
-          +'この質問は、そのために要る。');
-    g('rules').innerHTML='<div style="font-family:SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.9">'
-      +RULES.map(function(r){
-        return (r._dead?'<span style="opacity:.45">':'<span>')+r.id+': IF '
-          +r.pre.map(function(p){return lab(p[0],p[1]);}).join(' かつ ')
-          +' → '+r.org+'（CF '+r.cf.toFixed(1)+'）</span>';
-      }).join('<br>')+'</div>';
-    drawWhy();
+    var ks=Object.keys(known);
+    g('facts1').innerHTML=ks.length
+      ? '分かっていること: '+ks.map(function(k){
+          return PJ[k]+' = '+vlab(k,known[k])+(askable(k)?'（聞いた）':'（ルールで導いた）'); }).join('　／　')
+      : 'まだ何も分かっていない。';
+    var org=known['organism'];
+    g('r1').innerHTML = (org && org!=='(不明)')
+      ? (function(){
+          var got=ks.filter(function(k){ return !askable(k) && k!=='organism'
+                                                && known[k]!=='(不明)'; });
+          return '<b>原因菌 = '+org+'</b>。人に聞いたのは <b>'+nAsk+' 項目</b>。'
+            +(got.length
+              ? got.map(function(k){ return PJ[k]; }).join('・')
+                +' は聞かずに<b>ルールで導いた</b>（'
+                +got.map(function(k){
+                    var r=rulesFor(k).filter(function(x){ return x.out[1]===known[k]; })[0];
+                    return r ? (r.id+' の前提 '
+                      +r.pre.map(function(x){ return PJ[x[0]]; }).join('・')+' から') : ''; }).join('、')
+                +'）。'
+              : '');
+        })()
+      : (org==='(不明)'
+        ? 'どのルールも通らなかった。MYCIN は「導けない」と答える。'
+        : (ask
+          ? '<b>'+PJ[ask.param]+'</b> を聞いているのは、いま確かめたい前提を'
+            +'<b>どのルールも結論しない</b>から。結論するルールがあれば、聞かずにそこへ潜っていた。'
+          : ''));
   }
 
-  /* ============ 節 2: 確信度 ============ */
-  /* 2 本のルールが同じ結論を支える。前提は min、しきい値 0.2、掛けて、合成。 */
-  var E=[0.8,0.6,0.5];                     /* 証拠 3 つの確信度 */
-  var RC=[0.6,0.5];                        /* ルール 2 本の CF */
+  /* ===== 節 2: 確信度 ===== */
+  var E=[0.8,0.6,0.5], RC=[0.6,0.5];
   function pre1(){ return Math.min(E[0],E[1]); }
   function pre2(){ return E[2]; }
   function out1(){ return pre1()>0.2 ? pre1()*RC[0] : 0; }
   function out2(){ return pre2()>0.2 ? pre2()*RC[1] : 0; }
   function comb(){ var a=out1(), b=out2();
-    return a>=0&&b>=0 ? a+b*(1-a) : a+b+a*b; }
+    return (a>=0&&b>=0) ? a+b*(1-a) : a+b+a*b; }
   function drawCF(){
     var svg=g('cfnet'); svg.innerHTML='';
-    var NM=['グラム陰性','桿菌','嫌気性'];
-    var xs=[76,240,372];
+    var NM=['グラム染色 陰性','菌の形 桿菌','酸素要求 嫌気性'], xs=[76,240,372];
     [0,1,2].forEach(function(i){
       var y=56+i*66;
-      svg.appendChild(el('rect',{x:xs[0]-64,y:y-21,width:128,height:42,rx:9,
+      svg.appendChild(el('rect',{x:xs[0]-66,y:y-21,width:132,height:42,rx:9,
         fill:paint(Math.abs(E[i])),stroke:'var(--border)'}));
-      svg.appendChild(el('text',{x:xs[0],y:y-6,'font-size':11.5,'text-anchor':'middle',fill:MUTED},NM[i]));
+      svg.appendChild(el('text',{x:xs[0],y:y-6,'font-size':10.5,'text-anchor':'middle',fill:MUTED},NM[i]));
       svg.appendChild(el('text',{x:xs[0],y:y+15,'font-size':13,'text-anchor':'middle',
         fill:E[i]<0?BAD:INK,'font-weight':'700'},E[i].toFixed(1)));
     });
-    /* ルール 1（証拠 1,2）→ 結論 / ルール 2（証拠 3）→ 結論 */
-    function rbox(x,y,t,sub,v,live){
+    function rbox(x,y,t,sub,live){
       svg.appendChild(el('rect',{x:x-58,y:y-21,width:116,height:42,rx:9,
         fill:live?'#EAEDF7':'#F4F2EC',stroke:live?ARC:'var(--border)'}));
       svg.appendChild(el('text',{x:x,y:y-6,'font-size':11,'text-anchor':'middle',fill:MUTED},t));
       svg.appendChild(el('text',{x:x,y:y+14,'font-size':12.5,'text-anchor':'middle',
         fill:live?INK:MUTED,'font-weight':'700'},sub));
     }
-    [[52,114,0],[176,0,1]].forEach(function(){});
-    svg.appendChild(el('path',{d:'M140 56 C 186 56, 186 92, '+(xs[1]-60)+' 92',fill:'none',
+    svg.appendChild(el('path',{d:'M142 56 C 188 56, 188 92, '+(xs[1]-60)+' 92',fill:'none',
       stroke:pre1()>0.2?ARC:'#c9c4ba','stroke-width':1.8}));
-    svg.appendChild(el('path',{d:'M140 122 C 186 122, 186 92, '+(xs[1]-60)+' 92',fill:'none',
+    svg.appendChild(el('path',{d:'M142 122 C 188 122, 188 92, '+(xs[1]-60)+' 92',fill:'none',
       stroke:pre1()>0.2?ARC:'#c9c4ba','stroke-width':1.8}));
-    svg.appendChild(el('path',{d:'M140 188 C 186 188, 186 176, '+(xs[1]-60)+' 176',fill:'none',
+    svg.appendChild(el('path',{d:'M142 188 C 188 188, 188 176, '+(xs[1]-60)+' 176',fill:'none',
       stroke:pre2()>0.2?ARC:'#c9c4ba','stroke-width':1.8}));
-    rbox(xs[1],92,'RULE037（CF 0.6）', pre1()>0.2?('→ '+out1().toFixed(2)):'発火しない', 0, pre1()>0.2);
-    rbox(xs[1],176,'RULE104（CF 0.5）', pre2()>0.2?('→ '+out2().toFixed(2)):'発火しない', 0, pre2()>0.2);
+    rbox(xs[1],92,'RULE037（CF 0.6）', pre1()>0.2?('\u2192 '+out1().toFixed(2)):'使わない', pre1()>0.2);
+    rbox(xs[1],176,'RULE104（CF 0.5）', pre2()>0.2?('\u2192 '+out2().toFixed(2)):'使わない', pre2()>0.2);
     svg.appendChild(el('path',{d:'M'+(xs[1]+60)+' 92 C 326 92, 326 129, '+(xs[2]-42)+' 129',
       fill:'none',stroke:out1()>0?ARC:'#c9c4ba','stroke-width':1.8}));
     svg.appendChild(el('path',{d:'M'+(xs[1]+60)+' 176 C 326 176, 326 129, '+(xs[2]-42)+' 129',
@@ -822,82 +828,37 @@ RULE037 以外は説明のために構成したもの。実物の 450〜600 本�
     svg.appendChild(el('text',{x:xs[2]+6,y:121,'font-size':11,'text-anchor':'middle',fill:MUTED},'バクテロイデス'));
     svg.appendChild(el('text',{x:xs[2]+6,y:144,'font-size':15,'text-anchor':'middle',
       fill:c<0?BAD:INK,'font-weight':'700'},c.toFixed(2)));
-    svg.appendChild(el('text',{x:xs[0],y:256,'font-size':11.5,'text-anchor':'middle',fill:MUTED},'証拠の確信度'));
+    svg.appendChild(el('text',{x:xs[0],y:256,'font-size':11.5,'text-anchor':'middle',fill:MUTED},'事実の確信度'));
     svg.appendChild(el('text',{x:xs[1],y:256,'font-size':11.5,'text-anchor':'middle',fill:MUTED},'ルール'));
     svg.appendChild(el('text',{x:xs[2],y:256,'font-size':11.5,'text-anchor':'middle',fill:MUTED},'結論'));
   }
   function draw2(){
     drawCF();
     buildDials('cfd',
-      [{nm:'グラム陰性',i:0,j:0,k:0,st:0.1,lo:-1,hi:1,dg:1},
-       {nm:'桿菌',      i:0,j:1,k:0,st:0.1,lo:-1,hi:1,dg:1},
-       {nm:'嫌気性',    i:0,j:2,k:0,st:0.1,lo:-1,hi:1,dg:1}],
+      [{nm:'グラム染色',i:0,j:0,k:0,st:0.1,lo:-1,hi:1,dg:1},
+       {nm:'菌の形',    i:0,j:1,k:0,st:0.1,lo:-1,hi:1,dg:1},
+       {nm:'酸素要求',  i:0,j:2,k:0,st:0.1,lo:-1,hi:1,dg:1}],
       function(i,j){ return E[j]; },
       function(i,j,k,v){ E[j]=v; },
       draw2);
-    g('f2').innerHTML='$$\\text{前提} = \\min(\\mathrm{CF}_1,\\mathrm{CF}_2),\\qquad'
-      +'\\text{結論} = \\text{前提}\\times \\mathrm{CF}_{\\text{rule}}\\ \\ (\\text{前提} > 0.2)$$'
-      +'$$\\mathrm{CF}_{1}\\oplus \\mathrm{CF}_{2} = \\mathrm{CF}_1 + \\mathrm{CF}_2\\,(1-\\mathrm{CF}_1)$$';
-    g('q2').innerHTML='前提は<b>いちばん弱い証拠</b>で決まる（min）。'
-      +'いまは min('+E[0].toFixed(1)+', '+E[1].toFixed(1)+') = <b>'+pre1().toFixed(2)+'</b>。'
-      +(pre1()>0.2 ? ' × 0.6 = <b>'+out1().toFixed(2)+'</b>。'
-                   : ' <b>0.2 以下なので RULE037 は発火しない</b>。')
-      +' もう 1 本は '+pre2().toFixed(2)+(pre2()>0.2?(' × 0.5 = <b>'+out2().toFixed(2)+'</b>'):' で発火しない')+'。'
-      +' 合成して <b>'+comb().toFixed(2)+'</b>。';
+    g('f2').innerHTML='$$\\text{前提} = \\min(\\mathrm{CF}_i),\\qquad'
+      +'\\text{結論} = \\text{前提}\\times \\mathrm{CF}_{\\text{rule}}\\quad(\\text{前提} > 0.2)$$'
+      +'$$\\mathrm{CF}_1 \\oplus \\mathrm{CF}_2 = \\mathrm{CF}_1 + \\mathrm{CF}_2(1-\\mathrm{CF}_1)$$';
+    g('q2').innerHTML='RULE037 の前提は min('+E[0].toFixed(1)+', '+E[1].toFixed(1)+') = <b>'
+      +pre1().toFixed(2)+'</b>。'
+      +(pre1()>0.2 ? '0.2 を超えるので使う。× 0.6 = <b>'+out1().toFixed(2)+'</b>。'
+                   : '0.2 以下なので<b>このルールは使わない</b>。')
+      +'　RULE104 の前提は '+pre2().toFixed(2)
+      +(pre2()>0.2?('、× 0.5 = <b>'+out2().toFixed(2)+'</b>'):' で使わない')+'。'
+      +' 合成すると <b>'+comb().toFixed(2)+'</b>。';
     var c=comb(), w=Math.min(100,Math.abs(c)*100);
     g('r2').innerHTML='<div class="cfbar'+(c<0?' neg':'')+'"><i style="width:'+w.toFixed(0)+'%"></i></div>'
-      +'<div style="text-align:center">バクテロイデスの確信度 <b>'+c.toFixed(2)+'</b></div>'
-      +(c>0.2
-        ? '<div style="margin-top:8px">MYCIN は確信度 <b>0.2 を超えた候補だけ</b>を治療の対象にした。'
-          +'弱い手がかりでも、<b>2 本のルールが同じ結論を支えると確信は育つ</b>——'
-          +'これが「たぶん」を機械が扱える形にするということだ。</div>'
-        : '<div style="margin-top:8px">0.2 以下。MYCIN はこの候補を治療対象にしない。'
-          +'<b>確信が足りないときに黙っていられる</b>ことも、この仕組みの一部だ。</div>');
+      +'<div style="text-align:center">バクテロイデスの確信度 <b>'+c.toFixed(2)+'</b></div>';
     if(window.renderAllMath) renderAllMath();
   }
 
-  /* ============ 節 3: 説明 ============ */
-  var whyMode='why';
-  function drawWhy(){
-    var box=g('why'); if(!box) return;
-    if(whyMode==='why'){
-      if(done||!cur||cur.ri<0){
-        box.innerHTML='いま聞いていることは無い。節 1 で質問に答えている途中に押すと、'
-          +'<b>そのときに追いかけているルール</b>が出る。';
-      }else{
-        var r=RULES[cur.ri];
-        box.innerHTML='<b>[WHY]</b> いま <code>'+r.id+'</code> が成り立つかを調べている。<br>'
-          +'<code>IF '+r.pre.map(function(p,i){
-              var k=known[p[0]];
-              return (i===cur.pi?'<b>':'')+lab(p[0],p[1])+(i===cur.pi?'</b>':'')
-                +(k!==undefined?'（'+(k===p[1]?'済み ✓':'×')+'）':'');
-            }).join('<br>   かつ ')+'<br>THEN 原因菌は '+r.org+'（確信度 '+r.cf.toFixed(1)+'）</code><br>'
-          +'このうち<b>まだ分かっていない前提</b>があなたへの質問になっている。'
-          +'だから「'+PN[cur.k].q+'」と聞いた。';
-      }
-    }else{
-      var hit=RULES.filter(ruleFired);
-      if(!hit.length){
-        box.innerHTML='<b>[HOW]</b> まだ結論は出ていない。節 1 で対話を進めてから押すと、'
-          +'<b>その結論に至った道筋</b>が出る。';
-      }else{
-        var r=hit[0];
-        box.innerHTML='<b>[HOW]</b> 「'+r.org+'」は <code>'+r.id+'</code> から出した。<br>'
-          +r.pre.map(function(p){ return '・'+PN[p[0]].q+' → <b>'+lab(p[0],known[p[0]])+'</b>'; }).join('<br>')
-          +'<br>3 つとも満たしたので、確信度 <b>'+r.cf.toFixed(1)+'</b> で '+r.org+' と結論した。<br>'
-          +'<span style="color:var(--ink-muted)">作文ではなく、実際に使ったルールをそのまま日本語にしている。'
-          +'だから医師は結論を検算できた。</span>';
-      }
-    }
-  }
-
-  /* ---- 配線 ---- */
-  g('rs1').onclick=function(){ known={}; asked=0; log=[]; done=false;
-    RULES.forEach(function(r){ r._dead=false; }); step(); };
-  g('bWhy').onclick=function(){ whyMode='why'; drawWhy(); };
-  g('bHow').onclick=function(){ whyMode='how'; drawWhy(); };
-
-  step(); draw2();
+  g('rs1').onclick=reset;
+  reset(); draw2();
 })();
 </script>
 <script>
