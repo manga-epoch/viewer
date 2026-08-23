@@ -183,6 +183,18 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -207,37 +219,49 @@ table{display:block;overflow-x:auto;max-width:100%}
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">手がかりの違い</a></li><li><a href="#sec2">事前学習</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>手がかりの違い — 教師あり・教師なし・強化学習</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>同じ点の集まりでも、何が与えられているかで、できることが変わる。
 <b>教師あり学習</b>は正解ラベルを手がかりに境界を引く。<b>教師なし学習</b>は正解を使わず、
 似たもの同士を寄せて構造を見つける。<b>強化学習</b>は正解を教わらず、行動したあとに届く
 <b>報酬</b>で方策を直す。切り替えて見比べてほしい。</p>
+</details>
 <div class="ctrls">
   <button class="chip on" data-k="sup">教師あり</button>
   <button class="chip" data-k="uns">教師なし</button>
   <button class="chip" data-k="rl">強化学習</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="k1"></div>
+</details>
 <div class="readout" id="r1"></div>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>事前学習 — 正解を使わない、層ごとの初期化</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>深いニューラルネットをいきなり全部まとめて学習させると、奥まで信号が届かない。
 そこで層を一枚ずつ「入力を復元できるように」訓練し、良い初期値を作ってから積み上げる。</p>
+</details>
 <div class="ctrls">
   <button class="btn" id="stack">1 枚積む</button>
   <button class="btn ghost" id="reset1">最初から</button>
   <button class="chip on" id="pre-btn" aria-pressed="true">事前学習あり</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="k2"></div>
+</details>
 <div class="readout" id="r2"></div>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">左が<b>いま訓練している 1 枚</b>（オートエンコーダ）。入力を一度せまい層へ縮め、
 そこから元に戻せるかを見る。戻せたら、その縮める側の重みを「使える初期値」として採る。
 右は<b>積み上がったニューラルネット</b>。1 枚ずつ初期値を入れてから、最後に答えを使って全体を微調整する。</p>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$\min_{f,g}\; \lVert x - g(f(x)) \rVert^2$
 <div class="note" style="margin-top:8px">$f$ は縮める側、$g$ は戻す側。
 <b>答え $y$ を一切使わず</b>、入力 $x$ を自分で復元できるかどうかだけを目標にする。
 これを 1 層ずつ繰り返して初期値を作り、最後に答えを使って全体を微調整した。</div>
 </div>
+</details>
 </div>
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene1" data-t="巻末解説に戻る（Scene 1「冬を越えた者たち」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_nn.html" data-t="一つ前の図解へ（NN の土台）" aria-label="一つ前の図解へ（NN の土台）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_classic.html" data-t="一つ後の図解へ（深層学習の前）" aria-label="一つ後の図解へ（深層学習の前）">&#9655;</a></nav></div>
 <script>

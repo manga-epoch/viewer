@@ -183,6 +183,18 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -207,49 +219,69 @@ table{display:block;overflow-x:auto;max-width:100%}
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">VGG</a></li><li><a href="#sec2">Inception</a></li><li><a href="#sec3">Batch Normalization</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>VGG — 大きな畳み込み 1 枚と、小さな畳み込みの積み重ね</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>同じ広さを見るのに、7×7 を 1 枚使うか、3×3 を 3 枚重ねるか。見える範囲は同じでも中身が違う。</p>
+</details>
 <div class="ctrls">
   <label>3×3 を何枚重ねるか <input type="range" id="vgg" min="1" max="5" value="3"></label>
   <span class="tag" id="vgg-v">3 枚</span>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v1"></div>
+</details>
 <div class="readout" id="rv"></div>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">受容野 $2k+1$ ／ 重みの数 $9k$（3×3 を $k$ 枚重ねる）対 $(2k+1)^2$（同じ広さを 1 枚で）
 <div class="note" style="margin-top:8px">$k=1$ のときは $9k=(2k+1)^2=9$ で<b>同じ枚数では差が出ない</b>。2 枚以上にすると効いてくる。</div>
 </div>
+</details>
 </div>
 
 <div class="fig-stage" id="sec2">
 <h2>Inception — 複数のカーネルサイズを並列に使う</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>どの大きさのフィルタが効くかは、場所によって違う。なら並べて全部かけ、出てきたものを繋げばいい。
 ただしそのままでは計算量が爆発するので、1×1 で厚みを削ってから通す。</p>
+</details>
 <div class="ctrls">
   <button class="chip on" id="bott-btn" aria-pressed="true">1×1 で削る</button>
   <label>入力の厚み <input type="range" id="ch" min="64" max="512" step="32" value="256"></label>
   <span class="tag" id="ch-v">256</span>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v2"></div>
+</details>
 <div class="readout" id="ri"></div>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$\mathrm{cost} = \sum k^2 C_{\text{in}} C_{\text{out}}$
 <div class="note" style="margin-top:8px">出力 64 ch・削減後 64 ch、1 画素位置あたりの掛け算回数として概算した<b>模式値であり、実測ではない</b>。</div>
 </div>
+</details>
 </div>
 <div class="fig-stage" id="sec3">
 <h2>Batch Normalization — 層ごとに目盛りを揃える</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>層を通るたびに値の散らばりがずれていくと、学習率を上げた途端に壊れる。
 各層で平均 0・分散 1 に直してから次へ渡すと、大きい歩幅でも安定する。</p>
+</details>
 <div class="ctrls">
   <label>学習率 <input type="range" id="bnlr" min="1" max="100" value="55"></label>
   <span class="tag" id="bnlr-v">0.55</span>
   <button class="chip on" id="bn-btn" aria-pressed="true">BatchNorm あり</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="s4"></div>
+</details>
 <div class="readout" id="r4"></div>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$\hat{x} = (x-\mu_B)/\sigma_B$
 <div class="note" style="margin-top:8px">ミニバッチ内の平均 $\mu_B$・分散 $\sigma_B^2$ で正規化してから次の層へ渡す。
 グラフの実線＝BatchNorm あり、<b>破線（アーク色）＝BatchNorm なし</b>。</div>
 </div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">2015 年の発明。深さの章で扱うのは、深く積む道を安定させた土台だから。</p>
+</details>
 </div>
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene5" data-t="巻末解説に戻る（Scene 5「より深く」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_alexnet.html" data-t="一つ前の図解へ（2012 年の三つ）" aria-label="一つ前の図解へ（2012 年の三つ）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_resnet.html" data-t="一つ後の図解へ（残差接続・ResNet）" aria-label="一つ後の図解へ（残差接続・ResNet）">&#9655;</a></nav></div>
 <script>

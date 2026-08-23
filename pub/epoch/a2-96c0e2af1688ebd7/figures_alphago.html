@@ -163,6 +163,18 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; AlphaGo と MCTS</div>
@@ -179,25 +191,35 @@ table{display:block;overflow-x:auto;max-width:100%}
 
 <div class="fig-stage">
 <h2>モンテカルロ木探索（MCTS） — 1 反復の中身</h2>
+<details class="foldbox" open><summary>説明</summary>
 <div class="lead">囲碁は<b>強化学習</b>の題材だ——正解の手は誰も教えてくれず、<b>報酬</b>は勝敗として
 対局の最後にまとめて届く。その中で「どの手が良さそうか」を絞り込むのが木探索である。
 最初は根 (今の局面) しかない。「1 反復」を押すたびに <strong>選択 → 展開 → 評価 → 逆伝播</strong> が走り、
 まだ見ていない局面は<strong>展開</strong>で新しく木に加わり、有望な枝の訪問回数が増えていく。policy が初期確率 (枝の太さ)、value が評価を与える。</div>
+</details>
 <div class="ctrls">
   <button class="btn" id="iterBtn">▶ 1 反復 (select→expand→eval→backup)</button>
   <button class="btn ghost" id="iter10">10 反復</button>
   <button class="btn ghost" id="resetBtn">最初へ</button>
   <div class="ctrl" style="margin-left:auto"><label>反復数 <span class="val" id="itV">0</span></label></div>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <svg id="treeSvg" width="100%" viewBox="0 0 800 340" style="max-width:800px;display:block;margin:6px auto"></svg>
+</details>
 <div class="readout" id="gout">「1 反復」を押して探索を始めてください。最初は根だけで、子局面はまだ展開されていません。</div>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">この図のノード上の数値 (N・Q) や評価値 v は、木探索の仕組みを見せるための<strong>模式</strong>であり、実在の AlphaGo が出した値ではない(局面の評価に使っている関数もこの図のためのダミーで、本物の value network ではない)。</p>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">
 UCT: $\displaystyle a^* = \arg\max_a \Big( Q(a) + c\,P(a)\frac{\sqrt{\sum_b N(b)}}{1+N(a)} \Big)$
 <div class="note" style="margin-top:8px">$Q$ = 平均価値 (value net)、$P$ = 事前確率 (policy net)、$N$ = 訪問回数。<strong>勝率の高さ</strong>と<strong>未探索の有望さ</strong>を両立させ、探索を導く。</div>
 </div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">AlphaGo Zero (2017) は人間の棋譜を一切使わず、自己対戦の強化学習だけで AlphaGo を超えた。policy/value を 1 つのネットに統合し、純粋に「自分との対局」から囲碁・将棋・チェスを学んだ (後の AlphaZero)。</p>
 <p class="note">導入で触れた <b>Move 37</b> も、この select→expand→eval→backup の繰り返しが選び出した一手だ——AlphaGo 自身は、人間のプロがその手を打つ確率を事前分布からおよそ 1/10,000 と見積もっていたと DeepMind は報告している。</p>
+</details>
 </div>
 
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene7" data-t="巻末解説に戻る（Scene 7「神の一手」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_rnn.html" data-t="一つ前の図解へ（RNN/LSTM）" aria-label="一つ前の図解へ（RNN/LSTM）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_attention.html" data-t="一つ後の図解へ（Self-Attention）" aria-label="一つ後の図解へ（Self-Attention）">&#9655;</a></nav></div>

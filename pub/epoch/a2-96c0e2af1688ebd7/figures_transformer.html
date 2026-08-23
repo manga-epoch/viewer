@@ -217,6 +217,18 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -248,47 +260,69 @@ Self-Attention そのものの中身は
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">全体のフロー</a></li><li><a href="#sec2">Embedding</a></li><li><a href="#sec3">なぜ12回くり返すのか</a></li><li><a href="#sec4">出力</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>全体のフロー</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>文が入ってから次の1語が出るまで、何をどの順で通るのか。よくある描き方に合わせて描いた。
 箱や⊕を選ぶと、そこで何が起きるかと、そこでのデータの<b>形</b>が読み上げに出る。</p>
+</details>
 <div class="stepnav" id="steps">
   <button id="s1prev" aria-label="前のブロック">&#9665;</button>
   <span class="stepnow" id="s1now"></span>
   <button id="s1next" aria-label="次のブロック">&#9655;</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v1"></div>
+</details>
 <div class="readout" id="r1"></div>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">図の中の箱を直接押しても選べる。囲みが「同じ形のブロック」で、これを 12 回くり返す。
 Attention の中身は隣の図解が持つ――箱の中のリンクからそのまま移動できる。
 なぜ 12 回なのかは、次々節「なぜ12回くり返すのか」で直接答える。</p>
+</details>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>Embedding — 文の数値化</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>Transformer が最初に扱うのは、まだ「数」になっていない生の文だ。4段を送りで見る。
 使うトークンは実際に GPT-2 small がこの文を分けた並び――説明用に作った例ではない。</p>
+</details>
 <div class="stepbar" id="emb-steps"></div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v2"></div>
+</details>
 <div class="readout" id="r2">読み込み中…</div>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">語彙は50,257種類。トークン埋め込み表は 50,257 × 768 = 38,597,376
 （約3,860万）パラメータ――GPT-2 small 全体（1億2400万）のうち、埋め込みだけでこれだけを占める。</p>
+</details>
 </div>
 <div class="fig-stage" id="sec3">
 <h2>なぜ12回くり返すのか</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>ここが本題。「同じブロックを12回」が何をしているのか、直接答える。</p>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$y = x + \mathrm{Attn}(\mathrm{LN}(x))$ 　/　 $z = y + \mathrm{MLP}(\mathrm{LN}(y))$
 <div class="note" style="margin-top:8px">1ブロックがやっているのは、これだけ――<b>足し込む</b>こと。
 $\mathrm{LN}$ は層正規化（各語のベクトルの目盛りを揃える）。$x+$ と $y+$ が残差＝<b>元の表現を
 捨てず、そこに情報を足す</b>という書き方。作り直すのではなく、積み増す。</div>
 </div>
+</details>
+<details class="foldbox" open><summary>説明</summary>
 <p><b>Attention は「トークンの間で情報を配る」</b>。<b>MLP は「1トークンの中で情報を捏ねる」</b>。
 この2つを交互にくり返す――下の2枚を見比べてほしい。左は語と語のあいだを横に結び、
 右は各語の中だけで閉じている（どちらも模式）。</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="grid-wrap">
   <div><div id="v3a"></div><div class="gcap">Attention: 語と語のあいだで配る（模式）</div></div>
   <div><div id="v3b"></div><div class="gcap">MLP: 各語の中だけで捏ねる（模式）</div></div>
 </div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p>だから12回通ると、同じトークンの表現に<b>12回ぶん、情報が積み重なる</b>。1層目は語の形の
 ような近い関係、後の層ほど文の意味に近い関係を扱えるようになる。1つのトークンの箱を選んで、
 段数を動かしてみてほしい――積み上がりが実際に増える。</p>
+</details>
 <div class="ctrls">
   <label>段数 <input type="range" id="stackN" min="1" max="12" value="4"></label>
   <span class="tag" id="stackNv">4 段</span>
@@ -296,23 +330,32 @@ $\mathrm{LN}$ は層正規化（各語のベクトルの目盛りを揃える）
   <button class="btn ghost" id="stPre6">6段</button>
   <button class="btn ghost" id="stPre12">12段（GPT-2 small）</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v3c"></div>
+</details>
 <div class="readout" id="r3"></div>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="legend2">
   <span><i style="background:rgba(110,123,168,.85)"></i>Attention で足された分</span>
   <span><i style="background:rgba(110,123,168,.38)"></i>MLP で足された分</span>
   <span><i style="background:#cfccc4"></i>元の埋め込み</span>
 </div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">1ブロックに12ヘッドあり、それが12段――だから<b>12 × 12 = 144通りの見方</b>が
 積み重なる（下の読み上げでも段数に応じて再計算する）。段を増やすほど「強くなる」かどうかは、
 この図の範囲では分からない――それは学習で決まる話だ。ここで確かめられるのは、
 <b>情報が積み重なる</b>という一点だけ。</p>
+</details>
 </div>
 <div class="fig-stage" id="sec4">
 <h2>出力 — 次の 1 語の確率</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>最後のトークンの768次元を、語彙50,257個ぶんの点数（logit）に直し、softmax で確率にする。
 下のグラフは、GPT-2 small に実際に「Data visualization empowers users to」を読ませたときの<b>実測 logit</b>から、
 その場で確率を計算し直したもの――並んでいる12語は、確率が高い順の実測 top-12。</p>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$p_i = \mathrm{softmax}(z_i / T)$
 <div class="note" style="margin-top:8px">$T$ が<b>温度</b>。$T<1$ で分布が尖り（堅実）、
 $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそのまま使った状態。</div>
@@ -331,7 +374,10 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
 ここに並ぶ12語は、確率が高い順に並べた top-12 にあたる。
 なお、このグラフの％は実測した上位12語だけで計算した比率であり、全50,257語に対する
 絶対確率ではない。</p>
-</div><p class="src-note">トークン列・次語候補の logit は <b>GPT-2 small</b>（12層 × 12ヘッド）の実測値。Transformer Explainer（Polo Club of Data Science, Georgia Tech / MIT License）が公開している事前計算データから取り出している。トークン埋め込み・位置エンコーディングの中身の可視化（節「Embedding」）は模式であり、実測値ではない。</p>
+</div>
+</details><details class="foldbox" open><summary>説明</summary>
+<p class="src-note">トークン列・次語候補の logit は <b>GPT-2 small</b>（12層 × 12ヘッド）の実測値。Transformer Explainer（Polo Club of Data Science, Georgia Tech / MIT License）が公開している事前計算データから取り出している。トークン埋め込み・位置エンコーディングの中身の可視化（節「Embedding」）は模式であり、実測値ではない。</p>
+</details>
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene8" data-t="巻末解説に戻る（Scene 8「注意こそ、すべて」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_attention.html" data-t="一つ前の図解へ（Self-Attention）" aria-label="一つ前の図解へ（Self-Attention）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_detect.html" data-t="一つ後の図解へ（検出と領域分け）" aria-label="一つ後の図解へ（検出と領域分け）">&#9655;</a></nav></div>
 
 <script>

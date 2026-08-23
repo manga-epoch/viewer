@@ -163,6 +163,18 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; ImageNet 誤り率の崖</div>
@@ -178,7 +190,9 @@ table{display:block;overflow-x:auto;max-width:100%}
 
 <div class="fig-stage">
 <h2>ILSVRC top-5 誤り率の推移</h2>
+<details class="foldbox" open><summary>説明</summary>
 <div class="lead">スライダーで年を選ぶと、その年の優勝モデル・手法・深さがわかる。点線は人間の誤り率 (約 5.1%)。2012 年の AlexNet で<strong>崖</strong>が始まり、2015 年 ResNet が人間を初めて下回る。</div>
+</details>
 
 <div class="ctrls">
   <div class="ctrl" style="flex:1;min-width:240px">
@@ -187,20 +201,30 @@ table{display:block;overflow-x:auto;max-width:100%}
   </div>
 </div>
 
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula" style="margin:6px 0 14px">
 $\text{top-5 誤り率} = \dfrac{\text{正解が上位 5 候補に入らなかった画像の数}}{\text{全画像の数}}$
 <div class="note" style="margin-top:8px">1000 クラスもあると「1 位だけ当てろ」は厳しすぎる。
 上位 5 つに正解が入っていれば当たりと数える。だから<b>小さいほど良い</b>。
 点線の <b>人間 5.1%</b> は、訓練した評価者 1 名で測った推定値（Russakovsky et al. 2015）。</div>
 </div>
+</details>
 
+<details class="foldbox" open><summary>構成図</summary>
 <svg id="inSvg" width="100%" viewBox="0 0 820 320" style="max-width:820px;display:block;margin:6px auto"></svg>
+</details>
 <div class="readout" id="iout"></div>
 
 <h3>認識タスクの三段階 — 分類・検出・セグメンテーション</h3>
+<details class="foldbox" open><summary>補足</summary>
 <div class="lead" style="margin-bottom:8px">「猫がいる」(分類) から「どこに」(検出) へ、さらに「どの画素までが猫か」(セグメンテーション) へ。タスクが上がるほど密な予測が要る。</div>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="grid-wrap" id="taskRow"></div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">分類: AlexNet/VGG/ResNet ・ 物体検出: R-CNN→Fast/Faster R-CNN→YOLO ・ セグメンテーション: FCN→U-Net→Mask R-CNN。すべて CNN の特徴抽出を土台にする。</p>
+</details>
 </div>
 
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene3" data-t="巻末解説に戻る（Scene 3「データという大陸」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_cnn.html" data-t="一つ前の図解へ（畳み込み・CNN）" aria-label="一つ前の図解へ（畳み込み・CNN）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_alexnet.html" data-t="一つ後の図解へ（2012 年の三つ）" aria-label="一つ後の図解へ（2012 年の三つ）">&#9655;</a></nav></div>

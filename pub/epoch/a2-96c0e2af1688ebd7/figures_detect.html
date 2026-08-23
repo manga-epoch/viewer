@@ -177,6 +177,18 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -201,12 +213,15 @@ table{display:block;overflow-x:auto;max-width:100%}
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">出力の三段階</a></li><li><a href="#sec2">二段階検出と一段階検出</a></li><li><a href="#sec3">IoU と NMS</a></li><li><a href="#sec4">U-Net</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>出力の三段階 — 分類・検出・セグメンテーション</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>同じ 1 枚の画像に対して、答えの形が違う。切り替えて見比べてほしい。</p>
+</details>
 <div class="ctrls">
   <button class="chip on" data-task="cls">分類</button>
   <button class="chip" data-task="det">物体検出</button>
   <button class="chip" data-task="seg">セグメンテーション</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="stage">
 <svg viewBox="0 0 640 300" width="100%" style="max-width:640px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
   <rect x="10" y="10" width="620" height="280" fill="#fff" stroke="#e4e1d8"/>
@@ -226,17 +241,21 @@ table{display:block;overflow-x:auto;max-width:100%}
   </g>
 </svg>
 </div>
+</details>
 <div class="readout" id="r1"><b>分類</b>：画像 1 枚につき答えは 1 つ。位置は分からない。</div>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>二段階検出と一段階検出 — R-CNN 系と YOLO 系</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>素朴にやると、あらゆる大きさの窓をあらゆる位置で切り出して分類することになる。
 その回数をどう減らすかが、この 3 年の歴史だ。</p>
+</details>
 <div class="ctrls">
   <button class="chip on" data-m="slide">総当たり</button>
   <button class="chip" data-m="rcnn">R-CNN 系（領域提案）</button>
   <button class="chip" data-m="yolo">YOLO（一発）</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="stage">
 <svg viewBox="0 0 640 260" width="100%" style="max-width:640px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
   <rect x="10" y="10" width="620" height="200" fill="#fff" stroke="#e4e1d8"/>
@@ -247,25 +266,33 @@ table{display:block;overflow-x:auto;max-width:100%}
   <text class="cap" id="m-note" x="320" y="238" text-anchor="middle"></text>
 </svg>
 </div>
+</details>
 <div class="readout" id="r2"></div>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">U-Net と同じくセグメンテーションにも前史がある：<b>FCN</b>（2014）は分類 CNN の最後の全結合層を畳み込みに置き換え、
 どんな大きさの画像にも同じネットワークを適用できるようにした先駆け。詳しくは④で。</p>
+</details>
 </div>
 <div class="fig-stage" id="sec3">
 <h2>IoU と NMS — 重なりの尺度と、重複候補の抑制</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>1 つの物体に何本も枠が出る。確信度の高い枠を残し、それと重なりすぎる枠を消す。
 どこまでを「重なりすぎ」とするかを測るのが IoU（Intersection over Union）だ。</p>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">
 <svg viewBox="0 0 260 156" width="220" style="display:block;margin:0 auto 10px" xmlns="http://www.w3.org/2000/svg"><rect x="24" y="18" width="120" height="90" fill="none" stroke="#1a1a1a" stroke-width="2.2"/><rect x="96" y="46" width="120" height="90" fill="none" stroke="#1a1a1a" stroke-width="2.2" stroke-dasharray="5 4"/><rect x="96" y="46" width="48" height="62" fill="rgba(110,123,168,.55)"/><text x="24" y="12" font-size="12" fill="#565248">枠 A</text><text x="150" y="150" font-size="12" fill="#565248">枠 B</text><text x="100" y="80" font-size="11" fill="#1a1a1a" font-weight="700">重なり</text></svg>
 $\displaystyle \mathrm{IoU} = \frac{\text{重なり}}{\text{合併}}$
 <div class="note" style="margin-top:8px">濃い部分（重なり）を、2 枠を合わせた面積（合併）で割った値。1 に近いほどほぼ同じ枠、0 に近いほど別々の枠。</div>
 </div>
+</details>
 <div class="ctrls">
   <label>確信度のしきい値 <input type="range" id="conf" min="0" max="95" value="40" step="5"></label>
   <span class="tag" id="conf-v">0.40</span>
   <label>重なりのしきい値 (IoU) <input type="range" id="iou" min="10" max="90" value="45" step="5"></label>
   <span class="tag" id="iou-v">0.45</span>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="stage">
 <svg viewBox="0 0 640 260" width="100%" style="max-width:640px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
   <rect x="10" y="10" width="620" height="240" fill="#fff" stroke="#e4e1d8"/>
@@ -275,22 +302,28 @@ $\displaystyle \mathrm{IoU} = \frac{\text{重なり}}{\text{合併}}$
   <g id="nms-boxes"></g>
 </svg>
 </div>
+</details>
 <div class="readout" id="r3"></div>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">枠の位置と確信度は仕組みを示すための模式データ（実データではない）。右側の 2 匹は
 もとから枠が重なっている「近くにいる別の物体」で、IoU の計算自体はこの座標で実際に行っている。</p>
+</details>
 </div>
 <div class="fig-stage" id="sec4">
 <h2>U-Net — スキップ接続による輪郭の復元</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>特徴を掴むには縮める必要がある。でも縮めた時点で「どこ」の情報は失われる。
 そこで縮める前の層から同じ大きさの層へ横に渡す（スキップ接続）。
 下は 16×16 の丸い模式画像に対して、縮小→拡大を<b>実際に計算</b>した結果。</p>
 <p class="note">U-Net の前史：<b>FCN</b>（2014）が全結合層を畳み込みに置き換えて任意の大きさの画像を扱えるようにしたが、
 縮めるだけで戻す工夫が弱く、輪郭がぼやける弱点が残った。それを解いたのが U-Net（2015）のスキップ接続。</p>
+</details>
 <div class="ctrls">
   <button class="chip on" id="skip-btn" aria-pressed="true">スキップ接続 ON</button>
   <label>深さ <input type="range" id="depth" min="1" max="4" value="3"></label>
   <span class="tag" id="depth-v">3 段</span>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="stage">
 <svg viewBox="0 0 640 210" width="100%" style="max-width:640px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
   <g id="unet"></g>
@@ -301,9 +334,12 @@ $\displaystyle \mathrm{IoU} = \frac{\text{重なり}}{\text{合併}}$
   <g id="unet-grids"></g>
 </svg>
 </div>
+</details>
 <div class="readout" id="r4"></div>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">丸は説明用に生成した 16×16 の模式画像（実データではない）。縮小は 2×2 平均プーリング、
 拡大は最近傍補間、スキップ接続は同じ大きさの層との平均で合成しており、実際にこの演算をここで行っている。</p>
+</details>
 </div>
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#extra1" data-t="巻末解説に戻る（補講 1「どこに何がある？」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_transformer.html" data-t="一つ前の図解へ（Transformer）" aria-label="一つ前の図解へ（Transformer）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_embed.html" data-t="一つ後の図解へ（言葉を場所に変える）" aria-label="一つ後の図解へ（言葉を場所に変える）">&#9655;</a></nav></div>
 <script>

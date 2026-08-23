@@ -172,6 +172,18 @@ table{display:block;overflow-x:auto;max-width:100%}
 .epoch-nb a.go{display:inline-block;padding:9px 17px;background:var(--ink,#1A1A1A);
  color:var(--bg,#FAFAF7);border-radius:8px;text-decoration:none;font-weight:700;font-size:13px}
 .epoch-nb a.go:hover{opacity:.82}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -199,7 +211,9 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">畳み込み演算</a></li><li><a href="#sec2">プーリング</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>畳み込み演算 — カーネルを滑らせて特徴を取り出す</h2>
+<details class="foldbox" open><summary>説明</summary>
 <div class="lead">左の入力 (7×7) のセルをクリックして塗る。フィルタを選ぶと、3×3 を 1 マスずつ滑らせて内積を取った<strong>特徴マップ</strong>(5×5) が右に現れる。「スライド」で受容野が動く様子をアニメーションする。</div>
+</details>
 
 <div class="chips" id="kernels">
 <span class="chip on" data-k="edgev">縦エッジ検出</span>
@@ -209,6 +223,7 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
 <span class="chip" data-k="blur">ぼかし (平均)</span>
 </div>
 
+<details class="foldbox" open><summary>構成図</summary>
 <div class="grid-wrap">
   <div>
     <svg id="inGrid" width="224" height="224" viewBox="0 0 224 224"></svg>
@@ -227,6 +242,7 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
   <span><i style="background:#2c2924"></i>濃い = 正の大きい反応</span>
   <span><i style="background:#fff;border:1px solid #E4E1D8"></i>白 = 負・弱い反応</span>
 </div>
+</details>
 
 <div class="ctrls">
   <button class="btn" id="slideBtn">▶ スライド (畳み込みを再生)</button>
@@ -234,29 +250,38 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
 </div>
 <div class="readout" id="calc">フィルタを選び、入力を塗ってください。</div>
 
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">
 $\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
 <div class="note" style="margin-top:8px">特徴マップの各セル = フィルタ重み $w$ と、その位置の入力パッチ $x$ の<strong>内積</strong>。フィルタは画像全体で<strong>共有</strong>される (= 9 個の重みだけ)。</div>
 </div>
+</details>
 
 <h3>全結合との違い — 重み共有と局所性</h3>
+<details class="foldbox" open><summary>構成図</summary>
 <table class="mini">
 <tr><th></th><th>全結合 NN</th><th>CNN</th></tr>
 <tr><td>1000×1000 画像→1000 隠れ</td><td class="hl">約 10 億 パラメータ</td><td class="hl">フィルタ数×9 程度</td></tr>
 <tr><td>少しの平行移動</td><td>別の入力に見える</td><td>同じ特徴を検出 (不変)</td></tr>
 <tr><td>局所のパターン</td><td>明示的に扱えない</td><td>フィルタが直接捉える</td></tr>
 </table>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">Hubel &amp; Wiesel (1959) が猫の視覚野で見つけた「単純細胞→複雑細胞」の階層を、福島邦彦のネオコグニトロン (1980) が模し、LeCun の LeNet (1989/1998) が誤差逆伝播で学習可能にした ―― それが今日の CNN。</p>
+</details>
 </div>
 
 <div class="fig-stage" id="sec2">
 <h2>プーリング — 窓ごとの代表値で縮める</h2>
+<details class="foldbox" open><summary>説明</summary>
 <div class="lead">特徴マップを 2×2 の窓に区切り、各窓の<strong>最大値だけ</strong>を残すのが Max プーリング。窓の中のどこにあっても最大値さえ動かなければ出力は変わらない ―― 「入力を 1 マスずらす」を押して、特徴マップの中身が変わっても窓ごとの最大値 (＝プーリング後の値) が変わらないことを確かめよう。</div>
+</details>
 
 <div class="ctrls">
   <button class="btn" id="shiftBtn">▶ 入力を 1 マスずらす</button>
 </div>
 
+<details class="foldbox" open><summary>構成図</summary>
 <div class="grid-wrap">
   <div>
     <svg id="poolInSvg" width="200" height="200" viewBox="0 0 200 200"></svg>
@@ -267,13 +292,16 @@ $\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
     <div class="gcap">プーリング後 2×2</div>
   </div>
 </div>
+</details>
 
 <div class="readout" id="poolOut"></div>
 
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">
 $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
 <div class="note" style="margin-top:8px">5×5 は 2 で割り切れない (5÷2=2.5) ため、右端の 1 列・下端の 1 行 (灰色) は<strong>切り捨て</strong>られ、2×2 の出力になる。average プーリング (窓の平均を取る方式) なら全セルの値が結果に効くため、端数の扱いは同じでも位置ズレへの頑健さは max ほど強くない (1 セルの変化がそのまま結果に薄く混ざる)。</div>
 </div>
+</details>
 </div>
 
 <div class="epoch-nb"><div class="k">④ 書く — 購入者向け</div><h3>畳み込みを、自分の画像で動かす</h3><p>畳み込み・ReLU・プーリングを for ループで書き、自分の写真に掛ける。「プーリングは位置ずれに強い」がどこまで本当かも測れる。</p><p style="font-size:12px;margin:-6px 0 12px">落として <a href="https://colab.research.google.com/">Colab</a> に上げると動きます（アップロード → ノートブックを開く）。</p><a class="go" href="notebooks/cnn_on_your_image.ipynb">ノートブックを取得 →</a></div>

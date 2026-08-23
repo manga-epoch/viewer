@@ -186,6 +186,18 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -211,56 +223,72 @@ table{display:block;overflow-x:auto;max-width:100%}
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">逐次処理と並列処理</a></li><li><a href="#sec2">CUDA</a></li><li><a href="#sec3">ドロップアウト</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>逐次処理と並列処理 — CPU と GPU の違い</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>画像の畳み込みは、同じ計算を場所を変えて何万回も繰り返す。
 順番にやるか、いっぺんにやるか——この違いが効いてくる。
 下の 2 つの格子はどちらも<b>同じ 256 個の計算</b>で、<b>1 マス = 1 個の計算</b>（畳み込みなら 1 か所ぶん）。
 左は 1 つずつ、右は P 個まとめて塗りつぶしていく——マスが埋まる速さの違いを見てほしい。</p>
+</details>
 <div class="ctrls">
   <button class="btn" id="race">競走させる</button>
   <label>並列にできる数 P <input type="range" id="cores" min="1" max="64" value="16"></label>
   <span class="tag" id="cores-v">16</span>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="race"><span>1 つずつ</span><div class="bar"><i id="b-cpu"></i></div><b id="t-cpu">0.00 秒</b></div>
 <div class="race"><span>一斉に</span><div class="bar"><i id="b-gpu"></i></div><b id="t-gpu">0.00 秒</b></div>
 <div class="grid-wrap">
   <div><div id="s1-cpu"></div><div class="gcap">1 つずつ</div></div>
   <div><div id="s1-gpu"></div><div class="gcap">一斉に（P 個ずつ）</div></div>
 </div>
+</details>
 <div class="readout" id="r1">同じ 256 個の計算を、順番にやる場合と、まとめてやる場合で比べる。</div>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$T_{\text{並列}} = T_{\text{逐次}} / P$
 <div class="note" style="margin-top:8px">理想値。$P$ = 並列にできる数。実際は通信や待ち合わせで目減りする。
 上の競走もこの理想式で動く<b>模式で、実測ではない</b>。</div>
 </div>
+</details>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>CUDA — 描画専用の回路を、汎用計算に開いた仕組み</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>GPU はもともと「画面の点を塗る」ための部品だった。
 研究者はそれを騙して使っていた——計算したい数値を<b>色に化けさせて</b>描画させ、結果を読み戻す。
 2007 年、NVIDIA がその回路に直接プログラムを書ける口を開けた。それが CUDA だ。</p>
+</details>
 <div class="ctrls">
   <button class="chip on" data-era="before">CUDA 以前（2006）</button>
   <button class="chip" data-era="after">CUDA 以後（2007-）</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="s2"></div>
+</details>
 <div class="readout" id="r2"></div>
 </div>
 <div class="fig-stage" id="sec3">
 <h2>ドロップアウト — 学習中にノードを一定割合で無効化する正則化</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>訓練のたびに、ノードの一部をランダムに無効にする。
 特定の経路に頼れなくなるので、いくつもの経路が同じ仕事を覚える。</p>
+</details>
 <div class="ctrls">
   <label>落とす割合 <input type="range" id="drop" min="0" max="80" value="50" step="5"></label>
   <span class="tag" id="drop-v">0.50</span>
   <button class="btn" id="resample">別の回を見る</button>
   <button class="chip on" id="mode-btn" aria-pressed="true">訓練時</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="s3"></div>
+</details>
 <div class="readout" id="r3"></div>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$m \sim \mathrm{Bernoulli}(1-p)$
 <div class="note" style="margin-top:8px">各ノードに独立なマスク $m$ を掛ける（$m=0$ になる確率が、落とす割合 $p$）。
 推論時はマスクを掛けず、代わりに出力を <b>$\times(1-p)$</b> して大きさを揃える。
 AlexNet は全結合層に <b>$p=0.5$</b> を使った。</div>
 </div>
+</details>
 </div>
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene4" data-t="巻末解説に戻る（Scene 4「ビッグバン、2012」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_imagenet.html" data-t="一つ前の図解へ（ImageNet 誤り率）" aria-label="一つ前の図解へ（ImageNet 誤り率）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_depth.html" data-t="一つ後の図解へ（深さの積み方）" aria-label="一つ後の図解へ（深さの積み方）">&#9655;</a></nav></div>
 <script>

@@ -163,6 +163,18 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 残差接続と勾配消失</div>
@@ -178,8 +190,10 @@ table{display:block;overflow-x:auto;max-width:100%}
 
 <div class="fig-stage">
 <h2>深さと勾配の関係 — 残差接続の有無による比較</h2>
+<details class="foldbox" open><summary>説明</summary>
 <div class="lead">層数を増やすと、出力側 (右) から入力側 (左) へ伝わる勾配の大きさが各層でどう変化するかを棒で表す。縦軸は<strong>対数</strong>――1 目盛りで 10 倍変わるので、skip 無しがどれだけ急に潰れるか、skip 有りがそれと比べてどれだけ緩やかかが桁で見える。</div>
 <p class="note">「各層の勾配係数」は、残差ブロックの中身 $\mathcal{F}$ 自身の局所勾配 $\mathcal{F}'$ の大きさに相当する模式的な値。棒グラフは、その値で各層を掛け合わせていくシミュレーション計算であり、実測の勾配ではない。</p>
+</details>
 
 <div class="ctrls">
   <div class="ctrl" style="flex:1;min-width:200px">
@@ -193,18 +207,22 @@ table{display:block;overflow-x:auto;max-width:100%}
   <button class="btn ghost on" id="skipBtn">skip 接続: ON</button>
 </div>
 
+<details class="foldbox" open><summary>構成図</summary>
 <svg id="gradSvg" width="100%" viewBox="0 0 840 260" style="max-width:840px;display:block;margin:6px auto"></svg>
 <div class="legend">
   <span><i style="background:var(--arc)"></i>skip あり (残差接続)</span>
   <span><i style="background:#b4493f"></i>skip なし (勾配消失)</span>
 </div>
+</details>
 <div class="readout" id="rout"></div>
 
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">
 残差ブロック: $\quad \mathbf{y} = \mathcal{F}(\mathbf{x}, W) + \mathbf{x}$
 <div class="note" style="margin-top:8px">勾配は $\dfrac{\partial \mathbf{y}}{\partial \mathbf{x}} = \mathcal{F}'(\cdot) + 1$。
 この <strong>+1</strong> があるおかげで、各層の勾配係数がどんなに小さくても、層を重ねた積がゼロへ潰れることはない (消失を防ぐ)。ただし +1 より大きい値が積み重なれば増幅方向にも振れる ―― 残差接続は消失を防ぐ仕組みであって、あらゆる不安定さを消す魔法ではない。</div>
 </div>
+</details>
 </div>
 
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene5" data-t="巻末解説に戻る（Scene 5「より深く」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_depth.html" data-t="一つ前の図解へ（深さの積み方）" aria-label="一つ前の図解へ（深さの積み方）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_rnn.html" data-t="一つ後の図解へ（RNN/LSTM）" aria-label="一つ後の図解へ（RNN/LSTM）">&#9655;</a></nav></div>

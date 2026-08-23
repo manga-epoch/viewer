@@ -210,6 +210,18 @@ table{display:block;overflow-x:auto;max-width:100%}
  border-radius:16px;font-size:13px;text-decoration:none;color:var(--ink)}
 .fig-toc a:hover{border-color:var(--arc)}
 .fig-stage{scroll-margin-top:16px}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 1 個の計算点</div>
@@ -226,9 +238,11 @@ table{display:block;overflow-x:auto;max-width:100%}
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">重みと閾値の手動設定</a></li><li><a href="#sec2">パーセプトロンの学習則</a></li><li><a href="#sec3">線形分離可能性</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>重みと閾値の手動設定 — 人が決めていた時代</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>入力は 0 か 1 の 2 本。それぞれに重み $w_1, w_2$ を掛けて足し、合計が閾値 $\theta$ 以上なら
 出力は 1、そうでなければ 0。<b>これで全部だ</b>。
 重みと閾値を動かすと、同じ回路が AND になったり OR になったりする。</p>
+</details>
 <div class="ctrls">
   <label>$w_1$ <input type="range" id="w1" min="-2" max="2" step="1" value="1"></label>
   <span class="tag" id="w1v">+1</span>
@@ -240,24 +254,34 @@ table{display:block;overflow-x:auto;max-width:100%}
   <button class="btn ghost" id="pAnd">AND</button>
   <button class="btn ghost" id="pOr">OR</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v1"></div>
 <div id="t1"></div>
+</details>
 <div class="readout" id="r1"></div>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">1943 年の時点では、この $w$ と $\theta$ を決めるのは<b>人間</b>だった。
 作りたい論理が決まっていれば手で回せる。だが「作りたいものが分かっていない問題」には使えない。</p>
+</details>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>パーセプトロンの学習則 — 重みの自動決定</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>1957 年のパーセプトロンは、答えだけを与えて重みを自分で直す。
 やり方は 1 つ——<b>間違えたときだけ、間違えた分だけ重みを動かす</b>。
 出したい答えが 1 なのに 0 を出したなら重みを増やし、逆なら減らす。それを繰り返す。</p>
 
 <p>いま機械が使っている式は、これ 1 本だけだ。動かしているのは
 $w_0, w_1, w_2$ の <b>3 つの数</b>（$w_0$ は閾値にあたる下駄）。</p>
+</details>
+<details class="foldbox" open><summary>式と計算</summary>
 <div class="formula" id="f2"></div>
+</details>
 
+<details class="foldbox" open><summary>説明</summary>
 <p class="note">下の図は<b>入力の 4 通り</b>を点で置いたもの。横が $x_1$、縦が $x_2$。
 線は、いまの重みで機械が引いている<b>境目</b>。線の上側で 1、下側で 0 を出す。</p>
+</details>
 
 <div class="ctrls">
   <button class="btn" id="step2">▶ 1 回学習する</button>
@@ -268,16 +292,25 @@ $w_0, w_1, w_2$ の <b>3 つの数</b>（$w_0$ は閾値にあたる下駄）。
     <option value="or">OR</option>
   </select></label>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v2"></div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="fig-legend"><span class="lg-dot fill"></span>この入力では 1 と答えてほしい<span class="lg-dot"></span>この入力では 0 と答えてほしい<span class="lg-dot bad"></span>いま機械が違う答えを出している</p>
+</details>
 <div class="readout" id="r2"></div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="d2"></div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">人が正解の重みを知っている必要はない。<b>合っているか間違っているかを言うだけ</b>で、
 重みは勝手に決まっていく。これが「学習」と呼ばれたものの中身だ。</p>
+</details>
 </div>
 <div class="fig-stage" id="sec3">
 <h2>線形分離可能性 — 直線 1 本で分けられる配置と、分けられない配置</h2>
 
+<details class="foldbox" open><summary>説明</summary>
 <p><b>1. 計算点 1 個が引けるのは、直線 1 本だけ。</b>
 式は $w_0 + w_1 x_1 + w_2 x_2$ の足し算しかない。これが 0 になる場所は、平面では必ず
 <b>まっすぐな線</b>になる。曲げる手立てが式の中に無い。</p>
@@ -291,6 +324,7 @@ $w_0, w_1, w_2$ の <b>3 つの数</b>（$w_0$ は閾値にあたる下駄）。
 <p><b>3. 引ければ OK、引けなければ NG。</b>
 線を回し、ずらして、4 点を正しく分けられるか試してほしい。
 分けられたとき、その線がそのまま重み $w_1, w_2$ の答えになる。</p>
+</details>
 
 <div class="ctrls">
   <label>直線の向き <input type="range" id="ang" min="0" max="179" value="45"></label>
@@ -299,10 +333,16 @@ $w_0, w_1, w_2$ の <b>3 つの数</b>（$w_0$ は閾値にあたる下駄）。
   <button class="btn ghost" id="task3and">AND</button>
   <button class="btn ghost" id="task3xor">XOR</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="verdict3"></div>
 <div id="v3"></div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="fig-legend"><span class="lg-dot fill"></span>この入力では 1 と答えてほしい<span class="lg-dot"></span>この入力では 0 と答えてほしい<span class="lg-dot bad"></span>線の反対側にあって答えを間違える</p>
+</details>
+<details class="foldbox" open><summary>式と計算</summary>
 <div class="formula" id="f3"></div>
+</details>
 <div class="readout" id="r3"></div>
 </div>
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene2" data-t="巻末解説に戻る（Scene 2「パーセプトロンの興奮と絶望」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_turing.html" data-t="一つ前の図解へ（チューリングテスト）" aria-label="一つ前の図解へ（チューリングテスト）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_mycin.html" data-t="一つ後の図解へ（MYCIN 推論）" aria-label="一つ後の図解へ（MYCIN 推論）">&#9655;</a></nav></div>

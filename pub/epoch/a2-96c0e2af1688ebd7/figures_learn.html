@@ -183,6 +183,18 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -207,40 +219,56 @@ Scene 5 で学んだ「坂を下りる」やり方と、Scene 6 の「学びす�
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">学習率</a></li><li><a href="#sec2">過学習と未学習</a></li><li><a href="#sec3">正則化</a></li><li><a href="#sec4">適合率と再現率</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>学習率 — 一歩の大きさ</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>誤差の坂を下る。一歩が小さすぎると進まず、大きすぎると谷を飛び越えて跳ね回る。</p>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$w \leftarrow w - \eta\,\partial L/\partial w$
 <div class="note" style="margin-top:8px">$w$ が重み、$\eta$ が学習率、$\partial L/\partial w$ が坂の傾き（勾配）。
 傾きの逆向きに、学習率の分だけ進む。</div>
 </div>
+</details>
 <div class="ctrls">
   <label>学習率 <input type="range" id="lr" min="1" max="100" value="20"></label>
   <span class="tag" id="lr-v">0.20</span>
   <button class="btn" id="step">1 歩すすむ</button>
   <button class="btn ghost" id="reset">最初から</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="s1"></div>
+</details>
 <div class="readout" id="r1"></div>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>過学習と未学習 — 学習を止める位置</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>モデルを複雑にするほど、手元のデータ（訓練）にはよく合う。
 だが見たことのないデータ（検証）では、あるところから逆に悪くなる。</p>
+</details>
 <div class="ctrls">
   <label>モデルの複雑さ <input type="range" id="cx" min="1" max="12" value="3"></label>
   <span class="tag" id="cx-v">3 次</span>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="s2"></div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">この曲線は、過学習/未学習が起こる典型的な形を式で描いた<b>模式</b>で、実測ではない。</p>
+</details>
 <div class="readout" id="r2"></div>
 </div>
 <div class="fig-stage" id="sec3">
 <h2>正則化 — 重みへの罰則</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>複雑さを下げる代わりに、<b>大きな重みを使いにくくする</b>という手がある。
 L2 は全体をなだらかに縮め、L1 は要らない重みを 0 にして消す。</p>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">L2（Ridge）: $L = 誤差 + \lambda\sum w^2$ 　　L1（Lasso）: $L = 誤差 + \lambda\sum|w|$
 <div class="note" style="margin-top:8px">誤差だけでなく、重み $w$ の大きさそのものにも罰則 $\lambda$ を足して最小化する。
 二乗（L2）は全体を縮め、絶対値（L1）は 0 まで落とせる。</div>
 </div>
+</details>
 <div class="ctrls">
   <button class="chip on" data-reg="none">なし</button>
   <button class="chip" data-reg="l2">L2（Ridge）</button>
@@ -248,17 +276,22 @@ L2 は全体をなだらかに縮め、L1 は要らない重みを 0 にして�
   <label>罰則の強さ <input type="range" id="lam" min="0" max="100" value="35"></label>
   <span class="tag" id="lam-v">0.35</span>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="s3"></div>
+</details>
 <div class="readout" id="r3"></div>
 </div>
 <div class="fig-stage" id="sec4">
 <h2>適合率と再現率 — 正解率だけでは足りない理由</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>「陽性」と判定する線をどこに引くか。厳しくすれば見逃しが増え、緩めれば誤検出が増える。
 両方を同時に良くはできない。</p>
+</details>
 <div class="ctrls">
   <label>判定のしきい値 <input type="range" id="th" min="5" max="95" value="50"></label>
   <span class="tag" id="th-v">0.50</span>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="s4"></div>
 <table class="cm">
   <tr><th></th><th>予測: 陽性</th><th>予測: 陰性</th></tr>
@@ -271,11 +304,14 @@ L2 は全体をなだらかに縮め、L1 は要らない重みを 0 にして�
   <div class="metric"><b id="m-rec">-</b><span>再現率</span></div>
   <div class="metric"><b id="m-f1">-</b><span>F1</span></div>
 </div>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$\text{適合率}=\frac{TP}{TP+FP}$ 　　$\text{再現率}=\frac{TP}{TP+FN}$
 <div class="note" style="margin-top:8px">F1 はこの 2 つの<b>調和平均</b>：
 $F_1=\dfrac{2\cdot\text{適合率}\cdot\text{再現率}}{\text{適合率}+\text{再現率}}$
 （どちらかが 0 に近いと、単純平均より大きく下がる）。</div>
 </div>
+</details>
 <div class="readout" id="r4"></div>
 </div>
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#extra3" data-t="巻末解説に戻る（補講 3「学びすぎる機械」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_embed.html" data-t="一つ前の図解へ（言葉を場所に変える）" aria-label="一つ前の図解へ（言葉を場所に変える）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="#" data-t="次の図解はありません" aria-label="次の図解はありません" aria-disabled="true" tabindex="-1">&#9655;</a></nav></div>

@@ -213,6 +213,18 @@ table{display:block;overflow-x:auto;max-width:100%}
 .epoch-nb a.go{display:inline-block;padding:9px 17px;background:var(--ink,#1A1A1A);
  color:var(--bg,#FAFAF7);border-radius:8px;text-decoration:none;font-weight:700;font-size:13px}
 .epoch-nb a.go:hover{opacity:.82}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -245,19 +257,25 @@ table{display:block;overflow-x:auto;max-width:100%}
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">クエリ・キー・バリュー（Q・K・V）</a></li><li><a href="#sec2">注意の重みの計算</a></li><li><a href="#sec3">マスク処理</a></li><li><a href="#sec4">マルチヘッド</a></li><li><a href="#sec5">出力の合成</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>クエリ・キー・バリュー（Q・K・V） — 検索にたとえた 3 つの役割</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>注意の重みは、いきなり降ってくるわけではない。各トークンの<b>埋め込み</b>
 （768 次元の数の並び）に、<b>学習した 3 つの重み行列</b>をそれぞれ掛けて、
 <b>クエリ (Query)</b>・<b>キー (Key)</b>・<b>バリュー (Value)</b> の 3 本を作るところから始まる。
 同じ 1 つの埋め込みが、掛ける行列を変えるだけで 3 方向へ枝分かれする——下の図はそれを表す。
 ボタンで役割を切り替えて読んでほしい。</p>
+</details>
 
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$$Q = XW^Q \qquad K = XW^K \qquad V = XW^V$$
 <div class="note" style="margin-top:8px">$X$ はトークンの埋め込み（768 次元）、
 $W^Q,\,W^K,\,W^V$ は<b>学習で決まる</b>重み行列。同じ $X$ から、掛ける行列を変えるだけで
 性質の異なる 3 本のベクトルが出てくる。</div>
 </div>
+</details>
 
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v0"></div>
+</details>
 <div class="chips" id="qkvPick">
   <span class="chip on" data-role="q">Query（クエリ）</span>
   <span class="chip" data-role="k">Key（キー）</span>
@@ -265,87 +283,121 @@ $W^Q,\,W^K,\,W^V$ は<b>学習で決まる</b>重み行列。同じ $X$ から�
 </div>
 <div class="readout" id="r0"></div>
 
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">検索エンジンにたとえるとつかみやすい。<b>Query</b> は検索窓に打ち込む言葉——
 「この語について、何を知りたいか」。<b>Key</b> は検索結果に並ぶ各ページの見出し——
 「自分は何者か」と各語が掲げる看板。<b>Value</b> はページの中身——照合が済んだあとに
 実際に持ち帰る情報。つまり <b>Query と Key を照らし合わせてどれが関係あるかを決め、
 選んだ分だけ Value を持ってくる</b>。次の節「①重みができるまで」の内積・softmax は、
 まさにこの「照らし合わせ」の計算にあたる。</p>
+</details>
 
 <h3>12 分割（マルチヘッド）</h3>
+<details class="foldbox" open><summary>補足</summary>
 <p>768 次元をまるごと 1 回で使うのではなく、<b>12 に割って</b> 1 本あたり 64 次元ずつ扱う——
 768 = 12 × 64 の意味はこれだ。1 つの見方だけに絞らず、<b>12 通りの見方を同時に走らせる</b>
 （Multi-Head）。後の節「③12 のヘッド」では、ヘッドごとに実際に見ている場所が違うことを確かめる。</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v0b"></div>
+</details>
 </div>
 <div class="fig-stage" id="sec2">
 <h2>注意の重みの計算 — 4 つの段</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>「注意の重み」は一度に出てくるわけではない。<b>内積 → スケール → マスク → softmax</b> の
 4 段を通る。段を送って、行列がどう変わるか見てほしい。</p>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$$\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
 <div class="note" style="margin-top:8px">4 段はこの式に対応する：<b>①内積</b> = $QK^\top$（クエリとキーの掛け合わせ）
 <b>②スケール</b> = $\sqrt{d_k}$ で割る　<b>③マスク</b> = 未来の位置を $-\infty$ にしてから
 <b>④softmax</b> へ渡す。そうしてできた重みで、最後に $V$ を混ぜ合わせる。</div>
 </div>
+</details>
 <div class="ctrls">
   <button class="btn" id="prev1">← 前の段</button>
   <button class="btn" id="next1">次の段 →</button>
   <span class="tag" id="stage1"></span>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v1"></div>
+</details>
 <div class="readout" id="r1"></div>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">行が<b>クエリ（見る側）</b>、列が<b>キー（見られる側）</b>。
 たとえば 4 行目 2 列目は「"powers" が " visualization" をどれだけ参照するか」。</p>
+</details>
 </div>
 <div class="fig-stage" id="sec3">
 <h2>マスク処理 — 未来の語を隠す仕組み</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>GPT のような生成モデルは、文を左から 1 語ずつ書く。
 だから「3 語目を決めるとき、4 語目以降を見てしまう」ことがあってはならない。
 自分より後ろを $-\infty$ にしてから softmax を通す——それだけで、
 その語の重みは 0 になる。マスクを外すと何が起きるか比べてほしい。</p>
+</details>
 <div class="ctrls">
   <button class="btn" id="mOn">マスクあり（本物）</button>
   <button class="btn ghost" id="mOff">マスクなし（もし見えたら）</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v2"></div>
+</details>
 <div class="readout" id="r2"></div>
 </div>
 <div class="fig-stage" id="sec4">
 <h2>マルチヘッド — 12 組が別々の場所を見る</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>Self-Attention は 1 組ではない。GPT-2 small は同じ計算を <b>12 組</b>並べ、
 それぞれ別の重み行列で Q・K・V を作る。結果、ヘッドごとに<b>見ている関係が違う</b>。
 番号を切り替えて、いちばん濃い升がどこへ動くか見てほしい。</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="headgrid" id="heads"></div>
 <div id="v3"></div>
+</details>
 <div class="readout" id="r3"></div>
 </div>
 <div class="fig-stage" id="sec5">
 <h2>出力の合成 — V の加重和と、12 ヘッドの連結</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>①〜③で作った重みは、それ自体が目的地ではない。<b>その重みで各語の Value を混ぜ合わせたもの</b>が、
 その語の新しい表現になる。重みが 1 語にほぼ集中していれば、ほとんどその語の Value がそのまま出てくるし、
 重みが分散していれば、複数語の Value が混ざって出てくる。</p>
+</details>
 
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$$z_i = \sum_j \alpha_{ij}\,V_j$$
 <div class="note" style="margin-top:8px">$\alpha_{ij}$ は①〜③で作った、行 $i$ の softmax 後の重み
 （合計 1）。$V_j$ は語 $j$ の Value。<b>重みで Value を足し合わせたもの</b>が、語 $i$ の新しい表現
 $z_i$ になる。</div>
 </div>
+</details>
 
+<details class="foldbox" open><summary>説明</summary>
 <p class="note">下の図は「③12 のヘッド」で見たのと同じ例——第 5 ヘッドで "powers" が
 " em"（empowers の前半）へ 0.94 の重みを置く行——が、実際にどんな重みで各語の Value を
 混ぜ合わせるかを示す。<b>帯の幅（重み）は実測値</b>だが、<b>V の中身は模式</b>——実際の
 64 次元のベクトルではなく、「その語の Value」を表す帯として描いているだけで、
 GPT-2 の V の実数値はこの図解のデータに含まれていない。</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v4"></div>
+</details>
 <div class="readout" id="r4"></div>
 
 <h3>連結と線形変換</h3>
+<details class="foldbox" open><summary>補足</summary>
 <p>ここまでは 1 ヘッド分の話。実際には 12 のヘッドがそれぞれ 64 次元の $z_i$ を独立に作り、
 それを<b>横に並べて 768 次元へ戻し</b>、最後にもう 1 回学習した行列 $W^O$ を掛けて整える。</p>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$$\mathrm{MultiHead}(X) = \mathrm{Concat}(z^{(1)},\dots,z^{(12)})\,W^O$$
 <div class="note" style="margin-top:8px">64 次元 × 12 本を横に並べる（$\mathrm{Concat}$）だけで
 768 次元に戻る——だから次の MLP や、次の Transformer ブロックへ、そのままの形で渡せる。</div>
 </div>
+</details>
 </div><p class="src-note">数値は <b>GPT-2 small</b>（12 層 × 12 ヘッド）の第 1 ブロックの実測値。Transformer Explainer（Polo Club of Data Science, Georgia Tech / MIT License）が公開している事前計算データから、1 ブロック分だけを取り出して使っている。</p>
 <div class="epoch-nb"><div class="k">④ 書く — 購入者向け</div><h3>Self-Attention を、自分の文で見る</h3><p>ここは実測データを焼き込んでいるので文が 1 つに固定されている。自分で書いた文を GPT-2 に通し、4 段を手で組んで、この図の数値を作り直せる。</p><p style="font-size:12px;margin:-6px 0 12px">落として <a href="https://colab.research.google.com/">Colab</a> に上げると動きます（アップロード → ノートブックを開く）。</p><a class="go" href="notebooks/attention.ipynb">ノートブックを取得 →</a></div>
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene8" data-t="巻末解説に戻る（Scene 8「注意こそ、すべて」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_alphago.html" data-t="一つ前の図解へ（AlphaGo・MCTS）" aria-label="一つ前の図解へ（AlphaGo・MCTS）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_transformer.html" data-t="一つ後の図解へ（Transformer）" aria-label="一つ後の図解へ（Transformer）">&#9655;</a></nav></div>

@@ -269,6 +269,18 @@ table{display:block;overflow-x:auto;max-width:100%}
 .epoch-nb a.go{display:inline-block;padding:9px 17px;background:var(--ink,#1A1A1A);
  color:var(--bg,#FAFAF7);border-radius:8px;text-decoration:none;font-weight:700;font-size:13px}
 .epoch-nb a.go:hover{opacity:.82}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -305,27 +317,41 @@ table{display:block;overflow-x:auto;max-width:100%}
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">ベクトルの中身</a></li><li><a href="#sec2">ベクトル演算</a></li><li><a href="#sec3">言語による差</a></li><li><a href="#sec4">1 語に 1 点</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>ベクトルの中身 — 1 語ぶんの 100 個の数</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>「語を数にする」と言うとき、実際に何が入っているのか。1 語ぶんをそのまま出す。</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="wv-row">
   <input id="wv-vec-in" type="text" placeholder="語を入れる" autocomplete="off">
   <button id="wv-vec-go">中身を見る</button>
 </div>
+</details>
 <div class="wv-chips" id="wv-vec-ex"></div>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="wv-out" id="wv-vec-out"></div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="caveat">意味そのものが 1 つの数に入っているのではない。<b>100 個の数の組み合わせ</b>が
 1 つの場所を指していて、近い意味の語は近い場所に来る。だから引き算や足し算ができる。</p>
 <p class="caveat">この図解が積んでいるのは、長さを 1 に揃えたうえで 1 次元 1 バイトに丸めた値
 （そのぶん小数第 3 位あたりが粗い）。丸めていない生の値は
 <a href="https://manga-epoch.github.io/viewer/notebooks.html">ノートブック</a>で見られる。</p>
+</details>
 </div>
 
 <div class="fig-stage" id="sec2">
 <h2>ベクトル演算 — 近さの測定と、意味の足し引き</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>語を入れ、あいだの<b>符号を押して ＋ と − を切り替える</b>だけ。足し引きした先に近い語を探す。
 1 語だけ入れれば、そのまま「近い語」が出る。</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="wv-eqrow" id="wv-terms"></div>
+</details>
 <div class="wv-chips" id="wv-ex"></div>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="wv-out" id="wv-out"></div>
+</details>
 
 <div class="wv-pick">
   <div class="wv-pick-hd">語を探す<span id="wv-pick-n"></span>
@@ -346,26 +372,42 @@ table{display:block;overflow-x:auto;max-width:100%}
 
 <div class="fig-stage" id="sec3">
 <h2>言語による差 — 同じ計算が日本語では崩れる</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>同じ足し引きを 2 つの言語で試すと、英語では有名な例がきれいに出るのに、
 日本語では出ないものがある。<b>下の表は、その場で計算した実測値だ。</b></p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="wv-out" id="wv-cmp-out">計算中…</div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p>日本語で崩れるのは、日本語が悪いからでも Word2Vec が悪いからでもない。
 学習に使った文章に、その語がどう出てきたかがそのまま出ている。
 「王」の近くに何が並ぶかを見ると、理由が分かる。</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="wv-out" id="wv-why-out"></div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p class="caveat">単語ベクトルは<b>集めた文章の鏡</b>でしかない。だから偏りもそのまま写る。
 この性質は実務では公平性の問題として扱われる（G 検定の AI 倫理の範囲）。</p>
+</details>
 </div>
 
 <div class="fig-stage" id="sec4">
 <h2>1 語に 1 点 — 多義語はどこにも置けない</h2>
+<details class="foldbox" open><summary>説明</summary>
 <p>Word2Vec は 1 つの語に 1 つの点しか与えない。意味が 2 つある語は、
 <b>どちらか強い方に寄り切る</b>か、<b>どちらでもない場所</b>に落ち着く。
 日本語を選ぶと、両方の型が並ぶ――「あめ」は片方へ寄り切り、「はし」はどちらにも寄らない。</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
 <div class="wv-out" id="wv-poly-out">計算中…</div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
 <p>この限界を破ったのが、前後の文を見てそのつど表現を作り直す仕組み――
 <a href="figures_attention.html">Self-Attention</a> であり、その先の BERT・GPT だ。
 同じ「はし」でも、「はしを渡る」と「はしで食べる」で違うベクトルになる。</p>
+</details>
 </div>
 
 <div class="epoch-nb"><div class="k">④ 書く — 購入者向け</div><h3>言葉で計算する — Word2Vec を好きなだけ動かす</h3><p>この図解に積めたのは 15,000 語まで。ノートブックなら 40 万語を読み込んで、思いついた語を片端から試せる。日本語（chiVe）にも切り替えられる。</p><p style="font-size:12px;margin:-6px 0 12px">落として <a href="https://colab.research.google.com/">Colab</a> に上げると動きます（アップロード → ノートブックを開く）。</p><a class="go" href="notebooks/word2vec_playground.ipynb">ノートブックを取得 →</a></div>
@@ -431,6 +473,15 @@ table{display:block;overflow-x:auto;max-width:100%}
     });
   }
 
+  /* ※ 15,000 語の読み込みは数百 ms かかるが、ボタンは最初から押せる。
+        読み込み前に押されると packs[lang] が undefined のまま渡り、
+        p.idx で落ちていた（実測で再現）。押せる入口はすべてここを通す。 */
+  function pack(){
+    var p = packs[lang];
+    if (!p) load(lang).then(function(){ showVec($('wv-vec-in').value); run(); runPoly(); });
+    return p;
+  }
+
   function vecOf(p, w){
     var i = p.idx[w];
     return i === undefined ? null : p.V.subarray(i * p.d, (i + 1) * p.d);
@@ -461,7 +512,9 @@ table{display:block;overflow-x:auto;max-width:100%}
 
   /* ---------- 節 1: ベクトルの中身 ---------- */
   function showVec(w){
-    var p = packs[lang], v = vecOf(p, w);
+    var p = pack();
+    if (!p) return;
+    var v = vecOf(p, w);
     if (!v){ $('wv-vec-out').innerHTML = missMsg(w); return; }
     var SHOW = Math.min(48, p.d), mx = 0, k;
     for (k = 0; k < p.d; k++) mx = Math.max(mx, Math.abs(v[k]));
@@ -548,7 +601,9 @@ table{display:block;overflow-x:auto;max-width:100%}
     dimOps();
   }
   function run(){
-    var p = packs[lang], t = terms();
+    var p = pack();
+    if (!p) return;
+    var t = terms();
     if (!t.length){ $('wv-out').innerHTML = '語を 1 つ以上入れてください。'; return; }
     var bad = t.filter(function(x){ return !vecOf(p, x.w); });
     if (bad.length){ $('wv-out').innerHTML = missMsg(bad.map(function(x){ return x.w; }).join('・')); return; }
@@ -605,7 +660,9 @@ table{display:block;overflow-x:auto;max-width:100%}
     return (lang === 'en' ? STOP_EN : STOP_JA).indexOf(w) >= 0;
   }
   function renderList(){
-    var p = packs[lang], q = $('wv-pick-q').value.trim().toLowerCase();
+    var p = pack();
+    if (!p) return;
+    var q = $('wv-pick-q').value.trim().toLowerCase();
     var hit = [], LIMIT = 300;
     for (var i = 0; i < p.n && hit.length < LIMIT + 1; i++){
       var w = p.words[i];
@@ -710,7 +767,9 @@ table{display:block;overflow-x:auto;max-width:100%}
          ['はし', '橋 と 箸', ['橋','箸']]]
   };
   function runPoly(){
-    var p = packs[lang], h = '';
+    var p = pack();
+    if (!p) return;
+    var h = '';
     POLY[lang].forEach(function(row){
       var w = row[0], v = vecOf(p, w);
       if (!v) return;
