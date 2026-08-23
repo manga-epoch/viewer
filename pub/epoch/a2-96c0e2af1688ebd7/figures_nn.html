@@ -196,13 +196,6 @@ table{display:block;overflow-x:auto;max-width:100%}
 </div>
 
 <style>
-.nnfig{width:100%;margin:8px auto 2px;text-align:center}
-.figfold{position:sticky;top:4px;z-index:3;background:var(--bg);
- padding-bottom:4px;box-shadow:0 6px 10px -8px rgba(0,0,0,.18)}
-@media(max-width:620px){.nnfig{position:static;box-shadow:none;padding-bottom:0}}
-
-.nnfig svg{width:100%;height:auto;display:block;margin:0 auto}
-.nnfig.wide svg{max-width:660px}
 .hbadge{font-size:12.5px;color:var(--ink-sub);text-align:center;margin:0 0 2px}
 .hbadge b{color:var(--link)}
 .nnf{stroke-dasharray:6 7;animation:nnf 1.1s linear infinite}
@@ -215,6 +208,14 @@ table{display:block;overflow-x:auto;max-width:100%}
 /* ④ の 1〜4 を ◁ 現在地 ▷ で進退させる。工程は札ではなく図の中で見せる */
 /* 式と、その式に数字を入れた計算を 1 つの枠にまとめる（読者の提案。
    別々の枠だと視線が 2 回切れる） */
+
+.nnfig{width:100%;margin:8px auto 2px;text-align:center}
+.figfold{position:sticky;top:4px;z-index:3;background:var(--bg);
+ padding-bottom:4px;box-shadow:0 6px 10px -8px rgba(0,0,0,.18)}
+@media(max-width:620px){.nnfig{position:static;box-shadow:none;padding-bottom:0}}
+
+.nnfig svg{width:100%;height:auto;display:block;margin:0 auto}
+.nnfig.wide svg{max-width:660px}
 .calcbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;
  padding:12px 16px;margin:14px 0}
 .calcbox>summary,.foldbox>summary{cursor:pointer;list-style:none;font-size:12.5px;font-weight:700;
@@ -280,6 +281,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 .outrow .chips{flex-direction:column;align-items:stretch;margin:6px 0 0;min-width:150px}
 @media(max-width:560px){.outrow .chips{flex-direction:row;min-width:0}}
 .calcbox .rst .btn{font-size:12.5px;padding:7px 14px}
+
 .calcbox .formula,.calcbox .formula.fsplit{background:none;border:0;margin:0;padding:0 0 2px}
 .calcbox .readout{background:none;border:0;margin:0;padding:8px 0 0;border-top:1px solid var(--border)}
 .stepnav{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0 2px}
@@ -300,13 +302,17 @@ table{display:block;overflow-x:auto;max-width:100%}
 @media(max-width:520px){.nnfig{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
 </style>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">パーセプトロン</a></li><li><a href="#sec2">多層パーセプトロン（MLP）</a></li><li><a href="#sec3">活性化関数</a></li><li><a href="#sec4">誤差逆伝播法（Back Propagation）</a></li><li><a href="#sec5">勾配消失</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">おさらい</a></li><li><a href="#sec2">多層パーセプトロン（MLP）</a></li><li><a href="#sec3">活性化関数</a></li><li><a href="#sec4">誤差逆伝播法（Back Propagation）</a></li><li><a href="#sec5">勾配消失</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>パーセプトロン — バイアスを含めた重み付き和</h2>
+<h2>おさらい — 1 個の計算点とバイアス</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">1 個の計算点がやることは、次の 2 つだけ。
-<strong>(1) 入力それぞれに重みを掛けて足す（＝ $z$）。(2) $z$ が 0 以上なら 1、そうでなければ 0 を出す。</strong>
-そして <strong>$y$ が正解に近づくように、重みを学習させる</strong> —— それがニューラルネットの学習。</div>
+<div class="lead">1 個の計算点は
+<strong>入力に重みを掛けて足し、その値で 0 か 1 を出す</strong>。ここまでは
+<a href="../arc1/figures_neuron.html">Arc 1 の「1 個の計算点」</a>で動かしたとおり。</div>
+<div class="lead">この節でひとつだけ足すのが <strong>バイアス $b$</strong> ——
+Arc 1 で閾値 $	heta$ と呼んだものを、「つねに 1 を入れる入力への重み」に書き直したもの
+（$z \ge 	heta$ を $z - 	heta \ge 0$ と見る）。こうすると閾値も重みと同じ式で扱え、
+<strong>この先の節はすべて「重みを直す」だけの話になる</strong>。</div>
 </details>
 
 <details class="foldbox figfold" open><summary>構成図</summary>
@@ -642,15 +648,12 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
 
 <script>
 (function(){
+
   var ARC="#6E7BA8", BAD="#b4493f", INK="#1A1A1A", MUTED="#9A9488", EDGE="#8d99c4";
   var SVGNS="http://www.w3.org/2000/svg";
   function el(t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);
     if(txt!=null)e.textContent=txt;return e;}
   function g(id){return document.getElementById(id);}
-  
-function sg(z){return 1/(1+Math.exp(-z));}
-
-
   // ---- 数の見せ方。桁を出しすぎると辺のラベルが太って隣とぶつかる（幾何を実測して決めた）
   // ※ ちょうど 0 を指数表記にしない。ReLU で死んだユニットや正解値 0 が 0e+0 と出て、
   //   「0 なのか極小の数なのか」が読めなくなる（実際に出た）。
@@ -679,7 +682,6 @@ function sg(z){return 1/(1+Math.exp(-z));}
     return pts;
   }
   var DS={easy:mk('easy'), xor:mk('xor')}, curDs='easy';
-
   function plot(svg,pts,decide,pad){
     pad=pad||26; svg.innerHTML='';
     var S=300, W=S-pad*2;
@@ -704,92 +706,6 @@ function sg(z){return 1/(1+Math.exp(-z));}
     }
     return ok/pts.length;
   }
-
-  // ---- ① パーセプトロン
-  var w1=1.0,w2=1.0,bb=-1.5;   // 境界 x₁+x₂=1.5 が AND を分ける
-  var GP=geom([3,1],320,116,[78,0],19,40);
-  function drawPNet(){
-    var W=[bb,w1,w2];                       // 入力 1 → b、x₁ → w₁、x₂ → w₂
-    var NM=['b','w₁','w₂'];
-    renderNet(g('pNet'),GP,{
-      efs:12.5, nfs:13, hl:isHL,
-      step:function(){ return true; },      // 3 本すべて △▽ で動かせる
-      edgeState:function(){ return 1; },
-      edgeT:function(){ return 0.28; },   // 揃えると縦に 43px 離れて重ならない
-      edgeLabel:function(i,j){ return [NM[j], W[j].toFixed(2)]; },
-      edgeInk:function(){ return ARC; },
-      edgeW:function(){ return 1.8; },
-      nodeName:function(i,j){ return i===0?['1','x₁','x₂'][j]:'y'; },
-      nodeText:function(i,j){ return i===0?['1.00',XP[0].toFixed(2),XP[1].toFixed(2)][j]
-                                          :(zP()>=0?'1':'0'); },
-      nodeFill:function(i,j){ return i===0?'#EAEDF7':paint(zP()>=0?1:0.15); },
-      // y は 0 か 1 しか出ないので、重みを動かしても変化が見えにくい。
-      // 手前の重み付き和 z を出して、連続的に動くところを見せる（読者の指摘）。
-      nodeSub:function(i,j){ return i===1?('z = '+zP().toFixed(2)):null; },
-      deco:function(svg){
-        svg.appendChild(el('text',{x:160,y:252,'font-size':12,'text-anchor':'middle',fill:MUTED},
-          '右のダイヤルで重みを回すと z が動き、0 を跨ぐと y が変わる'));
-      }
-    });
-  }
-  var XP=[0.8,0.8];                          // 図に流す代表の 1 点（下の計算詳細と同じ点）
-  function zP(){ return w1*XP[0]+w2*XP[1]+bb; }
-  function drawP(){
-    var acc=plot(g('pSvg'), DS[curDs],
-                 function(x,y){ return (w1*x+w2*y+bb)>=0?1:0; });
-    // 計算内容詳細: データの 1 点を取り出し、数字を入れた式で出す。
-    // ② の読み取りと同じ形にしてある（やっていることは同じ、という橋渡し）。
-    var pt=DS[curDs][DS[curDs].length-1];
-    XP=[pt.x,pt.y]; drawPNet();
-    var z=w1*pt.x+w2*pt.y+bb;
-    var sg2=function(v){ return (v<0?' − ':' + ')+Math.abs(v).toFixed(2); };
-    g('pCalc').textContent =
-      '1 点で確かめる。   z = w₁·x₁ + w₂·x₂ + b、  z ≥ 0 なら y = 1\n\n'
-      +'x = ( '+pt.x.toFixed(2)+', '+pt.y.toFixed(2)+' )   正解 '+pt.l+'\n'
-      +'z = '+w1.toFixed(2)+'·'+pt.x.toFixed(2)+sg2(w2)+'·'+pt.y.toFixed(2)+sg2(bb)
-      +' = '+z.toFixed(2)+'   ⇒  y = '+(z>=0?1:0)
-      +((z>=0?1:0)===pt.l?'（正解と一致）':'（正解と食い違う）');
-    buildDials('pDials',
-      [{nm:'w₁',i:0,j:1,k:0},{nm:'w₂',i:0,j:2,k:0},{nm:'b',i:0,j:0,k:0}],
-      function(i,j,k){ return [bb,w1,w2][j]; },
-      function(i,j,k,v){ if(j===0) bb=v; else if(j===1) w1=v; else w2=v; },
-      function(){ drawP(); });
-    var o=g('pOut');
-    o.textContent = 'w₁='+w1.toFixed(1)+'  w₂='+w2.toFixed(1)+'  b='+bb.toFixed(1)
-      + '   →  正解率 '+Math.round(acc*100)+'%'
-      + (curDs==='xor'
-          ? '\nXOR は、どんな w₁ w₂ b を選んでも 100% にはできない（直線 1 本では四隅を分けられない）。'
-          : '\n直線 1 本で分けられる配置なら、パーセプトロン 1 個で足りる。');
-  }
-  g('pReset').addEventListener('click',function(){ w1=1.0; w2=1.0; bb=-1.5; drawP(); });
-  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-ds]'),function(c){
-    c.addEventListener('click',function(){
-      document.querySelectorAll('.chip[data-ds]').forEach(function(o){o.classList.remove('on');});
-      c.classList.add('on'); curDs=c.getAttribute('data-ds'); drawP();
-    });
-  });
-
-  // ================= ここから ②〜⑤ が共有する部品 =================
-
-  // ---- 活性化関数（ページ全体でひとつ。③ が切り替え、②④⑤ がそれを見る）
-  var ACTS={
-    none:   {nm:'なし（恒等）', tex:'h(x)=x',
-             f:function(z){return z;},           d:function(z){return 1;},
-             yr:[-4,4], dmax:1},
-    sigmoid:{nm:'シグモイド', tex:'h(x)=1/(1+e^{-x})',
-             f:sg,                                d:function(z){var s=sg(z);return s*(1-s);},
-             yr:[0,1],  dmax:0.25},
-    tanh:   {nm:'tanh', tex:'h(x)=\\tanh x',
-             f:function(z){return Math.tanh(z);}, d:function(z){var t=Math.tanh(z);return 1-t*t;},
-             yr:[-1,1], dmax:1},
-    relu:   {nm:'ReLU', tex:'h(x)=\\max(0,x)',
-             f:function(z){return z>0?z:0;},      d:function(z){return z>0?1:0;},
-             yr:[0,4],  dmax:1}
-  };
-  var HK='none';
-  function H(z){return ACTS[HK].f(z);}
-  function HD(z){return ACTS[HK].d(z);}
-
   // ---- ニューラルネットの幾何。②③④は 2-3-2、⑤は 2-3-3-3-3-2。描き手は下の renderNet ひとつ。
   // ※ 縦の間隔は**列ごとに**変える。丸の下の注記（m=… / 正解 …）と、その下の丸の名前
   //   （n₂ / y₂）が同じ隙間を取り合って重なるため。丸の直径 42 に対して隙間 36 では、
@@ -816,7 +732,6 @@ function sg(z){return 1/(1+Math.exp(-z));}
   // ※ ②③ はラベルが 2 行＋▲▼ で幅も高さも違うので、専用の位置表を持つ。
   //   ④⑤（1 行ラベル）と共用すると、片方を直すともう片方が崩れる。
   var T0B=[0.36,0.80], T1B=[[0.36,0.66],[0.36,0.74],[0.36,0.84]];
-
   function renderNet(svg,gg,o){
     svg.innerHTML='';
     var i,j,k,n=gg.shape.length;
@@ -912,14 +827,16 @@ function sg(z){return 1/(1+Math.exp(-z));}
           +'<button class="dbtn" data-d="-1" aria-label="ひとつ減らす">▼</button>';
         box.appendChild(d);
         var col=d.querySelector('.dcol'), win=d.querySelector('.dwin');
+        var st=(w.st||0.1), lo=(w.lo==null?-6:w.lo), hi=(w.hi==null?6:w.hi);
+        var q=function(v){ return Math.round(v/st)*st; };
         var val=function(){ return get(w.i,w.j,w.k); };
         var put=function(v){ HLW={i:w.i,j:w.j,k:w.k};
-          set(w.i,w.j,w.k, Math.max(-6,Math.min(6, Math.round(v*10)/10))); after(); };
+          set(w.i,w.j,w.k, Math.max(lo,Math.min(hi, +q(v).toFixed(4)))); after(); };
         d.querySelectorAll('.dbtn').forEach(function(btn){
           var dd=+btn.getAttribute('data-d'), t=null, iv=null;
           btn.addEventListener('pointerdown',function(ev){
-            ev.preventDefault(); put(val()+dd*0.1);
-            t=setTimeout(function(){ iv=setInterval(function(){ put(val()+dd*0.1); },110); },420);
+            ev.preventDefault(); put(val()+dd*st);
+            t=setTimeout(function(){ iv=setInterval(function(){ put(val()+dd*st); },110); },420);
             var stop=function(){ clearTimeout(t); if(iv)clearInterval(iv);
               window.removeEventListener('pointerup',stop); };
             window.addEventListener('pointerup',stop);
@@ -927,7 +844,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
         });
         // マウスホイールで 1 段ずつ（PC では払うより確実）
         win.addEventListener('wheel',function(ev){
-          ev.preventDefault(); put(val() + (ev.deltaY<0?0.1:-0.1));
+          ev.preventDefault(); put(val() + (ev.deltaY<0?st:-st));
         },{passive:false});
         // 払う。離したあとの減速は強め
         win.addEventListener('pointerdown',function(ev){
@@ -935,7 +852,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
           // ※ 1 回ごとに 0.1 へ丸めると、小刻みな移動が毎回 0 に戻って積み上がらない
           //   （実際に払っても値が動かなかった）。掴んだ時の値からの差を貯めて使う。
           var last=ev.clientY, vel=0, raf=null, base=val(), acc=0;
-          var apply=function(dy){ acc += -dy/22*0.1; put(base+acc); };
+          var apply=function(dy){ acc += -dy/22*st; put(base+acc); };
           var onMove=function(m){ var dy=m.clientY-last; last=m.clientY; vel=dy; apply(dy); };
           var glide=function(){ vel*=0.86; if(Math.abs(vel)<0.35){raf=null;return;}
             apply(vel); raf=requestAnimationFrame(glide); };
@@ -954,9 +871,9 @@ function sg(z){return 1/(1+Math.exp(-z));}
       if(!w._col) return;
       var host=w._col.closest('.dial');
       if(host) host.classList.toggle('lit', isHL(w.i,w.j,w.k));
-      var v=get(w.i,w.j,w.k), h='';
+      var v=get(w.i,w.j,w.k), st=(w.st||0.1), dg=(w.dg==null?1:w.dg), h='';
       [2,1,0,-1,-2].forEach(function(o){
-        h+='<span'+(o===0?' class="cur"':'')+'>'+(v+o*0.1).toFixed(1)+'</span>';
+        h+='<span'+(o===0?' class="cur"':'')+'>'+(v+o*st).toFixed(dg)+'</span>';
       });
       w._col.innerHTML=h;
       var rowh=(window.matchMedia('(max-width:620px)').matches)?18:22;
@@ -968,6 +885,99 @@ function sg(z){return 1/(1+Math.exp(-z));}
       svg.appendChild(el('text',{x:gg.xs[i].toFixed(1),y:y,'font-size':13,'text-anchor':'middle',
         fill:MUTED},labs[i]));
   }
+
+
+  
+function sg(z){return 1/(1+Math.exp(-z));}
+
+
+
+
+  // ---- ① パーセプトロン
+  var w1=1.0,w2=1.0,bb=-1.5;   // 境界 x₁+x₂=1.5 が AND を分ける
+  var GP=geom([3,1],320,116,[78,0],19,40);
+  function drawPNet(){
+    var W=[bb,w1,w2];                       // 入力 1 → b、x₁ → w₁、x₂ → w₂
+    var NM=['b','w₁','w₂'];
+    renderNet(g('pNet'),GP,{
+      efs:12.5, nfs:13, hl:isHL,
+      step:function(){ return true; },      // 3 本すべて △▽ で動かせる
+      edgeState:function(){ return 1; },
+      edgeT:function(){ return 0.28; },   // 揃えると縦に 43px 離れて重ならない
+      edgeLabel:function(i,j){ return [NM[j], W[j].toFixed(2)]; },
+      edgeInk:function(){ return ARC; },
+      edgeW:function(){ return 1.8; },
+      nodeName:function(i,j){ return i===0?['1','x₁','x₂'][j]:'y'; },
+      nodeText:function(i,j){ return i===0?['1.00',XP[0].toFixed(2),XP[1].toFixed(2)][j]
+                                          :(zP()>=0?'1':'0'); },
+      nodeFill:function(i,j){ return i===0?'#EAEDF7':paint(zP()>=0?1:0.15); },
+      // y は 0 か 1 しか出ないので、重みを動かしても変化が見えにくい。
+      // 手前の重み付き和 z を出して、連続的に動くところを見せる（読者の指摘）。
+      nodeSub:function(i,j){ return i===1?('z = '+zP().toFixed(2)):null; },
+      deco:function(svg){
+        svg.appendChild(el('text',{x:160,y:252,'font-size':12,'text-anchor':'middle',fill:MUTED},
+          '右のダイヤルで重みを回すと z が動き、0 を跨ぐと y が変わる'));
+      }
+    });
+  }
+  var XP=[0.8,0.8];                          // 図に流す代表の 1 点（下の計算詳細と同じ点）
+  function zP(){ return w1*XP[0]+w2*XP[1]+bb; }
+  function drawP(){
+    var acc=plot(g('pSvg'), DS[curDs],
+                 function(x,y){ return (w1*x+w2*y+bb)>=0?1:0; });
+    // 計算内容詳細: データの 1 点を取り出し、数字を入れた式で出す。
+    // ② の読み取りと同じ形にしてある（やっていることは同じ、という橋渡し）。
+    var pt=DS[curDs][DS[curDs].length-1];
+    XP=[pt.x,pt.y]; drawPNet();
+    var z=w1*pt.x+w2*pt.y+bb;
+    var sg2=function(v){ return (v<0?' − ':' + ')+Math.abs(v).toFixed(2); };
+    g('pCalc').textContent =
+      '1 点で確かめる。   z = w₁·x₁ + w₂·x₂ + b、  z ≥ 0 なら y = 1\n\n'
+      +'x = ( '+pt.x.toFixed(2)+', '+pt.y.toFixed(2)+' )   正解 '+pt.l+'\n'
+      +'z = '+w1.toFixed(2)+'·'+pt.x.toFixed(2)+sg2(w2)+'·'+pt.y.toFixed(2)+sg2(bb)
+      +' = '+z.toFixed(2)+'   ⇒  y = '+(z>=0?1:0)
+      +((z>=0?1:0)===pt.l?'（正解と一致）':'（正解と食い違う）');
+    buildDials('pDials',
+      [{nm:'w₁',i:0,j:1,k:0},{nm:'w₂',i:0,j:2,k:0},{nm:'b',i:0,j:0,k:0}],
+      function(i,j,k){ return [bb,w1,w2][j]; },
+      function(i,j,k,v){ if(j===0) bb=v; else if(j===1) w1=v; else w2=v; },
+      function(){ drawP(); });
+    var o=g('pOut');
+    o.textContent = 'w₁='+w1.toFixed(1)+'  w₂='+w2.toFixed(1)+'  b='+bb.toFixed(1)
+      + '   →  正解率 '+Math.round(acc*100)+'%'
+      + (curDs==='xor'
+          ? '\nXOR は、どんな w₁ w₂ b を選んでも 100% にはできない（直線 1 本では四隅を分けられない）。'
+          : '\n直線 1 本で分けられる配置なら、パーセプトロン 1 個で足りる。');
+  }
+  g('pReset').addEventListener('click',function(){ w1=1.0; w2=1.0; bb=-1.5; drawP(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-ds]'),function(c){
+    c.addEventListener('click',function(){
+      document.querySelectorAll('.chip[data-ds]').forEach(function(o){o.classList.remove('on');});
+      c.classList.add('on'); curDs=c.getAttribute('data-ds'); drawP();
+    });
+  });
+
+  // ================= ここから ②〜⑤ が共有する部品 =================
+
+  // ---- 活性化関数（ページ全体でひとつ。③ が切り替え、②④⑤ がそれを見る）
+  var ACTS={
+    none:   {nm:'なし（恒等）', tex:'h(x)=x',
+             f:function(z){return z;},           d:function(z){return 1;},
+             yr:[-4,4], dmax:1},
+    sigmoid:{nm:'シグモイド', tex:'h(x)=1/(1+e^{-x})',
+             f:sg,                                d:function(z){var s=sg(z);return s*(1-s);},
+             yr:[0,1],  dmax:0.25},
+    tanh:   {nm:'tanh', tex:'h(x)=\\tanh x',
+             f:function(z){return Math.tanh(z);}, d:function(z){var t=Math.tanh(z);return 1-t*t;},
+             yr:[-1,1], dmax:1},
+    relu:   {nm:'ReLU', tex:'h(x)=\\max(0,x)',
+             f:function(z){return z>0?z:0;},      d:function(z){return z>0?1:0;},
+             yr:[0,4],  dmax:1}
+  };
+  var HK='none';
+  function H(z){return ACTS[HK].f(z);}
+  function HD(z){return ACTS[HK].d(z);}
+
 
   // ---- 辺のラベル。名前と数字を**両方**出す（読者の希望: ビジーでもそれが一番分かる）。
   //   ※ 横に並べると幅が 2 倍になり、実測で 4 組ぶつかった。この図の T0/T1 は

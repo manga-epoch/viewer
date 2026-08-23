@@ -110,42 +110,98 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 .fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
 @media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
 
-svg .nd{fill:#fff;stroke:#1a1a1a;stroke-width:1.8}
-svg .nd.on{fill:#1a1a1a}
-svg .ed{stroke:#b9b9b2;fill:none}
-svg .ed.pos{stroke:#5B7C99}
-svg .ed.neg{stroke:#1a1a1a;stroke-dasharray:5 4}
-svg .tx{font:600 13px var(--font-sans);fill:#1a1a1a;text-anchor:middle}
-svg .tx.on{fill:#fff}
-svg .lb{font:600 12px var(--font-sans);fill:#8c8880;
- paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
-svg .lb.c{text-anchor:middle}
-svg .pt{stroke:#1a1a1a;stroke-width:1.6}
-svg .pt.one{fill:#1a1a1a}
-svg .pt.zero{fill:#fff}
-svg .pt.bad{stroke:#b4493f;stroke-width:3}
-svg .bd{stroke:#5B7C99;stroke-width:2.6;fill:none}
-svg .ax{stroke:#e2e0d9;stroke-width:1.2}
-table.tt{border-collapse:collapse;margin:10px 0;font-size:13.5px;width:100%;max-width:460px}
-table.tt th,table.tt td{border:1px solid var(--border);padding:6px 10px;text-align:center}
+.nnfig{width:100%;margin:8px auto 2px;text-align:center}
+.figfold{position:sticky;top:4px;z-index:3;background:var(--bg);
+ padding-bottom:4px;box-shadow:0 6px 10px -8px rgba(0,0,0,.18)}
+@media(max-width:620px){.nnfig{position:static;box-shadow:none;padding-bottom:0}}
+
+.nnfig svg{width:100%;height:auto;display:block;margin:0 auto}
+.nnfig.wide svg{max-width:660px}
+.calcbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+ padding:12px 16px;margin:14px 0}
+.calcbox>summary,.foldbox>summary{cursor:pointer;list-style:none;font-size:12.5px;font-weight:700;
+ color:var(--ink-muted);display:flex;align-items:center;gap:7px;padding:2px 0;letter-spacing:.04em}
+.foldbox{margin:6px 0}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"▾";font-size:10px;color:var(--link);transition:transform .15s}
+.foldbox:not([open])>summary::before{transform:rotate(-90deg)}
+.foldbox>summary:hover{color:var(--ink-sub)}
+.calcbox>summary::-webkit-details-marker{display:none}
+.calcbox>summary::before{content:"▾";font-size:11px;color:var(--link);transition:transform .15s}
+.calcbox:not([open])>summary::before{transform:rotate(-90deg)}
+.calcbox:not([open])>summary{margin:-2px 0}
+.calcbox .rst{margin-top:10px;text-align:center}
+/* 出力の図と、その切り替えを横に並べる（縦に間延びさせない） */
+.outrow{display:flex;gap:16px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+/* 図と、その右のダイヤル列 */
+.figrow{display:flex;gap:14px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.figrow .nnfig{flex:1 1 380px;min-width:280px}
+.dials{display:flex;flex-direction:column;gap:10px;padding-top:26px}
+
+.dial{display:flex;flex-direction:column;align-items:center;width:78px;
+ touch-action:none;-webkit-user-select:none;user-select:none;
+ -webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.dial .dname{font-size:11.5px;color:#8a6b4f;margin-bottom:3px;letter-spacing:.02em}
+.dial.lit .dname{font-weight:700}
+.dial.lit .dwin{box-shadow:inset 0 7px 7px -7px rgba(60,50,35,.45),
+ inset 0 -7px 7px -7px rgba(60,50,35,.45), 0 0 0 2px #F0C97E}
+.dial .dbtn{width:100%;height:22px;border:1px solid var(--border);background:#FCFBF8;color:var(--ink-sub);
+ font-size:10px;line-height:1;cursor:pointer;padding:0;font-family:inherit;touch-action:manipulation}
+.dial .dbtn:hover{background:#EFECE4;color:var(--ink)}
+.dial .dbtn:active{background:#E2DED4}
+/* ⚠ touch-action:none が無いと、スマホで回そうとした指をブラウザが
+   ページのスクロールとして横取りする（pointerdown の preventDefault では止まらない）。 */
+.dial .dwin{width:100%;height:66px;overflow:hidden;position:relative;background:#F6F4EF;
+ border-left:1px solid var(--border);border-right:1px solid var(--border);
+ box-shadow:inset 0 7px 7px -7px rgba(60,50,35,.45), inset 0 -7px 7px -7px rgba(60,50,35,.45);
+ touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
+.dial .dcol{position:absolute;left:0;right:0;top:0;transition:transform .11s cubic-bezier(.2,.9,.3,1.4)}
+.dial .dcol span{display:block;height:22px;line-height:22px;text-align:center;color:#A9A399;
+ font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;font-variant-numeric:tabular-nums}
+.dial .dcol span.cur{color:var(--ink);font-size:14.5px;font-weight:700}
+.dial .dwin::after{content:"";position:absolute;left:0;right:0;top:22px;height:22px;
+ background:rgba(110,123,168,.07);
+ border-top:1px solid rgba(110,123,168,.45);border-bottom:1px solid rgba(110,123,168,.45);
+ pointer-events:none}
+/* ⚠ ここは上の .dial 系より後ろに置くこと。同じ強さなら後勝ちなので、
+   前に置くと height:66px などに負けて効かない（実際に効いていなかった）。 */
+@media(max-width:620px){
+ /* 図とダイヤルを縦に積む。横並びのままだとダイヤル列が 80px まで潰れる（実測） */
+ .figrow{display:block}
+ .figfold{position:static;box-shadow:none;padding-bottom:0}
+ .dials{flex-direction:row;justify-content:center;padding-top:6px;flex-wrap:nowrap;
+   gap:10px;width:100%}
+ .dial{flex:1 1 0;width:auto;max-width:118px;min-width:88px}
+ .dial .dname{font-size:11px;margin-bottom:2px}
+ .dial .dbtn{height:26px;font-size:11px}
+ .dial .dwin{height:54px}
+ .dial .dcol span{height:18px;line-height:18px;font-size:13px}
+ .dial .dcol span.cur{font-size:15px}
+ .dial .dwin::after{top:18px;height:18px}
+}
+.outrow .chips{flex-direction:column;align-items:stretch;margin:6px 0 0;min-width:150px}
+@media(max-width:560px){.outrow .chips{flex-direction:row;min-width:0}}
+.calcbox .rst .btn{font-size:12.5px;padding:7px 14px}
+
+table.tt{border-collapse:collapse;margin:8px auto;font-size:13.5px;width:100%;max-width:400px}
+table.tt th,table.tt td{border:1px solid var(--border);padding:5px 9px;text-align:center}
 table.tt th{background:var(--surface);font-weight:700;color:var(--ink-sub)}
-table.tt td.y1{background:rgba(91,124,153,.16);font-weight:700}
-.readout{background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13.5px;
- color:var(--ink-sub);margin-top:10px}
-.readout b{color:var(--ink)}
-.fig-legend{font-size:12.5px;color:var(--ink-muted);text-align:center;margin:2px 0 0}
-/* 分けられたかどうかを、文章の前に大きく出す（「何が OK か分からない」への対応） */
-.vd{display:inline-block;font-weight:700;font-size:14px;padding:8px 18px;border-radius:8px;
- margin:6px 0 2px}
+table.tt td.y1{background:rgba(110,123,168,.16);font-weight:700}
+table.tt tr.miss td{background:rgba(180,73,63,.10)}
+.vd{display:inline-block;font-weight:700;font-size:13.5px;padding:7px 16px;border-radius:8px;margin:4px 0}
 .vd.ok{background:rgba(21,128,61,.12);color:#15803d;border:1px solid rgba(21,128,61,.35)}
 .vd.ng{background:rgba(180,73,63,.10);color:#b4493f;border:1px solid rgba(180,73,63,.3)}
+.fig-legend{font-size:12.5px;color:var(--ink-muted);text-align:center;margin:4px 0 0}
 .lg-dot{display:inline-block;width:11px;height:11px;border-radius:50%;
- border:1.6px solid #1a1a1a;background:#fff;margin:0 6px 0 16px;vertical-align:-1px}
+ border:1.6px solid #6E7BA8;background:#fff;margin:0 6px 0 14px;vertical-align:-1px}
 .lg-dot:first-child{margin-left:0}
-.lg-dot.fill{background:#1a1a1a}
-.lg-dot.bad{border-color:#b4493f;border-width:3px}
-.tag{display:inline-block;background:var(--surface);border:1px solid var(--border);
- border-radius:14px;padding:3px 11px;font-size:12.5px;color:var(--ink-sub);margin-right:6px}
+.lg-dot.fill{background:#6E7BA8}
+.plotbox{flex:0 0 auto}
+.statfig{width:100%;max-width:276px;height:auto}
+.figrow .nnfig svg{max-width:400px}
+.nextfig{margin:18px auto 0;max-width:620px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px;font-size:13.5px}
+.nextfig a{font-weight:700}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -200,18 +256,6 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
-</style><style class="epoch-theme-fold">
-.foldbox{margin:0 0 2px;border:0}
-.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
- font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
- padding:5px 2px;user-select:none}
-.foldbox>summary::-webkit-details-marker{display:none}
-.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
- border-top:4px solid transparent;border-bottom:4px solid transparent;
- transition:transform .15s ease;flex:none}
-.foldbox[open]>summary::before{transform:rotate(90deg)}
-.foldbox>summary:hover{color:var(--ink)}
-.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><style class="epoch-theme-toc">
 .fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
  border:1px solid var(--border);border-radius:12px}
@@ -229,349 +273,540 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="intro">
 <div class="eyebrow">ARC 1 ／ SCENE 1-2 — 最初の人工ニューロン</div>
 <h1>1 個の計算点</h1>
-<p>1943 年、McCulloch と Pitts は神経細胞を「入力に<b>重み</b>を掛けて足し、
-<b>閾値</b>を超えたら 1 を出す」という 1 個の計算に置き換えた。
-1957 年、Rosenblatt はその重みを<b>機械自身に決めさせた</b>。
-何が変わったのか、そしてこの計算点 1 個に何ができないのかを、手を動かして確かめる。</p>
+<p><strong>重みを決めるのは誰か。1943 年は人、1957 年からは機械。</strong></p>
+<p>神経細胞を「入力に<b>重み</b>を掛けて足し、<b>閾値</b>を超えたら 1 を出す」という
+1 個の計算に置き換える。その重みを手で回してみて、次に機械自身に決めさせる。
+最後に、この計算点 1 個には<b>どうやっても届かない配置</b>があることを確かめる。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">重みと閾値の手動設定</a></li><li><a href="#sec2">パーセプトロンの学習則</a></li><li><a href="#sec3">線形分離可能性</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">重みと閾値を手で決める</a></li><li><a href="#sec2">機械が重みを決める</a></li><li><a href="#sec3">直線 1 本の限界</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>重みと閾値の手動設定 — 人が決めていた時代</h2>
+<h2>重みと閾値を手で決める — 1943 年</h2>
+
 <details class="foldbox" open><summary>説明</summary>
 <p>入力は 0 か 1 の 2 本。それぞれに重み $w_1, w_2$ を掛けて足し、合計が閾値 $\theta$ 以上なら
 出力は 1、そうでなければ 0。<b>これで全部だ</b>。
-重みと閾値を動かすと、同じ回路が AND になったり OR になったりする。</p>
+つまみを回すと、同じ回路が AND になったり OR になったりする。</p>
 </details>
-<div class="ctrls">
-  <label>$w_1$ <input type="range" id="w1" min="-2" max="2" step="1" value="1"></label>
-  <span class="tag" id="w1v">+1</span>
-  <label>$w_2$ <input type="range" id="w2" min="-2" max="2" step="1" value="1"></label>
-  <span class="tag" id="w2v">+1</span>
-  <label>$\theta$ <input type="range" id="th" min="-2" max="3" step="1" value="2"></label>
-  <span class="tag" id="thv">2</span>
-  <span class="tag">作りたい論理</span>
-  <button class="btn ghost" id="pAnd">AND</button>
-  <button class="btn ghost" id="pOr">OR</button>
+
+<details class="foldbox figfold" open><summary>構成図</summary>
+<div class="figrow">
+  <div class="nnfig"><svg id="n1" viewBox="0 0 340 210"></svg></div>
+  <div class="dials" id="d1"></div>
 </div>
-<details class="foldbox" open><summary>構成図</summary>
-<div id="v1"></div>
-<div id="t1"></div>
+<div class="chips" id="c1"></div>
 </details>
+
+<details class="calcbox"><summary>式と計算</summary>
+<div class="formula" id="f1"></div>
+<div class="readout" id="q1"></div>
+<div class="rst"><button class="btn ghost" id="rs1">初期値に戻す</button></div>
+</details>
+
+<div class="outrow">
+  <div id="t1"></div>
+  <div class="chips" id="g1"></div>
+</div>
 <div class="readout" id="r1"></div>
-<details class="foldbox" open><summary>補足</summary>
-<p class="note">1943 年の時点では、この $w$ と $\theta$ を決めるのは<b>人間</b>だった。
-作りたい論理が決まっていれば手で回せる。だが「作りたいものが分かっていない問題」には使えない。</p>
-</details>
 </div>
 <div class="fig-stage" id="sec2">
-<h2>パーセプトロンの学習則 — 重みの自動決定</h2>
-<details class="foldbox" open><summary>説明</summary>
-<p>1957 年のパーセプトロンは、答えだけを与えて重みを自分で直す。
-やり方は 1 つ——<b>間違えたときだけ、間違えた分だけ重みを動かす</b>。
-出したい答えが 1 なのに 0 を出したなら重みを増やし、逆なら減らす。それを繰り返す。</p>
+<h2>機械が重みを決める — 1957 年のパーセプトロン学習則</h2>
 
-<p>いま機械が使っている式は、これ 1 本だけだ。動かしているのは
-$w_0, w_1, w_2$ の <b>3 つの数</b>（$w_0$ は閾値にあたる下駄）。</p>
+<details class="foldbox" open><summary>説明</summary>
+<p>答えだけを与えて、重みは機械が自分で直す。やり方は 1 つ——
+<b>間違えたときだけ、間違えた分だけ動かす</b>。
+1 を出してほしいのに 0 を出したなら重みを増やし、逆なら減らす。</p>
+<p>直した重みは<b>図の中で光る</b>。どこが動いたかを目で追える。</p>
 </details>
-<details class="foldbox"><summary>式と計算</summary>
+
+<details class="foldbox figfold" open><summary>構成図</summary>
+<div class="nnfig" style="max-width:400px;margin:0 auto"><svg id="n2" viewBox="0 0 340 210"></svg></div>
+<p class="fig-legend">ここは機械が決めるので、つまみは無い。直した重みが光る。</p>
+</details>
+
+<details class="calcbox" open><summary>式と計算</summary>
 <div class="formula" id="f2"></div>
+<div class="readout" id="q2"></div>
 </details>
 
-<details class="foldbox" open><summary>説明</summary>
-<p class="note">下の図は<b>入力の 4 通り</b>を点で置いたもの。横が $x_1$、縦が $x_2$。
-線は、いまの重みで機械が引いている<b>境目</b>。線の上側で 1、下側で 0 を出す。</p>
-</details>
-
-<div class="ctrls">
-  <button class="btn" id="step2">▶ 1 回学習する</button>
-  <button class="btn ghost" id="auto2">できるまで回す</button>
-  <button class="btn ghost" id="reset2">重みをでたらめに戻す</button>
-  <label>教えたい論理 <select id="task2">
-    <option value="and">AND</option>
-    <option value="or">OR</option>
-  </select></label>
+<div class="stepnav">
+  <button class="btn" id="st2">1 回学習する</button>
+  <button class="btn ghost" id="au2">できるまで回す</button>
+  <button class="btn ghost" id="rs2">でたらめに戻す</button>
 </div>
-<details class="foldbox" open><summary>構成図</summary>
-<div id="v2"></div>
-</details>
-<details class="foldbox" open><summary>補足</summary>
-<p class="fig-legend"><span class="lg-dot fill"></span>この入力では 1 と答えてほしい<span class="lg-dot"></span>この入力では 0 と答えてほしい<span class="lg-dot bad"></span>いま機械が違う答えを出している</p>
-</details>
+<div class="outrow">
+  <div class="plotbox"><svg id="p2" class="statfig" viewBox="0 0 300 300"></svg></div>
+  <div class="chips" id="g2"></div>
+</div>
+<p class="fig-legend"><span class="lg-dot fill"></span>1 と答えてほしい入力<span class="lg-dot"></span>0 と答えてほしい入力</p>
 <div class="readout" id="r2"></div>
-<details class="foldbox" open><summary>構成図</summary>
-<div id="d2"></div>
-</details>
-<details class="foldbox" open><summary>補足</summary>
-<p class="note">人が正解の重みを知っている必要はない。<b>合っているか間違っているかを言うだけ</b>で、
-重みは勝手に決まっていく。これが「学習」と呼ばれたものの中身だ。</p>
-</details>
 </div>
 <div class="fig-stage" id="sec3">
-<h2>線形分離可能性 — 直線 1 本で分けられる配置と、分けられない配置</h2>
+<h2>直線 1 本の限界 — XOR の壁</h2>
 
 <details class="foldbox" open><summary>説明</summary>
-<p><b>1. 計算点 1 個が引けるのは、直線 1 本だけ。</b>
-式は $w_0 + w_1 x_1 + w_2 x_2$ の足し算しかない。これが 0 になる場所は、平面では必ず
-<b>まっすぐな線</b>になる。曲げる手立てが式の中に無い。</p>
-
-<p><b>2. その線で、答えを 2 つに仕分ける。</b>
-線の片側なら 1、反対側なら 0。「これは A か B か」を決めるとは、
-つまり<b>境目を引くこと</b>だ。手書き数字が 3 か 8 か、メールが迷惑か否か——
-判断と呼ばれるものの多くは、この形に置き直せる。だから
-「どこに線を引けるか」が、そのまま<b>何を判断できるか</b>になる。</p>
-
-<p><b>3. 引ければ OK、引けなければ NG。</b>
-線を回し、ずらして、4 点を正しく分けられるか試してほしい。
-分けられたとき、その線がそのまま重み $w_1, w_2$ の答えになる。</p>
+<p>計算点 1 個が引けるのは<b>直線 1 本だけ</b>。式は $w_0 + w_1 x_1 + w_2 x_2$ の足し算しかなく、
+これが 0 になる場所は平面では必ずまっすぐな線になる。曲げる手立てが式の中に無い。</p>
+<p>線の片側なら 1、反対側なら 0。「A か B か」を決めるとは、つまり<b>境目を引くこと</b>だ。
+だから<b>どこに線を引けるか</b>が、そのまま<b>何を判断できるか</b>になる。</p>
+<p>3 つのつまみを回して、4 点を正しく分けられるか試してほしい。
+AND は分けられる。<b>XOR は、どう回しても分けられない</b>。</p>
 </details>
 
-<div class="ctrls">
-  <label>直線の向き <input type="range" id="ang" min="0" max="179" value="45"></label>
-  <span class="tag" id="angv">45°</span>
-  <label>位置 <input type="range" id="off" min="-140" max="140" value="0"></label>
-  <button class="btn ghost" id="task3and">AND</button>
-  <button class="btn ghost" id="task3xor">XOR</button>
+<details class="foldbox figfold" open><summary>構成図</summary>
+<div class="figrow">
+  <div class="nnfig"><svg id="n3" viewBox="0 0 340 210"></svg></div>
+  <div class="dials" id="d3"></div>
 </div>
-<details class="foldbox" open><summary>構成図</summary>
-<div id="verdict3"></div>
-<div id="v3"></div>
 </details>
-<details class="foldbox" open><summary>補足</summary>
-<p class="fig-legend"><span class="lg-dot fill"></span>この入力では 1 と答えてほしい<span class="lg-dot"></span>この入力では 0 と答えてほしい<span class="lg-dot bad"></span>線の反対側にあって答えを間違える</p>
-</details>
-<details class="foldbox"><summary>式と計算</summary>
+
+<details class="calcbox"><summary>式と計算</summary>
 <div class="formula" id="f3"></div>
+<div class="readout" id="q3"></div>
+<div class="rst"><button class="btn ghost" id="rs3">初期値に戻す</button></div>
 </details>
+
+<div class="outrow">
+  <div class="plotbox"><svg id="p3" class="statfig" viewBox="0 0 300 300"></svg></div>
+  <div class="chips" id="g3"></div>
+</div>
+<p class="fig-legend"><span class="lg-dot fill"></span>1 と答えてほしい入力<span class="lg-dot"></span>0 と答えてほしい入力</p>
+<div id="vd3"></div>
 <div class="readout" id="r3"></div>
+
+<div class="nextfig">
+<b>この壁の越え方は Arc 2 で扱う。</b>
+計算点を<b>層にして重ねる</b>と曲がった境界が引けるようになり、その重みは
+<b>誤差を出口から入口へ配って</b>直せるようになる。
+→ <a href="../arc2/figures_nn.html#sec2">層を重ねて XOR を解く（Arc 2）</a>
+</div>
 </div>
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene2" data-t="巻末解説に戻る（Scene 2「パーセプトロンの興奮と絶望」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_turing.html" data-t="一つ前の図解へ（チューリングテスト）" aria-label="一つ前の図解へ（チューリングテスト）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_mycin.html" data-t="一つ後の図解へ（MYCIN 推論）" aria-label="一つ後の図解へ（MYCIN 推論）">&#9655;</a></nav></div>
 
 <script>
 (function(){
-  var $=function(s){return document.querySelector(s)};
-  function svg(w,h,inner){return '<svg width="100%" viewBox="0 0 '+w+' '+h+
-    '" style="max-width:'+w+'px;display:block;margin:6px auto">'+inner+'</svg>'}
-  var IN=[[0,0],[0,1],[1,0],[1,1]];
-  function truth(f){ return IN.map(function(p){ return f(p[0],p[1]) }) }
-  var TASK={and:function(a,b){return a&&b?1:0}, or:function(a,b){return a||b?1:0},
-            xor:function(a,b){return (a?1:0)^(b?1:0)}};
 
-  /* ---------- ① 手で決める ---------- */
-  function fire(w1,w2,th,x1,x2){ return (w1*x1+w2*x2>=th)?1:0 }
-  function draw1(){
-    var w1=+$('#w1').value, w2=+$('#w2').value, th=+$('#th').value;
-    $('#w1v').textContent=(w1>0?'+':'')+w1; $('#w2v').textContent=(w2>0?'+':'')+w2;
-    $('#thv').textContent=th;
-    var g='';
-    /* 回路図 */
-    var nx=330, ny=95;
-    [[0,60,'x1'],[1,140,'x2']].forEach(function(it){
-      var w=(it[0]===0?w1:w2);
-      g+='<circle class="nd" cx="120" cy="'+it[1]+'" r="22"/>';
-      g+='<text class="tx" x="120" y="'+(it[1]+5)+'">'+(it[0]===0?'x₁':'x₂')+'</text>';
-      g+='<path class="ed '+(w<0?'neg':'pos')+'" stroke-width="'+(1+Math.abs(w)*1.5)+
-         '" d="M142 '+it[1]+' L'+(nx-26)+' '+ny+'"/>';
-      g+='<text class="lb c" x="238" y="'+(it[1]+(it[0]===0?-8:20))+'">重み '+(w>0?'+':'')+w+'</text>';
-    });
-    g+='<circle class="nd" cx="'+nx+'" cy="'+ny+'" r="30"/>';
-    g+='<text class="tx" x="'+nx+'" y="'+(ny+5)+'">≥ '+th+'</text>';
-    g+='<text class="lb c" x="'+nx+'" y="'+(ny+50)+'">合計が閾値以上なら 1</text>';
-    g+='<path class="ed pos" stroke-width="2" d="M'+(nx+32)+' '+ny+' L'+(nx+92)+' '+ny+'"/>';
-    g+='<text class="lb" x="'+(nx+100)+'" y="'+(ny+5)+'">出力 y</text>';
-    $('#v1').innerHTML=svg(500,180,g);
-    /* 真理値表 */
-    var rows=IN.map(function(p){
-      var s=w1*p[0]+w2*p[1], y=fire(w1,w2,th,p[0],p[1]);
-      return '<tr><td>'+p[0]+'</td><td>'+p[1]+'</td><td>'+s+'</td>'+
-             '<td class="'+(y?'y1':'')+'">'+y+'</td></tr>';
-    }).join('');
-    $('#t1').innerHTML='<table class="tt"><tr><th>x₁</th><th>x₂</th>'+
-      '<th>w₁x₁+w₂x₂</th><th>出力 y</th></tr>'+rows+'</table>';
-    var got=truth(function(a,b){return fire(w1,w2,th,a,b)}).join('');
-    var name=null;
-    Object.keys(TASK).forEach(function(k){ if(truth(TASK[k]).join('')===got) name=k.toUpperCase() });
-    $('#r1').innerHTML = name
-      ? 'いまの設定は <b>'+name+'</b> になっている。'+
-        (name==='XOR' ? '' : ' 重みか閾値を 1 つ変えると、別の論理に変わる。')
-      : 'いまの設定は既知の論理と一致しない（出力は '+got+'）。'+
-        ' AND は「両方 1 のときだけ」、OR は「どちらか 1 なら」。ボタンで合わせてみてほしい。';
-  }
-  ['#w1','#w2','#th'].forEach(function(s){ $(s).oninput=draw1 });
-  $('#pAnd').onclick=function(){ $('#w1').value=1;$('#w2').value=1;$('#th').value=2; draw1(); };
-  $('#pOr').onclick=function(){ $('#w1').value=1;$('#w2').value=1;$('#th').value=1; draw1(); };
+  var ARC="#5B7C99", BAD="#b4493f", INK="#1A1A1A", MUTED="#9A9488", EDGE="#8d99c4";
+  var SVGNS="http://www.w3.org/2000/svg";
+  function el(t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);
+    if(txt!=null)e.textContent=txt;return e;}
+  function g(id){return document.getElementById(id);}
+  // ---- 数の見せ方。桁を出しすぎると辺のラベルが太って隣とぶつかる（幾何を実測して決めた）
+  // ※ ちょうど 0 を指数表記にしない。ReLU で死んだユニットや正解値 0 が 0e+0 と出て、
+  //   「0 なのか極小の数なのか」が読めなくなる（実際に出た）。
+  function nf(v){var a=Math.abs(v); if(a===0) return '0';
+    return a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=0.1?v.toFixed(2):a>=0.001?v.toFixed(3):v.toExponential(0);}
+  function ns(v){var a=Math.abs(v); if(a===0) return '0';
+    return a>=10?v.toFixed(0):a>=1?v.toFixed(1):a>=0.01?v.toFixed(2):v.toExponential(0);}
+  function f2(v){return v.toFixed(2);}
+  function vec(a,f){var i,o=[];for(i=0;i<a.length;i++)o.push((f||nf)(a[i]));return "( "+o.join(", ")+" )";}
+  // 式の途中に負数を挟むとき。「+ -0.80」ではなく「− 0.80」と書く。
+  function sgn(v,d){return (v<0?' − ':' + ')+Math.abs(v).toFixed(d==null?2:d);}
 
-  /* ---------- ② 機械が決める ---------- */
-  var W=[0,0,0], epoch=0, done=false;   /* W[0]=バイアス */
-  var _seed=0;
-  function rnd(){ _seed++; return Math.round(Math.sin(_seed*12.9898+epoch*7.13)*2) }
-  function predict(x1,x2){ return (W[0]+W[1]*x1+W[2]*x2>0)?1:0 }
-  /* データ座標 (u,v) ↔ 画面座標。u,v は -0.35〜1.35 を描く */
-  var OX=150, OY=205, SC=115, LO=-0.35, HI=1.35;
-  function SX(u){ return OX+u*SC } function SY(v){ return OY-v*SC }
-  function frame(g){
-    g.push('<line class="ax" x1="'+SX(LO)+'" y1="'+SY(0)+'" x2="'+SX(HI)+'" y2="'+SY(0)+'"/>');
-    g.push('<line class="ax" x1="'+SX(0)+'" y1="'+SY(LO)+'" x2="'+SX(0)+'" y2="'+SY(HI)+'"/>');
-    g.push('<text class="lb" x="'+(SX(HI)+6)+'" y="'+(SY(0)+5)+'">x₁</text>');
-    g.push('<text class="lb c" x="'+SX(0)+'" y="'+(SY(HI)-8)+'">x₂</text>');
+  // ---- データセット（入力は 0/1 の四隅まわり）
+  function mk(kind){
+    // ※ かんたん例で四隅を使うと、点が境界線の**真上**に載って正解率が上がりきらない
+    //   （既定の重みで 86% にしかならず「分けられる例」に見えない）。2 クラスタにする。
+    var pts=[],i,j,r=function(){return (Math.random()-0.5)*0.20;};
+    // AND: 両方 1 のときだけ 1。XOR と同じ四隅を使うので、直線 1 本で
+    // 分けられる／分けられないの対比がそのまま出る。
+    var spec = (kind==='xor')
+      ? [[0,0,0],[0,1,1],[1,0,1],[1,1,0]]
+      : [[0,0,0],[0,1,0],[1,0,0],[1,1,1]];
+    for(i=0;i<spec.length;i++) for(j=0;j<9;j++)
+      pts.push({x:Math.min(1,Math.max(0,spec[i][0]+r())),
+                y:Math.min(1,Math.max(0,spec[i][1]+r())),l:spec[i][2]});
+    return pts;
   }
-  /* w0 + w1 u + w2 v = 0 を可視範囲でクリップして 1 本の線分にする */
-  function clipLine(w0,w1,w2){
-    var pts=[];
-    if(w2!==0){ [LO,HI].forEach(function(u){ var v=-(w0+w1*u)/w2;
-      if(v>=LO-1e-9&&v<=HI+1e-9) pts.push([u,v]); }); }
-    if(w1!==0){ [LO,HI].forEach(function(v){ var u=-(w0+w2*v)/w1;
-      if(u>=LO-1e-9&&u<=HI+1e-9) pts.push([u,v]); }); }
-    if(pts.length<2) return null;
-    return [pts[0], pts[pts.length-1]];
+  var DS={easy:mk('easy'), xor:mk('xor')}, curDs='easy';
+  function plot(svg,pts,decide,pad){
+    pad=pad||26; svg.innerHTML='';
+    var S=300, W=S-pad*2;
+    var X=function(x){return pad+x*W;}, Y=function(y){return S-pad-y*W;};
+    // 決定領域を格子で塗る
+    var N=44, cw=W/N, k, m;
+    for(k=0;k<N;k++) for(m=0;m<N;m++){
+      var xx=(k+0.5)/N, yy=(m+0.5)/N, v=decide(xx,yy);
+      if(v==null) continue;
+      svg.appendChild(el('rect',{x:X(xx)-cw/2,y:Y(yy)-cw/2,width:cw+0.6,height:cw+0.6,
+        fill: v>=0.5?ARC:BAD, opacity: 0.10+0.13*Math.abs(v-0.5)*2}));
+    }
+    svg.appendChild(el('rect',{x:pad,y:pad,width:W,height:W,fill:'none',stroke:'#E4E1D8'}));
+    svg.appendChild(el('text',{x:pad,y:S-8,'font-size':11,fill:MUTED},'x₁ →'));
+    svg.appendChild(el('text',{x:pad-6,y:pad-8,'font-size':11,fill:MUTED},'x₂ ↑'));
+    var ok=0;
+    for(k=0;k<pts.length;k++){
+      var p=pts[k], d=decide(p.x,p.y), pred=(d!=null&&d>=0.5)?1:0;
+      if(pred===p.l) ok++;
+      svg.appendChild(el('circle',{cx:X(p.x),cy:Y(p.y),r:5,
+        fill: p.l?ARC:'#fff', stroke: p.l?ARC:BAD,'stroke-width':1.6}));
+    }
+    return ok/pts.length;
   }
-  function sgn(v){ return (v>0?'+':'−')+Math.abs(v) }
-  /* ※ 「式が何で、重みが何か分からない」と言われた（読者の指摘）。
-        いまの 3 つの数を式に入れて、そのまま見せる。 */
-  function showForm2(){
-    $('#f2').innerHTML =
-      '<div style="font-size:15px">'+
-      '出力 y = 1（ <b>'+sgn(W[0])+' '+sgn(W[1])+'&thinsp;x₁ '+sgn(W[2])+'&thinsp;x₂</b> &gt; 0 のとき）'+
-      '、それ以外は 0</div>'+
-      '<div class="note" style="margin-top:6px">'+
-      'w₀ = <b>'+sgn(W[0])+'</b>　w₁ = <b>'+sgn(W[1])+'</b>　w₂ = <b>'+sgn(W[2])+'</b>'+
-      '　← 学習で動くのはこの 3 つだけ</div>';
+  // ---- ニューラルネットの幾何。②③④は 2-3-2、⑤は 2-3-3-3-3-2。描き手は下の renderNet ひとつ。
+  // ※ 縦の間隔は**列ごとに**変える。丸の下の注記（m=… / 正解 …）と、その下の丸の名前
+  //   （n₂ / y₂）が同じ隙間を取り合って重なるため。丸の直径 42 に対して隙間 36 では、
+  //   注記(+36)と次の名前(−29)が 13 しか離れず、実測で文字がぶつかった。
+  function geom(shape,VW,cy,gaps,r,pad){
+    var xs=[],ys=[],i,j,n=shape.length;
+    for(i=0;i<n;i++) xs.push(pad + (VW-pad*2)*(n>1?i/(n-1):0));
+    for(i=0;i<n;i++){var gp=(gaps.length?gaps[i]:gaps),a=[];
+      for(j=0;j<shape[i];j++)a.push(cy+gp*(j-(shape[i]-1)/2));ys.push(a);}
+    return {shape:shape,xs:xs,ys:ys,r:r,VW:VW};
   }
-  function draw2(msg){
-    var g=[]; frame(g);
-    var seg=clipLine(W[0],W[1],W[2]);
-    if(seg) g.push('<path class="bd" d="M'+SX(seg[0][0])+' '+SY(seg[0][1])+
-                   ' L'+SX(seg[1][0])+' '+SY(seg[1][1])+'"/>');
-    var task=TASK[$('#task2').value], wrong=0;
-    IN.forEach(function(p){
-      var want=task(p[0],p[1]), got=predict(p[0],p[1]);
-      if(want!==got) wrong++;
-      g.push('<circle class="pt '+(want?'one':'zero')+(want!==got?' bad':'')+
-             '" cx="'+SX(p[0])+'" cy="'+SY(p[1])+'" r="9"/>');
-    });
-    $('#v2').innerHTML=svg(520,250,g.join(''));
-    showForm2();
-    var out=[];
-    if(msg) out.push(msg);
-    if(!seg) out.push('いまの重みでは、境界線が図の外にある（4 点すべてが同じ側）。');
-    out.push(wrong===0
-      ? '<b>4 つとも当たった。</b>学習はここで止まる。誰も正解の重みを教えていない。'
-      : '<b>'+wrong+' 個</b>間違えている。「▶ 1 回学習する」で直す。');
-    $('#r2').innerHTML=out.join(' ');
+  function paint(v,bad){
+    var c = bad ? '180,73,63' : '110,123,168';
+    return 'rgba('+c+','+(0.05+0.62*Math.max(0,Math.min(1,v))).toFixed(3)+')';
   }
-  /* どの重みをいくつ動かしたかを残す（「どこを直したか分からない」への対応） */
-  var lastDiff=null;
-  function learn(){
-    if(done) return false;
-    var task=TASK[$('#task2').value], changed=false;
-    lastDiff=null;
-    for(var i=0;i<IN.length;i++){
-      var p=IN[i], want=task(p[0],p[1]), got=predict(p[0],p[1]);
-      if(want!==got){
-        var d=want-got, before=W.slice();
-        W[0]+=d; W[1]+=d*p[0]; W[2]+=d*p[1];
-        lastDiff={x:p, want:want, got:got, before:before, after:W.slice()};
-        changed=true; break;                 /* 1 回に 1 個だけ直す（見えるように） */
+
+  // ※ 辺のラベルは **t（辺上の位置）を送り元ごとにずらして**置く。同じ t に置くと
+  //   左右対称なニューラルネットでは中央で必ず重なる（x₁→n₂ と x₂→n₁ の中点が一致する）。
+  //   下の T0/T1 は「隣り合うラベルが x で 43 単位以上離れるか、y で 20 単位以上離れる」
+  //   ことを 12 本すべてについて実測して決めた値。数字の桁を増やすと崩れる。
+  var SUB=['₀','₁','₂','₃'];
+  var T0=[0.42,0.76];
+  var T1=[[0.16,0.27],[0.44,0.55],[0.74,0.84]];
+  // ※ ②③ はラベルが 2 行＋▲▼ で幅も高さも違うので、専用の位置表を持つ。
+  //   ④⑤（1 行ラベル）と共用すると、片方を直すともう片方が崩れる。
+  var T0B=[0.36,0.80], T1B=[[0.36,0.66],[0.36,0.74],[0.36,0.84]];
+  function renderNet(svg,gg,o){
+    svg.innerHTML='';
+    var i,j,k,n=gg.shape.length;
+    for(i=0;i<n-1;i++){
+      var st=o.edgeState?o.edgeState(i):2;
+      for(j=0;j<gg.shape[i];j++) for(k=0;k<gg.shape[i+1];k++){
+        var a={x1:(gg.xs[i]+gg.r).toFixed(1), y1:gg.ys[i][j].toFixed(1),
+               x2:(gg.xs[i+1]-gg.r).toFixed(1), y2:gg.ys[i+1][k].toFixed(1),
+               stroke:o.edgeInk?o.edgeInk(i,j,k):EDGE,
+               'stroke-width':(o.edgeW?o.edgeW(i,j,k):1.3).toFixed(2),
+               opacity:(st?1:0.14).toFixed(2)};
+        if(st===2) a['class']=o.rev?'nnfr':'nnf';
+        svg.appendChild(el('line',a));
       }
     }
-    epoch++;
-    if(!changed) done=true;
-    return changed;
-  }
-  function showDiff(){
-    if(!lastDiff){ $('#d2').innerHTML=''; return; }
-    var d=lastDiff, names=['w₀','w₁','w₂'], rows='';
-    for(var k=0;k<3;k++){
-      var moved=d.before[k]!==d.after[k];
-      rows+='<tr><td>'+names[k]+'</td><td>'+sgn(d.before[k])+'</td>'+
-        '<td>'+(moved?'→':'')+'</td>'+
-        '<td class="'+(moved?'y1':'')+'">'+sgn(d.after[k])+'</td>'+
-        '<td class="note">'+(moved?'動いた':'そのまま')+'</td></tr>';
+    if(o.edgeLabel) for(i=0;i<n-1;i++){
+      if(o.edgeState && !o.edgeState(i)) continue;
+      for(j=0;j<gg.shape[i];j++) for(k=0;k<gg.shape[i+1];k++){
+        var s=o.edgeLabel(i,j,k); if(s==null) continue;
+        var t=o.edgeT(i,j,k), fs=o.efs||12.5;
+        var ax=gg.xs[i]+gg.r, bx=gg.xs[i+1]-gg.r;
+        var px=ax+(bx-ax)*t, py=gg.ys[i][j]+(gg.ys[i+1][k]-gg.ys[i][j])*t;
+        // 配列で返ってきたら [名前, 数字] の 2 段。横に並べず縦に積むのは、
+        // 横幅を増やすと隣のラベルとぶつかるため（T0/T1 は実測で決めた値）。
+        var two=(typeof s!=='string'), nmS=two?s[0]:null, vS=two?s[1]:s;
+        var wd=Math.max(vS.length,(nmS||'').length)*fs*0.60+6;
+        var hh=two?fs*2.9:fs*1.6, top=py-(two?fs*1.80:fs*0.80);
+        var edit=o.step?o.step(i,j,k):false;
+        svg.appendChild(el('rect',{x:(px-wd/2).toFixed(1),y:top.toFixed(1),
+          width:wd.toFixed(1),height:hh.toFixed(1),rx:3,fill:'#fff',opacity:0.93}));
+        var ink=o.labelInkAt?o.labelInkAt(i,j,k):(o.labelInk||'#565248');
+        var nInk=edit?'#8a6b4f':(o.nameInkAt?o.nameInkAt(i,j,k):ARC);
+        var thru='';
+        // いまダイヤルで触っている重みは、名前も数値も光彩で囲って目立たせる
+        // （どこが変わっているのか分からない、という読者の指摘）。
+        var lit=o.hl?o.hl(i,j,k):false;
+        var halo=function(x,y,size,txt){
+          svg.appendChild(el('text',{x:x,y:y,'font-size':size,'text-anchor':'middle',
+            fill:'none',stroke:'#F6D9A8','stroke-width':5,'stroke-linejoin':'round',
+            style:'paint-order:stroke;pointer-events:none'},txt));
+        };
+        if(two){
+          if(lit) halo(px.toFixed(1),(py-fs*0.52).toFixed(1),(fs*0.86).toFixed(1),nmS);
+          svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
+            'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',
+            fill:lit?'#8a6b4f':nInk,style:thru},nmS));
+        }
+        if(lit) halo(px.toFixed(1),(py+(two?fs*1.02:fs*0.35)).toFixed(1),fs,vS);
+        svg.appendChild(el('text',{x:px.toFixed(1),y:(py+(two?fs*1.02:fs*0.35)).toFixed(1),
+          'font-size':fs,'text-anchor':'middle',fill:lit?INK:ink,
+          'font-weight':lit?'700':'400',style:thru},vS));
+      }
     }
-    $('#d2').innerHTML=
-      '<p class="note" style="margin-top:10px">入力 (x₁,x₂) = ('+d.x[0]+','+d.x[1]+') で、'+
-      '<b>'+d.want+'</b> と答えてほしいのに <b>'+d.got+'</b> と答えた。'+
-      'そこで重みをこう直した:</p>'+
-      '<table class="tt"><tr><th>重み</th><th>前</th><th></th><th>後</th><th>　</th></tr>'+
-      rows+'</table>'+
-      '<p class="note">動くのは、その入力が 1 だった重みだけ（x が 0 の側は掛けて 0 になるので動かない）。'+
-      'これが「間違えた分だけ動かす」の中身。</p>';
+    for(i=0;i<n;i++) for(j=0;j<gg.shape[i];j++){
+      var lit=o.nodeState?o.nodeState(i,j):1, cx=gg.xs[i], cy=gg.ys[i][j];
+      svg.appendChild(el('circle',{cx:cx.toFixed(1),cy:cy.toFixed(1),r:gg.r,
+        fill:o.nodeFill?o.nodeFill(i,j):'#EAEDF7',
+        stroke:o.nodeStroke?o.nodeStroke(i,j):'#6E7BA8','stroke-width':1.6,
+        opacity:(lit?1:0.2).toFixed(2)}));
+      var nm=o.nodeName?o.nodeName(i,j):null;
+      if(nm) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy-gg.r-8).toFixed(1),'font-size':12.5,
+        'text-anchor':'middle',fill:MUTED,'font-style':'italic',
+        opacity:(lit?1:0.3).toFixed(2)},nm));
+      var tv=o.nodeText?o.nodeText(i,j):null;
+      if(tv!=null) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy+5).toFixed(1),
+        'font-size':o.nfs||14.5,'text-anchor':'middle',fill:INK,
+        opacity:(lit?1:0.25).toFixed(2)},tv));
+      var sb=o.nodeSub?o.nodeSub(i,j):null;
+      if(sb) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy+gg.r+15).toFixed(1),'font-size':11.5,
+        'text-anchor':'middle',fill:o.subInk||MUTED,opacity:(lit?1:0.3).toFixed(2)},sb));
+    }
+    if(o.deco) o.deco(svg);
   }
-  function reset2(){
-    epoch++; done=false; lastDiff=null;
-    W=[rnd(), rnd(), rnd()];
-    draw2('でたらめな重みから始める。'); showDiff();
-  }
-  $('#step2').onclick=function(){
-    var ch=learn();
-    draw2(ch ? '間違えた 1 つを見て、重みを直した。' : '直すところが無い＝できあがり。');
-    showDiff();
-  };
-  $('#auto2').onclick=function(){ var n=0; while(learn()&&n<200) n++;
-    draw2('<b>'+n+' 回</b>直したら、間違いが無くなった。'); showDiff(); };
-  $('#reset2').onclick=reset2;
-  $('#task2').onchange=function(){ done=false; lastDiff=null;
-    draw2('教えたい論理を変えた。'); showDiff(); };
-
-  /* ---------- ③ 直線 1 本の限界 ---------- */
-  var task3='and';
-  function draw3(){
-    var ang=+$('#ang').value, off=+$('#off').value;
-    $('#angv').textContent=ang+'°';
-    var g=[]; frame(g);
-    /* 向き ang・オフセット off の直線を、法線形式にしてから同じクリップに掛ける。
-       ※ もとは nx=-sin(ang) だった。ang は 0〜179 なので sin は常に 0 以上、
-          つまり **w₁ が常に 0 以下**になり、「x₁ が大きいほど 1 に近づく」線を
-          1 本も引けなかった。結果、AND も OR も **どう回しても分けられない**
-          （総当たりで 0 通り）。「AND は分けられる」という節の主張が成立して
-          いなかったし、OK の状態を一度も見られなかった（読者の指摘の原因）。 */
-    var rad=ang*Math.PI/180, nx=Math.sin(rad), ny=Math.cos(rad);
-    var w0=-(nx*0.5+ny*0.5) - off/300, w1=nx, w2=ny;
-    var seg=clipLine(w0,w1,w2);
-    if(seg) g.push('<path class="bd" d="M'+SX(seg[0][0])+' '+SY(seg[0][1])+
-                   ' L'+SX(seg[1][0])+' '+SY(seg[1][1])+'"/>');
-    var f=TASK[task3], wrong=0;
-    IN.forEach(function(p){
-      var side=(w0+w1*p[0]+w2*p[1])>0 ? 1:0;
-      var want=f(p[0],p[1]);
-      if(side!==want) wrong++;
-      g.push('<circle class="pt '+(want?'one':'zero')+(side!==want?' bad':'')+
-             '" cx="'+SX(p[0])+'" cy="'+SY(p[1])+'" r="10"/>');
+  // ---- 機械式スロット（図の外・右側）。読者の指摘に沿って作り直した:
+  //   ・図の中ではなく右にまとめる（図が読みやすくなる。数値は図と同期）
+  //   ・角丸をやめ、暗い窓に凹みを付けて本物のスロットらしく
+  //   ・名前は枠の外の上に置く
+  //   ・PC で払いにくいので、上下のボタンと**マウスホイール**でも 1 段ずつ動く
+  //   ・払ったあとの減速を強める（0.90 → 0.72）
+  var DIALS={};                      // {箱の id: [{i,j,k}...]}
+  var HLW=null;                      // いま触っている重み {i,j,k}
+  function isHL(i,j,k){ return !!HLW && HLW.i===i && HLW.j===j && HLW.k===k; }
+  function buildDials(boxId, list, get, set, after){
+    var box=g(boxId); if(!box) return;
+    if(box.getAttribute('data-built')!=='1'){
+      box.setAttribute('data-built','1');
+      box.innerHTML='';
+      list.forEach(function(w,n){
+        var d=document.createElement('div'); d.className='dial';
+        d.innerHTML='<div class="dname">'+w.nm+'</div>'
+          +'<button class="dbtn" data-d="1" aria-label="ひとつ増やす">▲</button>'
+          +'<div class="dwin"><div class="dcol"></div></div>'
+          +'<button class="dbtn" data-d="-1" aria-label="ひとつ減らす">▼</button>';
+        box.appendChild(d);
+        var col=d.querySelector('.dcol'), win=d.querySelector('.dwin');
+        var st=(w.st||0.1), lo=(w.lo==null?-6:w.lo), hi=(w.hi==null?6:w.hi);
+        var q=function(v){ return Math.round(v/st)*st; };
+        var val=function(){ return get(w.i,w.j,w.k); };
+        var put=function(v){ HLW={i:w.i,j:w.j,k:w.k};
+          set(w.i,w.j,w.k, Math.max(lo,Math.min(hi, +q(v).toFixed(4)))); after(); };
+        d.querySelectorAll('.dbtn').forEach(function(btn){
+          var dd=+btn.getAttribute('data-d'), t=null, iv=null;
+          btn.addEventListener('pointerdown',function(ev){
+            ev.preventDefault(); put(val()+dd*st);
+            t=setTimeout(function(){ iv=setInterval(function(){ put(val()+dd*st); },110); },420);
+            var stop=function(){ clearTimeout(t); if(iv)clearInterval(iv);
+              window.removeEventListener('pointerup',stop); };
+            window.addEventListener('pointerup',stop);
+          });
+        });
+        // マウスホイールで 1 段ずつ（PC では払うより確実）
+        win.addEventListener('wheel',function(ev){
+          ev.preventDefault(); put(val() + (ev.deltaY<0?st:-st));
+        },{passive:false});
+        // 払う。離したあとの減速は強め
+        win.addEventListener('pointerdown',function(ev){
+          ev.preventDefault();
+          // ※ 1 回ごとに 0.1 へ丸めると、小刻みな移動が毎回 0 に戻って積み上がらない
+          //   （実際に払っても値が動かなかった）。掴んだ時の値からの差を貯めて使う。
+          var last=ev.clientY, vel=0, raf=null, base=val(), acc=0;
+          var apply=function(dy){ acc += -dy/22*st; put(base+acc); };
+          var onMove=function(m){ var dy=m.clientY-last; last=m.clientY; vel=dy; apply(dy); };
+          var glide=function(){ vel*=0.86; if(Math.abs(vel)<0.35){raf=null;return;}
+            apply(vel); raf=requestAnimationFrame(glide); };
+          var onUp=function(){ window.removeEventListener('pointermove',onMove);
+            window.removeEventListener('pointerup',onUp);
+            if(Math.abs(vel)>1.2) raf=requestAnimationFrame(glide); };
+          window.addEventListener('pointermove',onMove);
+          window.addEventListener('pointerup',onUp);
+        });
+        w._col=col;
+      });
+      DIALS[boxId]=list;
+    }
+    // 窓の中身を書き直す（上 2 段・現在・下 2 段）
+    (DIALS[boxId]||list).forEach(function(w){
+      if(!w._col) return;
+      var host=w._col.closest('.dial');
+      if(host) host.classList.toggle('lit', isHL(w.i,w.j,w.k));
+      var v=get(w.i,w.j,w.k), st=(w.st||0.1), dg=(w.dg==null?1:w.dg), h='';
+      [2,1,0,-1,-2].forEach(function(o){
+        h+='<span'+(o===0?' class="cur"':'')+'>'+(v+o*st).toFixed(dg)+'</span>';
+      });
+      w._col.innerHTML=h;
+      var rowh=(window.matchMedia('(max-width:620px)').matches)?18:22;
+      w._col.style.transform='translateY(-'+rowh+'px)';
     });
-    $('#v3').innerHTML=svg(520,250,g.join(''));
-    var name=task3.toUpperCase();
-    /* ※ 「何が OK の状態なのか分からない」と言われた（読者の指摘）。
-          分けられたかどうかを、文章の前に大きく出す。 */
-    $('#verdict3').innerHTML = wrong===0
-      ? '<div class="vd ok">OK — '+name+' は直線 1 本で分けられた</div>'
-      : '<div class="vd ng">NG — '+wrong+' 点が反対側にある（'+name+'）</div>';
-    /* 引いた線は、そのまま重みの答えになる。対応を見せる */
-    $('#f3').innerHTML =
-      '<div style="font-size:15px">いまの線 = <b>'+sgn3(w0)+' '+sgn3(w1)+'&thinsp;x₁ '+
-      sgn3(w2)+'&thinsp;x₂ = 0</b></div>'+
-      '<div class="note" style="margin-top:6px">'+
-      (wrong===0
-        ? 'つまり <b>w₁ = '+sgn3(w1)+'、w₂ = '+sgn3(w2)+'</b>（下駄 w₀ = '+sgn3(w0)+'）と'+
-          '決まれば、この論理は作れる。②の学習が探していたのは、この数だ。'
-        : 'この重みでは間違える。角度と位置を変えると、w₁ と w₂ が変わる。')+
-      '</div>';
-    $('#r3').innerHTML = wrong===0
-      ? '4 点が線の正しい側にそろっている。'
-      : (task3==='xor'
-          ? 'XOR は、どう回しても・どこへ動かしても<b>直線 1 本では分けられない</b>——'+
-            '●が対角、○が対角に置かれているからだ。'+
-            ' 計算点 1 個にできることは、ここまで。次に要るのは、線を 2 本以上引ける仕組み——層を重ねることだ。'
-          : '角度と位置を調整すれば分けられる。');
   }
-  function sgn3(v){ var r=Math.round(v*100)/100; return (r>=0?'+':'−')+Math.abs(r) }
-  $('#ang').oninput=draw3; $('#off').oninput=draw3;
-  /* 押した瞬間の状態から始めると、いきなり OK だったり遠すぎたりして
-     「動かして OK にする」体験にならない。あと一歩の NG から始める。
-     AND は 45°/−60 が 2 点はずれ。位置スライダを右へ動かすと OK になる。 */
-  $('#task3and').onclick=function(){ task3='and'; $('#ang').value=45; $('#off').value=-60; draw3(); };
-  $('#task3xor').onclick=function(){ task3='xor'; $('#ang').value=45; $('#off').value=0; draw3(); };
+  function heads(svg,gg,labs,y){
+    var i; for(i=0;i<labs.length;i++)
+      svg.appendChild(el('text',{x:gg.xs[i].toFixed(1),y:y,'font-size':13,'text-anchor':'middle',
+        fill:MUTED},labs[i]));
+  }
 
-  draw1(); reset2(); draw3();
+
+
+  /* ---------- 共通 ---------- */
+  var IN=[[0,0],[0,1],[1,0],[1,1]];
+  var LOGIC={and:function(a,b){return a&&b?1:0},
+             or:function(a,b){return (a||b)?1:0},
+             xor:function(a,b){return (a?1:0)^(b?1:0)}};
+  var LNAME={and:'AND',or:'OR',xor:'XOR'};
+  function chips(boxId, list, cur, pick){
+    var box=g(boxId); if(!box) return;
+    box.innerHTML='';
+    list.forEach(function(it){
+      var b=document.createElement('button');
+      b.className='chip'+(it.k===cur?' on':''); b.textContent=it.t;
+      b.onclick=function(){ pick(it.k); };
+      box.appendChild(b);
+    });
+  }
+  /* 図の幾何。入力 2 → 計算点 1。②③ は下駄 w₀ を持つので入力 3 本ぶんの高さを取る */
+  var GN=geom([2,1],340,104,[104,0],21,46);
+
+  /* ---------- ① 手で決める ---------- */
+  var A={w1:1, w2:1, th:2}, A0={w1:1, w2:1, th:2}, aIn=3, aGoal='and';
+  function aFire(x1,x2){ return (A.w1*x1+A.w2*x2 >= A.th) ? 1 : 0; }
+  function drawA(){
+    var x=IN[aIn], nm=['w₁','w₂'], vs=[A.w1,A.w2];
+    renderNet(g('n1'),GN,{
+      efs:12.5, nfs:14, hl:isHL,
+      edgeState:function(){ return 1; },
+      edgeT:function(){ return 0.34; },
+      edgeLabel:function(i,j){ return [nm[j], vs[j].toFixed(0)]; },
+      edgeInk:function(){ return ARC; },
+      edgeW:function(i,j){ return 1.2+Math.abs(vs[j])*0.8; },
+      nodeName:function(i,j){ return i===0?['x₁','x₂'][j]:'y'; },
+      nodeText:function(i,j){ return i===0?String(x[j]):String(aFire(x[0],x[1])); },
+      nodeFill:function(i,j){ return i===0?(x[j]?paint(0.9):'#F4F2EC')
+                                         :paint(aFire(x[0],x[1])?1:0.05); },
+      nodeSub:function(i,j){ return i===1?('合計が '+A.th+' 以上なら 1'):null; }
+    });
+    buildDials('d1',
+      [{nm:'w₁',i:0,j:0,k:0,st:1,lo:-3,hi:3,dg:0},
+       {nm:'w₂',i:0,j:1,k:0,st:1,lo:-3,hi:3,dg:0},
+       {nm:'θ', i:1,j:0,k:0,st:1,lo:-2,hi:4,dg:0}],
+      function(i,j){ return i===1?A.th:(j===0?A.w1:A.w2); },
+      function(i,j,k,v){ if(i===1)A.th=v; else if(j===0)A.w1=v; else A.w2=v; },
+      drawA);
+    chips('c1', IN.map(function(p,n){ return {k:n,t:'入力 '+p[0]+','+p[1]}; }), aIn,
+      function(k){ aIn=k; drawA(); });
+
+    var s=A.w1*x[0]+A.w2*x[1];
+    g('f1').innerHTML='$$z = w_1 x_1 + w_2 x_2,\\qquad y=\\begin{cases}1 & (z \\ge \\theta)\\\\ 0 & (z < \\theta)\\end{cases}$$';
+    g('q1').innerHTML='いまの入力 ('+x[0]+', '+x[1]+') では '
+      +'<b>z = '+A.w1+'×'+x[0]+' + '+A.w2+'×'+x[1]+' = '+s+'</b>。'
+      +' θ = '+A.th+' なので y = <b>'+aFire(x[0],x[1])+'</b>。';
+
+    /* 出力: 4 通りの真理値表 */
+    var want=LOGIC[aGoal], ok=0, rows='';
+    IN.forEach(function(p,n){
+      var y=aFire(p[0],p[1]), t=want(p[0],p[1]), hit=(y===t); if(hit) ok++;
+      rows+='<tr'+(hit?'':' class="miss"')+(n===aIn?' style="outline:2px solid var(--link);outline-offset:-2px"':'')
+        +'><td>'+p[0]+'</td><td>'+p[1]+'</td><td>'+(A.w1*p[0]+A.w2*p[1])+'</td>'
+        +'<td class="'+(y?'y1':'')+'">'+y+'</td><td>'+t+'</td></tr>';
+    });
+    g('t1').innerHTML='<table class="tt"><tr><th>x₁</th><th>x₂</th><th>z</th><th>いまの y</th>'
+      +'<th>'+LNAME[aGoal]+'</th></tr>'+rows+'</table>';
+    chips('g1',[{k:'and',t:'AND を作る'},{k:'or',t:'OR を作る'}],aGoal,
+      function(k){ aGoal=k; drawA(); });
+    g('r1').innerHTML = (ok===4)
+      ? '<b class="vd ok">4 通りとも '+LNAME[aGoal]+' と一致</b><br>'
+        +'この $w_1, w_2, \\theta$ を決めたのは人間だ。作りたい論理が分かっていれば手で回せる。'
+      : '4 通り中 <b>'+ok+' 通り</b>が一致。つまみを回して残りを合わせる。';
+    if(window.renderAllMath) renderAllMath();
+  }
+
+  /* ---------- ② 機械が決める ---------- */
+  /* w0 は閾値にあたる下駄。z = w0 + w1 x1 + w2 x2 > 0 で 1 を出す。 */
+  var W=[0,0,0], bGoal='and', bEpoch=0, bTimer=null, bMoved=null;
+  function bPred(x1,x2){ return (W[0]+W[1]*x1+W[2]*x2 > 0) ? 1 : 0; }
+  function bReset(){
+    /* 決め打ちの「はずれた」初期値。乱数だと毎回むずかしさが変わる */
+    W=[0.6,-0.8,0.5]; bEpoch=0; bMoved=null; drawB();
+  }
+  function bStep(){
+    var moved=null;
+    for(var n=0;n<IN.length;n++){
+      var p=IN[n], t=LOGIC[bGoal](p[0],p[1]), y=bPred(p[0],p[1]);
+      if(y!==t){ var e=t-y;
+        W[0]+=0.5*e; W[1]+=0.5*e*p[0]; W[2]+=0.5*e*p[1];
+        moved=[0]; if(p[0])moved.push(1); if(p[1])moved.push(2);
+        break; }
+    }
+    bEpoch++; bMoved=moved; drawB();
+    return moved!==null;                      /* まだ直すところがあった */
+  }
+  function drawB(){
+    var nm=['w₁','w₂'];
+    renderNet(g('n2'),GN,{
+      efs:12.5, nfs:14,
+      hl:function(i,j,k){ return !!bMoved && bMoved.indexOf(j+1)>=0 && i===0; },
+      edgeState:function(){ return 1; },
+      edgeT:function(){ return 0.34; },
+      edgeLabel:function(i,j){ return [nm[j], W[j+1].toFixed(1)]; },
+      edgeInk:function(){ return ARC; },
+      edgeW:function(i,j){ return 1.2+Math.abs(W[j+1])*0.8; },
+      nodeName:function(i,j){ return i===0?['x₁','x₂'][j]:'y'; },
+      nodeText:function(i,j){ return i===0?'':''; },
+      nodeFill:function(i,j){ return i===0?'#F4F2EC':paint(0.35); },
+      nodeSub:function(i,j){ return i===1?('下駄 w₀ = '+W[0].toFixed(1)):null; }
+    });
+    g('f2').innerHTML='$$w_i \\leftarrow w_i + \\eta\\,(t-y)\\,x_i$$';
+    var mv = bMoved ? bMoved.map(function(k){ return k===0?'w₀':nm[k-1]; }).join('・') : null;
+    g('q2').innerHTML = (bEpoch===0)
+      ? '$t$ は出してほしい答え、$y$ はいま出した答え。合っていれば $t-y=0$ で<b>何も動かない</b>。'
+      : (mv ? bEpoch+' 回目: <b>'+mv+'</b> を直した（$\\eta$ = 0.5）。'
+            : bEpoch+' 回目: 4 通りとも合っていたので<b>何も動かさなかった</b>。');
+    /* 出力: 決定領域 */
+    plot(g('p2'), DS[bGoal==='and'?'easy':'xor'], function(x,y){ return bPred(x,y); });
+    chips('g2',[{k:'and',t:'AND を教える'},{k:'or',t:'OR を教える'}],bGoal,
+      function(k){ bGoal=k; bReset(); });
+    var bad=0; IN.forEach(function(p){ if(bPred(p[0],p[1])!==LOGIC[bGoal](p[0],p[1])) bad++; });
+    g('r2').innerHTML = bad===0
+      ? '<b class="vd ok">4 通りとも正解</b><br>'
+        +'人が正解の重みを知っている必要はない。<b>合っているかを言うだけ</b>で重みは決まっていく。'
+      : 'まだ <b>'+bad+' 通り</b>まちがえている。もう一度学習させる。';
+    if(window.renderAllMath) renderAllMath();
+  }
+
+  /* ---------- ③ XOR の壁 ---------- */
+  var C=[-0.5,1,1], C0=[-0.5,1,1], cGoal='and';
+  function cPred(x1,x2){ return (C[0]+C[1]*x1+C[2]*x2 > 0) ? 1 : 0; }
+  function drawC(){
+    var nm=['w₁','w₂'];
+    renderNet(g('n3'),GN,{
+      efs:12.5, nfs:14, hl:isHL,
+      edgeState:function(){ return 1; },
+      edgeT:function(){ return 0.34; },
+      edgeLabel:function(i,j){ return [nm[j], C[j+1].toFixed(1)]; },
+      edgeInk:function(){ return ARC; },
+      edgeW:function(i,j){ return 1.2+Math.abs(C[j+1])*0.8; },
+      nodeName:function(i,j){ return i===0?['x₁','x₂'][j]:'y'; },
+      nodeText:function(){ return ''; },
+      nodeFill:function(i,j){ return i===0?'#F4F2EC':paint(0.35); },
+      nodeSub:function(i,j){ return i===1?('w₀ = '+C[0].toFixed(1)+' を足して 0 より大きければ 1'):null; }
+    });
+    buildDials('d3',
+      [{nm:'w₀',i:1,j:0,k:0,st:0.1,lo:-3,hi:3,dg:1},
+       {nm:'w₁',i:0,j:0,k:0,st:0.1,lo:-3,hi:3,dg:1},
+       {nm:'w₂',i:0,j:1,k:0,st:0.1,lo:-3,hi:3,dg:1}],
+      function(i,j){ return i===1?C[0]:C[j+1]; },
+      function(i,j,k,v){ if(i===1)C[0]=v; else C[j+1]=v; },
+      drawC);
+    g('f3').innerHTML='$$w_0 + w_1 x_1 + w_2 x_2 = 0$$';
+    g('q3').innerHTML='この式が 0 になる場所が<b>境目</b>。いまは '
+      +'<b>'+C[1].toFixed(1)+'\u00d7x₁ '+sgn(C[2],1)+'\u00d7x₂ '+sgn(C[0],1)+' = 0</b> の直線。'
+      +'足し算しかないので、どう回しても<b>まっすぐ</b>にしかならない。';
+    var acc=plot(g('p3'), DS[cGoal==='xor'?'xor':'easy'], function(x,y){ return cPred(x,y); });
+    chips('g3',[{k:'and',t:'AND の配置'},{k:'xor',t:'XOR の配置'}],cGoal,
+      function(k){ cGoal=k; drawC(); });
+    var bad=0; IN.forEach(function(p){ if(cPred(p[0],p[1])!==LOGIC[cGoal](p[0],p[1])) bad++; });
+    g('vd3').innerHTML = bad===0
+      ? '<span class="vd ok">4 点とも分けられた</span>'
+      : '<span class="vd ng">'+bad+' 点が反対側にある</span>';
+    g('r3').innerHTML = (cGoal==='and')
+      ? (bad===0 ? 'この線がそのまま重み $w_1, w_2$ の答えだ。'
+                 : 'つまみを回すと線が動く。<b>線を動かしているのではなく、重みを決めている</b>。')
+      : '<b>XOR はどう回しても分けられない</b>。1 を出したい 2 点が対角に、'
+        +'0 を出したい 2 点も対角にあり、直線 1 本ではこの 2 組を仕分けられない。'
+        +'（正解率の上限は 75%）';
+    if(window.renderAllMath) renderAllMath();
+  }
+
+  /* ---------- 配線 ---------- */
+  g('rs1').onclick=function(){ A={w1:A0.w1,w2:A0.w2,th:A0.th}; HLW=null; drawA(); };
+  g('rs3').onclick=function(){ C=C0.slice(); HLW=null; drawC(); };
+  g('st2').onclick=function(){ bStep(); };
+  g('rs2').onclick=function(){ if(bTimer){clearInterval(bTimer);bTimer=null;} bReset(); };
+  g('au2').onclick=function(){
+    if(bTimer){ clearInterval(bTimer); bTimer=null; return; }
+    bTimer=setInterval(function(){
+      if(!bStep()){ clearInterval(bTimer); bTimer=null; }
+    },200);
+  };
+
+  drawA(); bReset(); drawC();
 })();
 </script>
 <script>
