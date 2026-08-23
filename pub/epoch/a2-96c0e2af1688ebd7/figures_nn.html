@@ -197,7 +197,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 
 <style>
 .nnfig{width:100%;margin:8px auto 2px;text-align:center}
-.figrow,.nnfig:not(.figrow .nnfig){position:sticky;top:6px;z-index:3;background:var(--bg);
+.figfold{position:sticky;top:4px;z-index:3;background:var(--bg);
  padding-bottom:4px;box-shadow:0 6px 10px -8px rgba(0,0,0,.18)}
 @media(max-width:620px){.nnfig{position:static;box-shadow:none;padding-bottom:0}}
 
@@ -217,8 +217,13 @@ table{display:block;overflow-x:auto;max-width:100%}
    別々の枠だと視線が 2 回切れる） */
 .calcbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;
  padding:12px 16px;margin:14px 0}
-.calcbox>summary{cursor:pointer;list-style:none;font-size:13px;font-weight:700;color:var(--ink-sub);
- display:flex;align-items:center;gap:8px}
+.calcbox>summary,.foldbox>summary{cursor:pointer;list-style:none;font-size:12.5px;font-weight:700;
+ color:var(--ink-muted);display:flex;align-items:center;gap:7px;padding:2px 0;letter-spacing:.04em}
+.foldbox{margin:6px 0}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"▾";font-size:10px;color:var(--link);transition:transform .15s}
+.foldbox:not([open])>summary::before{transform:rotate(-90deg)}
+.foldbox>summary:hover{color:var(--ink-sub)}
 .calcbox>summary::-webkit-details-marker{display:none}
 .calcbox>summary::before{content:"▾";font-size:11px;color:var(--link);transition:transform .15s}
 .calcbox:not([open])>summary::before{transform:rotate(-90deg)}
@@ -235,6 +240,9 @@ table{display:block;overflow-x:auto;max-width:100%}
  touch-action:none;-webkit-user-select:none;user-select:none;
  -webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .dial .dname{font-size:11.5px;color:#8a6b4f;margin-bottom:3px;letter-spacing:.02em}
+.dial.lit .dname{font-weight:700}
+.dial.lit .dwin{box-shadow:inset 0 7px 7px -7px rgba(60,50,35,.45),
+ inset 0 -7px 7px -7px rgba(60,50,35,.45), 0 0 0 2px #F0C97E}
 .dial .dbtn{width:100%;height:22px;border:1px solid var(--border);background:#FCFBF8;color:var(--ink-sub);
  font-size:10px;line-height:1;cursor:pointer;padding:0;font-family:inherit;touch-action:manipulation}
 .dial .dbtn:hover{background:#EFECE4;color:var(--ink)}
@@ -257,7 +265,8 @@ table{display:block;overflow-x:auto;max-width:100%}
    前に置くと height:66px などに負けて効かない（実際に効いていなかった）。 */
 @media(max-width:620px){
  /* 図とダイヤルを縦に積む。横並びのままだとダイヤル列が 80px まで潰れる（実測） */
- .figrow{display:block;position:static;box-shadow:none;padding-bottom:0}
+ .figrow{display:block}
+ .figfold{position:static;box-shadow:none;padding-bottom:0}
  .dials{flex-direction:row;justify-content:center;padding-top:6px;flex-wrap:nowrap;
    gap:10px;width:100%}
  .dial{flex:1 1 0;width:auto;max-width:118px;min-width:88px}
@@ -294,16 +303,20 @@ table{display:block;overflow-x:auto;max-width:100%}
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">パーセプトロン</a></li><li><a href="#sec2">多層パーセプトロン（MLP）</a></li><li><a href="#sec3">活性化関数</a></li><li><a href="#sec4">誤差逆伝播法（Back Propagation）</a></li><li><a href="#sec5">勾配消失</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>パーセプトロン — バイアスを含めた重み付き和</h2>
+<details class="foldbox" open><summary>説明</summary>
 <div class="lead">1 個の計算点がやることは、次の 2 つだけ。
 <strong>(1) 入力それぞれに重みを掛けて足す（＝ $z$）。(2) $z$ が 0 以上なら 1、そうでなければ 0 を出す。</strong>
 そして <strong>$y$ が正解に近づくように、重みを学習させる</strong> —— それがニューラルネットの学習。</div>
+</details>
 
+<details class="foldbox figfold" open><summary>構成図</summary>
 <div class="figrow">
 <div style="flex:1 1 300px;text-align:center">
 <svg id="pNet" class="statfig" width="320" height="262" viewBox="0 0 320 262"></svg>
 </div>
 <div class="dials" id="pDials"></div>
 </div>
+</details>
 <div style="text-align:center">
 <div class="gcap">バイアス $b$ は「つねに 1 を入れる入力」への重み。<span style="color:#8a6b4f">▲▼</span> で重みを 0.1 ずつ動かす</div>
 </div>
@@ -333,14 +346,18 @@ $$y=\begin{cases}1 & (w_1x_1+w_2x_2+b \ge 0)\\[2pt] 0 & (w_1x_1+w_2x_2+b < 0)\en
 
 <div class="fig-stage" id="sec2">
 <h2>多層パーセプトロン（MLP） — 計算点を層にして重ねる</h2>
+<details class="foldbox" open><summary>説明</summary>
 <div class="lead"><strong>複雑な事象を表現するために</strong>、計算点を並べて層にし、層を重ねる。第 $m$ 層の $i$ 番目から、次の層の $j$ 番目へ向かう重みを
 $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
 辺の数字が重み、丸の中の数字がその計算点がいま出している値。</div>
+</details>
 
+<details class="foldbox figfold" open><summary>構成図</summary>
 <div class="figrow">
 <div class="nnfig wide"><svg id="fwSvg" width="470" height="460" viewBox="0 0 470 460"></svg></div>
 <div class="dials" id="fwDials"></div>
 </div>
+</details>
 
 <details class="calcbox">
 <summary>式と計算</summary>
@@ -463,11 +480,13 @@ $$W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2 = (W_2W_1)\mathbf{x} + (W_2\mathb
 <div class="fig-stage" id="sec3">
 <h2>活性化関数 — 非線形をはさむと、何が変わるか</h2>
 
+<details class="foldbox" open><summary>説明</summary>
 <div class="lead">前の節で行き止まりになった理由は「重み付きの和は 1 次式」だから。
 そこで、層と層のあいだに<strong>非線形な関数 $h(\cdot)$ を 1 つはさむ</strong>。
 中間層の値は、和 $m_j$ をそのまま渡すのではなく $n_j = h(m_j)$ になる。
 $h$ を取り替えると丸の中の数字がどう変わるか、入口側の重みを動かすと $m$ ごとどう動くかを見比べる。
 「なし（恒等）」は $h$ を入れない状態＝前の節そのもの。</div>
+</details>
 
 <div style="text-align:center;margin:18px 0 6px">
 <svg class="statfig" width="420" height="200" viewBox="0 0 420 200" data-fig="nn_activation">
@@ -503,10 +522,12 @@ $h$ を取り替えると丸の中の数字がどう変わるか、入口側の�
 <div class="gcap">上の図の丸 1 個を開いたところ。<b>重み付きの和を活性化関数に通したもの</b>が、その丸の値になる</div>
 </div>
 
+<details class="foldbox figfold" open><summary>構成図</summary>
 <div class="figrow">
 <div class="nnfig wide"><svg id="acSvg" width="470" height="460" viewBox="0 0 470 460"></svg></div>
 <div class="dials" id="acDials"></div>
 </div>
+</details>
 
 <details class="calcbox">
 <summary>式と計算</summary>
@@ -544,10 +565,14 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
 
 <div class="fig-stage" id="sec4">
 <h2>誤差逆伝播法（Back Propagation） — 出口のズレから重みを直す</h2>
+<details class="foldbox" open><summary>説明</summary>
 <div class="lead">重みは最初でたらめで、当然まちがった答えを出す。<strong>出口のズレを入口へ配り、そのぶん重みをずらす</strong>。これを繰り返すと答えは正解に届く。</div>
+</details>
 
 <div class="hbadge">いまの活性化関数 <b id="hb2">なし</b></div>
+<details class="foldbox figfold" open><summary>構成図</summary>
 <div class="nnfig wide"><svg id="bwSvg" width="530" height="400" viewBox="0 0 530 400"></svg></div>
+</details>
 
 <details class="calcbox" open>
 <summary>式と計算</summary>
@@ -585,8 +610,10 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
 
 <div class="fig-stage" id="sec5">
 <h2>勾配消失 — 層が深いほど手前へ届かなくなる</h2>
+<details class="foldbox" open><summary>説明</summary>
 <div class="lead">④ の「5. ズレを上流へ配る」と<strong>同じ図</strong>を、中間層を増やしながら見る。
 丸の中の数が、その計算点に届いたズレ $\partial L/\partial n$。</div>
+</details>
 
 <div class="chips" id="dacts" style="justify-content:center">
   <span class="chip on" data-dh="none">なし（恒等）</span>
@@ -599,7 +626,9 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
   <span class="now" id="dpNow">中間層 1 つ</span>
   <button class="ico" id="dpNext" aria-label="中間層を増やす" data-t="中間層を 1 つ増やす">▷</button>
 </div>
+<details class="foldbox figfold" open><summary>構成図</summary>
 <div class="nnfig wide"><svg id="dpSvg" width="560" height="360" viewBox="0 0 560 360"></svg></div>
+</details>
 <div class="readout" id="dpOut"></div>
 
 <p class="note">出口では大きかったズレが、入口の層に着くころにはほとんど残らない
@@ -683,7 +712,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
     var W=[bb,w1,w2];                       // 入力 1 → b、x₁ → w₁、x₂ → w₂
     var NM=['b','w₁','w₂'];
     renderNet(g('pNet'),GP,{
-      efs:12.5, nfs:13,
+      efs:12.5, nfs:13, hl:isHL,
       step:function(){ return true; },      // 3 本すべて △▽ で動かせる
       edgeState:function(){ return 1; },
       edgeT:function(){ return 0.28; },   // 揃えると縦に 43px 離れて重ならない
@@ -821,10 +850,24 @@ function sg(z){return 1/(1+Math.exp(-z));}
         var ink=o.labelInkAt?o.labelInkAt(i,j,k):(o.labelInk||'#565248');
         var nInk=edit?'#8a6b4f':(o.nameInkAt?o.nameInkAt(i,j,k):ARC);
         var thru='';
-        if(two) svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
-          'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',fill:nInk,style:thru},nmS));
+        // いまダイヤルで触っている重みは、名前も数値も光彩で囲って目立たせる
+        // （どこが変わっているのか分からない、という読者の指摘）。
+        var lit=o.hl?o.hl(i,j,k):false;
+        var halo=function(x,y,size,txt){
+          svg.appendChild(el('text',{x:x,y:y,'font-size':size,'text-anchor':'middle',
+            fill:'none',stroke:'#F6D9A8','stroke-width':5,'stroke-linejoin':'round',
+            style:'paint-order:stroke;pointer-events:none'},txt));
+        };
+        if(two){
+          if(lit) halo(px.toFixed(1),(py-fs*0.52).toFixed(1),(fs*0.86).toFixed(1),nmS);
+          svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
+            'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',
+            fill:lit?'#8a6b4f':nInk,style:thru},nmS));
+        }
+        if(lit) halo(px.toFixed(1),(py+(two?fs*1.02:fs*0.35)).toFixed(1),fs,vS);
         svg.appendChild(el('text',{x:px.toFixed(1),y:(py+(two?fs*1.02:fs*0.35)).toFixed(1),
-          'font-size':fs,'text-anchor':'middle',fill:ink,style:thru},vS));
+          'font-size':fs,'text-anchor':'middle',fill:lit?INK:ink,
+          'font-weight':lit?'700':'400',style:thru},vS));
       }
     }
     for(i=0;i<n;i++) for(j=0;j<gg.shape[i];j++){
@@ -854,6 +897,8 @@ function sg(z){return 1/(1+Math.exp(-z));}
   //   ・PC で払いにくいので、上下のボタンと**マウスホイール**でも 1 段ずつ動く
   //   ・払ったあとの減速を強める（0.90 → 0.72）
   var DIALS={};                      // {箱の id: [{i,j,k}...]}
+  var HLW=null;                      // いま触っている重み {i,j,k}
+  function isHL(i,j,k){ return !!HLW && HLW.i===i && HLW.j===j && HLW.k===k; }
   function buildDials(boxId, list, get, set, after){
     var box=g(boxId); if(!box) return;
     if(box.getAttribute('data-built')!=='1'){
@@ -868,7 +913,8 @@ function sg(z){return 1/(1+Math.exp(-z));}
         box.appendChild(d);
         var col=d.querySelector('.dcol'), win=d.querySelector('.dwin');
         var val=function(){ return get(w.i,w.j,w.k); };
-        var put=function(v){ set(w.i,w.j,w.k, Math.max(-6,Math.min(6, Math.round(v*10)/10))); after(); };
+        var put=function(v){ HLW={i:w.i,j:w.j,k:w.k};
+          set(w.i,w.j,w.k, Math.max(-6,Math.min(6, Math.round(v*10)/10))); after(); };
         d.querySelectorAll('.dbtn').forEach(function(btn){
           var dd=+btn.getAttribute('data-d'), t=null, iv=null;
           btn.addEventListener('pointerdown',function(ev){
@@ -906,6 +952,8 @@ function sg(z){return 1/(1+Math.exp(-z));}
     // 窓の中身を書き直す（上 2 段・現在・下 2 段）
     (DIALS[boxId]||list).forEach(function(w){
       if(!w._col) return;
+      var host=w._col.closest('.dial');
+      if(host) host.classList.toggle('lit', isHL(w.i,w.j,w.k));
       var v=get(w.i,w.j,w.k), h='';
       [2,1,0,-1,-2].forEach(function(o){
         h+='<span'+(o===0?' class="cur"':'')+'>'+(v+o*0.1).toFixed(1)+'</span>';
@@ -999,7 +1047,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
     var f=fwd(true), mx=Math.max(1e-9,Math.max.apply(null,f.n.map(Math.abs)));
     var my=Math.max(1e-9,Math.max.apply(null,f.y.map(Math.abs)));
     renderNet(g('fwSvg'),G2,{
-      efs:12.5, step:function(i,j,k){ return i===1&&k===0; },
+      efs:12.5, step:function(i,j,k){ return i===1&&k===0; }, hl:isHL,
       // ※ まだ計算していない層は「消す」のではなく灰色に落とす。
       //   消すと重みの数字ごと見えなくなる（読者は重みを見たい）。
       edgeState:function(i){return fstage>i?2:1;},
@@ -1126,7 +1174,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
     var f=fwd(), mx=Math.max(1e-9,Math.max.apply(null,f.n.map(Math.abs)));
     var my=Math.max(1e-9,Math.max.apply(null,f.y.map(Math.abs)));
     renderNet(g('acSvg'),G2,{
-      efs:12.5, step:function(i,j,k){ return i===0&&k===0; },
+      efs:12.5, step:function(i,j,k){ return i===0&&k===0; }, hl:isHL,
       edgeState:function(){return 1;},
       edgeT:function(i,j,k){return i===0?T0B[j]:T1B[j][k];},
       edgeLabel:function(i,j,k){return elab(i,j,k);},
