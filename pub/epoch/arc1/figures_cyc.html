@@ -631,6 +631,9 @@ RDF/OWL に生きている。</dd>
   });
   function pos(id){ var n=NODES[id], o=OFF[id]; return [n.x+o.x, n.y+o.y]; }
   function kick(id,ux,uy,st){
+    /* ※ 漂い→バネ→漂いと試したが「動かない方が見やすい」が読者の最終判断
+       （2026-08-24）。完全静止にする。物理は残してあり、復活は return を外すだけ。 */
+    return;
     if(NODES[id].fixed || still) return;
     var o=OFF[id];
     o.vx+=ux*st; o.vy+=uy*st; o.e=1;
