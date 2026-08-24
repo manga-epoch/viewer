@@ -279,7 +279,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 
 <details class="foldbox figfold" open><summary>構成図</summary>
 <div class="nnfig mynet"><svg id="net" viewBox="0 0 380 264"></svg></div>
-<p class="fig-legend">実線＝書いてある常識　太線＝推論で足した辺　琥珀＝いま使った前提と新しい辺</p>
+<p class="fig-legend">細い線＝書いてある常識　青の太線＝推論で足した辺　琥珀に光る＝いま使った前提　琥珀の点線＝いま足した辺</p>
 </details>
 
 <details class="calcbox"><summary>規則 3 本（前提の型に合った組だけが繋がる）</summary>
@@ -556,8 +556,8 @@ RDF/OWL に生きている。</dd>
   /* ===== グラフのモデル ===== */
   var NODES={
     tree: {jp:'木',     en:'Tree',           x:64,  y:150},
-    plant:{jp:'植物',   en:'Plant',          x:170, y:64},
-    org:  {jp:'生き物', en:'Organism',       x:308, y:44},
+    plant:{jp:'植物',   en:'Plant',          x:160, y:78},
+    org:  {jp:'生き物', en:'Organism',       x:316, y:40},
     photo:{jp:'光合成', en:'Photosynthesis', x:196, y:196},
     sun:  {jp:'日光',   en:'Sunlight',       x:322, y:170}
   };
@@ -611,58 +611,78 @@ RDF/OWL に生きている。</dd>
     last={done:true}; draw();
   }
 
-  /* ===== 描画。ノードはふわふわ漂う（位置はモデル、揺れは見た目だけ） ===== */
-  var t0=0, still=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function pos(id, t){
-    var n=NODES[id];
-    if(still) return [n.x, n.y];
-    /* ノードごとに位相をずらした小さな円運動。±3px */
-    var ph=id.length*1.7 + id.charCodeAt(0);
-    return [n.x + 3*Math.sin(t/1400+ph), n.y + 3*Math.cos(t/1700+ph*1.3)];
+  /* ===== 描画。ノードは常にゆっくり漂う（揺れは見た目・モデルの位置は固定） =====
+     ※ 以前は毎フレーム innerHTML を作り直していて、スマホでは処理が重く
+       「位置が固定されて見える」状態だった（読者指摘）。組み立ては draw() で
+       1 回だけ、毎フレームは属性の更新だけにする。振幅も 3px → 6px（3px は
+       小さい画面では見えない）。
+     ※ 琥珀の見せ方: 以前は前提の線そのものを太い琥珀にしていて、凡例の
+       「太線＝推論で足した辺」と矛盾した（読者指摘）。前提は元の線種のまま
+       琥珀の光（下敷きの半透明線）を重ね、いま足した辺だけ琥珀の点線にする。 */
+  var t0=0, eRefs=[], nRefs=[];
+  function pos(id,t){
+    var n=NODES[id], ph=id.length*1.7+id.charCodeAt(0);
+    return [n.x+6*Math.sin(t/1600+ph), n.y+6*Math.cos(t/2100+ph*1.3)];
   }
   function isPre(e){ return last&&last.pre&&last.pre.some(function(p){return p===e;}); }
   function isNew(e){ return last&&last.edge===e; }
 
-  function draw(t){
-    t=t||t0;
-    var svg=g('net'); svg.innerHTML='';
-    var P={}; Object.keys(NODES).forEach(function(id){ P[id]=pos(id,t); });
-    /* 辺 */
+  function draw(){
+    var svg=g('net'); svg.innerHTML=''; eRefs=[]; nRefs=[];
     E.forEach(function(e){
-      var a=P[e[0]], b=P[e[2]];
-      var dx=b[0]-a[0], dy=b[1]-a[1], L=Math.sqrt(dx*dx+dy*dy);
-      var ux=dx/L, uy=dy/L;
-      var x1=a[0]+ux*34, y1=a[1]+uy*17, x2=b[0]-ux*34, y2=b[1]-uy*17;
-      var isD=derived.indexOf(e)>=0, hot=isPre(e)||isNew(e);
-      var ln=el('line',{x1:x1,y1:y1,x2:x2,y2:y2,
-        stroke: hot?'#E8B44C':(isD?ARC:'#b9c0d8'),
-        'stroke-width': hot?2.6:(isD?2.2:1.4)});
-      if(isNew(e)) ln.setAttribute('class','mflow');
+      var isD=derived.indexOf(e)>=0, hot=isNew(e), pre=isPre(e);
+      var under=null;
+      if(pre){ under=el('line',{stroke:'#E8B44C','stroke-width':7,opacity:0.35,
+        'stroke-linecap':'round'}); svg.appendChild(under); }
+      var ln=el('line',{stroke: hot?'#E8B44C':(isD?ARC:'#b9c0d8'),
+        'stroke-width': hot?2.4:(isD?2.2:1.4)});
+      if(hot) ln.setAttribute('class','mflow');
       svg.appendChild(ln);
-      /* 矢じり */
-      svg.appendChild(el('path',{d:'M'+x2+' '+y2+' L'+(x2-ux*7-uy*3.5)+' '+(y2-uy*7+ux*3.5)
-        +' L'+(x2-ux*7+uy*3.5)+' '+(y2-uy*7-ux*3.5)+' Z',
-        fill: hot?'#E8B44C':(isD?ARC:'#b9c0d8')}));
-      /* 述語ラベル（白フチで線に負けない） */
-      var mx=(x1+x2)/2, my=(y1+y2)/2;
-      var tx=el('text',{x:mx,y:my-4,'font-size':10,'text-anchor':'middle',
-        fill: hot?'#8a6b12':(isD?ARC:MUTED),'font-weight':hot||isD?'700':'400',
+      var ar=el('path',{fill: hot?'#E8B44C':(isD?ARC:'#b9c0d8')});
+      svg.appendChild(ar);
+      var lb=el('text',{'font-size':10,'text-anchor':'middle',
+        fill: (hot||pre)?'#8a6b12':(isD?ARC:MUTED),
+        'font-weight':(hot||pre||isD)?'700':'400',
         stroke:'#FAFAF7','stroke-width':3,'paint-order':'stroke'},PRED[e[1]]);
-      svg.appendChild(tx);
+      svg.appendChild(lb);
+      eRefs.push({e:e,under:under,ln:ln,ar:ar,lb:lb});
     });
-    /* ノード */
     Object.keys(NODES).forEach(function(id){
-      var p=P[id], n=NODES[id];
+      var n=NODES[id];
       var hot=last&&last.edge&&(last.edge[0]===id||last.edge[2]===id);
-      svg.appendChild(el('ellipse',{cx:p[0],cy:p[1],rx:34,ry:17,
-        fill:'#fff',stroke:hot?'#E8B44C':'var(--border)','stroke-width':hot?2.2:1.2}));
-      svg.appendChild(el('text',{x:p[0],y:p[1]-1,'font-size':12.5,'text-anchor':'middle',
-        fill:INK,'font-weight':'700'},n.jp));
-      svg.appendChild(el('text',{x:p[0],y:p[1]+14,'font-size':7.5,'text-anchor':'middle',
-        fill:MUTED},n.en));
+      var c=el('circle',{r:25,fill:'#fff',
+        stroke:hot?'#E8B44C':'var(--border)','stroke-width':hot?2.2:1.2});
+      var t1=el('text',{'font-size':12.5,'text-anchor':'middle',fill:INK,
+        'font-weight':'700'},n.jp);
+      var t2=el('text',{'font-size':7.5,'text-anchor':'middle',fill:MUTED,
+        stroke:'#FAFAF7','stroke-width':2.5,'paint-order':'stroke'},n.en);
+      svg.appendChild(c); svg.appendChild(t1); svg.appendChild(t2);
+      nRefs.push({id:id,c:c,t1:t1,t2:t2});
+    });
+    layout(t0);
+  }
+  function layout(t){
+    var P={}; Object.keys(NODES).forEach(function(id){ P[id]=pos(id,t); });
+    eRefs.forEach(function(r){
+      var a=P[r.e[0]], b=P[r.e[2]];
+      var dx=b[0]-a[0], dy=b[1]-a[1], L=Math.sqrt(dx*dx+dy*dy)||1, ux=dx/L, uy=dy/L;
+      var x1=a[0]+ux*28, y1=a[1]+uy*28, x2=b[0]-ux*28, y2=b[1]-uy*28;
+      [['x1',x1],['y1',y1],['x2',x2],['y2',y2]].forEach(function(kv){
+        r.ln.setAttribute(kv[0],kv[1]);
+        if(r.under) r.under.setAttribute(kv[0],kv[1]);
+      });
+      r.ar.setAttribute('d','M'+x2+' '+y2+' L'+(x2-ux*7-uy*3.5)+' '+(y2-uy*7+ux*3.5)
+        +' L'+(x2-ux*7+uy*3.5)+' '+(y2-uy*7-ux*3.5)+' Z');
+      r.lb.setAttribute('x',(x1+x2)/2); r.lb.setAttribute('y',(y1+y2)/2-4);
+    });
+    nRefs.forEach(function(r){
+      var p=P[r.id];
+      r.c.setAttribute('cx',p[0]); r.c.setAttribute('cy',p[1]);
+      r.t1.setAttribute('x',p[0]); r.t1.setAttribute('y',p[1]+4.5);
+      r.t2.setAttribute('x',p[0]); r.t2.setAttribute('y',p[1]+34);
     });
   }
-  function loop(t){ t0=t; if(!still) draw(t); requestAnimationFrame(loop); }
+  function loop(t){ t0=t; layout(t); requestAnimationFrame(loop); }
 
   function say(){
     var w=g('why');
