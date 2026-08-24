@@ -608,8 +608,8 @@ RDF/OWL に生きている。</dd>
         var na=NODES[c.x], nb=NODES[c.z];
         var kdx=nb.x-na.x, kdy=nb.y-na.y, kL=Math.sqrt(kdx*kdx+kdy*kdy)||1;
         draw();
-        kick(c.z, kdx/kL, kdy/kL, 3.4);        /* 繋がった先が押される */
-        kick(c.x, -kdx/kL, -kdy/kL, 1.2);      /* 源はわずかに反動 */
+        kick(c.z, kdx/kL, kdy/kL, 0.5);        /* 繋がった先が押される */
+        kick(c.x, -kdx/kL, -kdy/kL, 0.18);      /* 源はわずかに反動 */
         return;
       }
     }
@@ -623,21 +623,32 @@ RDF/OWL に生きている。</dd>
   var eRefs=[], nRefs=[];
   var still=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var OFF={}, anim=null;
-  Object.keys(NODES).forEach(function(id){ OFF[id]={x:0,y:0,vx:0,vy:0}; });
+  /* ※ バネの跳ね返りは「押された後しばらく漂う方がいい」と読者指摘（2026-08-24）。
+     押されたら流されて、余韻の間ゆっくり蛇行し、とても弱い力で基準位置へ戻る。
+     跳ねない（減衰を強く・戻りの力を弱く）。 */
+  Object.keys(NODES).forEach(function(id){
+    OFF[id]={x:0,y:0,vx:0,vy:0,e:0,ph:(id.charCodeAt(0)*2.3)%6.28};
+  });
   function pos(id){ var n=NODES[id], o=OFF[id]; return [n.x+o.x, n.y+o.y]; }
   function kick(id,ux,uy,st){
     if(NODES[id].fixed || still) return;
-    OFF[id].vx+=ux*st; OFF[id].vy+=uy*st;
+    var o=OFF[id];
+    o.vx+=ux*st; o.vy+=uy*st; o.e=1;
     if(anim==null) anim=requestAnimationFrame(tick);
   }
-  function tick(){
+  function tick(now){
     var live=false;
     Object.keys(OFF).forEach(function(id){
       var o=OFF[id];
-      o.vx+=-0.045*o.x; o.vy+=-0.045*o.y;      /* ばね（基準位置へ戻る力） */
-      o.vx*=0.90; o.vy*=0.90;                  /* 減衰 */
+      if(o.e>0.02){                                /* 押された余韻の間だけ、ゆっくり蛇行 */
+        o.vx+=0.05*o.e*Math.sin(now/460+o.ph);
+        o.vy+=0.05*o.e*Math.cos(now/610+o.ph*1.7);
+        o.e*=0.988;
+      } else o.e=0;
+      o.vx+=-0.004*o.x; o.vy+=-0.004*o.y;          /* とても弱い戻りの力（跳ねない） */
+      o.vx*=0.97; o.vy*=0.97;                      /* 水中のような減衰 */
       o.x+=o.vx; o.y+=o.vy;
-      if(Math.abs(o.x)>0.05||Math.abs(o.y)>0.05||Math.abs(o.vx)>0.05||Math.abs(o.vy)>0.05) live=true;
+      if(o.e>0||Math.abs(o.x)>0.1||Math.abs(o.y)>0.1||Math.abs(o.vx)>0.03||Math.abs(o.vy)>0.03) live=true;
       else { o.x=0; o.y=0; o.vx=0; o.vy=0; }
     });
     layout();
