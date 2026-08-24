@@ -212,13 +212,13 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
 <div class="fig-stage" id="sec1">
 <h2>畳み込み演算 — カーネルを滑らせて特徴を取り出す</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">入力はドット絵（12×12・数字は色の濃さ 0〜9）。絵とフィルタを選ぶと、3×3 を 1 マスずつ滑らせて内積を取った<strong>特徴マップ</strong>（10×10）が現れる。入力のセルをタップすると濃さが一段変わり、<strong>出力のセルをタップするとその位置の計算</strong>が下に出る。</div>
+<div class="lead">入力はドット絵（12×12・数字は色の濃さ 0〜9）。絵とフィルタを選ぶと、3×3 を 1 マスずつ滑らせて内積を取った<strong>特徴マップ</strong>が現れる。<strong>パディング</strong>は入力の外側に 0 の縁を足す仕組みで、足すほど出力が大きくなる（なし→10×10、1→12×12、2→14×14）。入力のセルをタップすると濃さが一段変わり、<strong>出力のセルをタップするとその位置の計算</strong>が下に出る。</div>
 </details>
 
 <div class="chips" id="sprites">
-<span class="chip on" data-s="house">家</span>
+<span class="chip on" data-s="cat">ねこ</span>
 <span class="chip" data-s="heart">ハート</span>
-<span class="chip" data-s="robot">ロボ</span>
+<span class="chip" data-s="person">ひと</span>
 </div>
 <div class="chips" id="kernels">
 <span class="chip on" data-k="edgev">縦エッジ検出</span>
@@ -226,6 +226,11 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
 <span class="chip" data-k="lap">輪郭 (ラプラシアン)</span>
 <span class="chip" data-k="sharp">シャープ</span>
 <span class="chip" data-k="blur">ぼかし (平均)</span>
+</div>
+<div class="chips" id="pads">
+<span class="chip on" data-p="0">パディングなし</span>
+<span class="chip" data-p="1">パディング 1</span>
+<span class="chip" data-p="2">パディング 2</span>
 </div>
 
 <details class="foldbox" open><summary>構成図</summary>
@@ -240,7 +245,7 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
   </div>
   <div>
     <svg id="outGrid" width="262" height="262" viewBox="0 0 262 262"></svg>
-    <div class="gcap">特徴マップ 10×10（= 12−3+1・タップで計算を表示）</div>
+    <div class="gcap" id="outCap">特徴マップ 10×10（= 12−3+1・タップで計算を表示）</div>
   </div>
 </div>
 <div class="legend">
@@ -280,7 +285,7 @@ $\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
 <div class="fig-stage" id="sec2">
 <h2>プーリング — 窓ごとの代表値で縮める</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">特徴マップを 2×2 の窓に区切り、各窓の<strong>最大値だけ</strong>を残すのが Max プーリング。窓の中のどこにあっても最大値さえ動かなければ出力は変わらない ―― 「入力を 1 マスずらす」を押して、特徴マップの中身が変わっても窓ごとの最大値 (＝プーリング後の値) が変わらないことを確かめよう。</div>
+<div class="lead">上の節と<strong>同じ絵・同じフィルタ</strong>の特徴マップを、2×2 の窓に区切って各窓の<strong>最大値だけ</strong>を残す（Max プーリング）。「入力を 1 マスずらす」を押すと、絵を右下へ 1 マスずらして畳み込みからやり直した結果と比べられる ―― ズレの影響がどれだけ縮むかが、下に数字で出る。</div>
 </details>
 
 <div class="ctrls">
@@ -290,11 +295,11 @@ $\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
 <details class="foldbox" open><summary>構成図</summary>
 <div class="grid-wrap">
   <div>
-    <svg id="poolInSvg" width="200" height="200" viewBox="0 0 200 200"></svg>
-    <div class="gcap" id="poolInCap">特徴マップ 5×5・太枠=2×2の窓・破線=窓内の最大値</div>
+    <svg id="poolInSvg" width="202" height="202" viewBox="0 0 202 202"></svg>
+    <div class="gcap" id="poolInCap">特徴マップ・枠 = 2×2 の窓</div>
   </div>
   <div>
-    <svg id="poolOutSvg" width="92" height="92" viewBox="0 0 92 92"></svg>
+    <svg id="poolOutSvg" width="152" height="152" viewBox="0 0 152 152"></svg>
     <div class="gcap">プーリング後 2×2</div>
   </div>
 </div>
@@ -305,7 +310,7 @@ $\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
 <details class="foldbox"><summary>式と計算</summary>
 <div class="formula">
 $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
-<div class="note" style="margin-top:8px">5×5 は 2 で割り切れない (5÷2=2.5) ため、右端の 1 列・下端の 1 行 (灰色) は<strong>切り捨て</strong>られ、2×2 の出力になる。average プーリング (窓の平均を取る方式) なら全セルの値が結果に効くため、端数の扱いは同じでも位置ズレへの頑健さは max ほど強くない (1 セルの変化がそのまま結果に薄く混ざる)。</div>
+<div class="note" style="margin-top:8px">窓の中の<strong>どこ</strong>に最大値があっても、同じ窓の中にある限り出力は同じ ―― これが位置ズレへの鈍さの源。average プーリング（窓の平均）は全セルが結果に効くため、1 セルの変化がそのまま薄く混ざり、max ほど鈍くならない。</div>
 </div>
 </details>
 </div>
@@ -316,7 +321,8 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
 <script>
 (function(){
   var ARC="#6E7BA8";
-  var N=12, K=3, M=N-K+1;              // 入力 12, フィルタ 3, 出力 10
+  var N=12, K=3, PAD=0;
+  function M(){ return N-K+1+2*PAD; }
   var curK="edgev";
   var KERNELS={
     edgev:[[-1,0,1],[-1,0,1],[-1,0,1]],
@@ -333,199 +339,208 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
     blur:"周囲を均すため反応の差が小さくなる (輪郭がぼやける)"
   };
   /* ドット絵（オリジナル絵柄・数字 0-9 が濃さ）。
-     ※ 実在ゲームのドット絵は権利があるため使わない。粗さだけ寄せた自作。 */
+     ※ 実在ゲームのドット絵は権利があるため使わない。粗さだけ寄せた自作。
+     ねこの耳の斜め線は、縦・横どちらのフィルタにも掛かる（輪郭は縦横線に限らない） */
   var SPRITES={
-    house:["000009900000","000099990000","000999999000","009999999900",
-           "099999999990","999999999999","066666666660","066666666660",
-           "066669966660","066669966660","066669966660","333333333333"],
+    cat:  ["099000000990","099900009990","099999999990","096666666690",
+           "096966669690","096666666690","096669966690","096699996690",
+           "096666666690","099999999990","000000000000","000000000000"],
     heart:["000000000000","009900009900","099990099990","099999999990",
            "099999999990","099999999990","009999999900","000999999000",
            "000099990000","000009900000","000000000000","000000000000"],
-    robot:["000900009000","000900009000","009999999900","009000000900",
-           "009090090900","009090090900","009000000900","009066660900",
-           "009000000900","009999999900","000000000000","000000000000"]
+    person:["000099990000","000066660000","000069960000","000066660000",
+            "006699996600","006699996600","006699996600","000099990000",
+            "000099990000","000033330000","000033330000","000090090000"]
   };
   var img=[];
   function loadSprite(id){
     var sp=SPRITES[id];
     for(var r=0;r<N;r++){img[r]=[];for(var c=0;c<N;c++)img[r][c]=+sp[r].charAt(c);}
   }
-  loadSprite('house');
+  loadSprite("cat");
   var SVGNS="http://www.w3.org/2000/svg";
   function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
   function gray(v){v=Math.max(0,Math.min(1,v));var g=Math.round(255-v*215);return"rgb("+g+","+g+","+g+")";}
   function outColor(v,amax){
-    if(amax<1e-9||Math.abs(v)<1e-9) return '#fff';
+    if(amax<1e-9||Math.abs(v)<1e-9) return "#fff";
     var t=Math.min(1,Math.abs(v)/amax)*0.85;
-    return v>0 ? 'rgba(110,123,168,'+t.toFixed(2)+')' : 'rgba(180,73,63,'+t.toFixed(2)+')';
+    return v>0 ? "rgba(110,123,168,"+t.toFixed(2)+")" : "rgba(180,73,63,"+t.toFixed(2)+")";
   }
+  function px(g,r,c){ return (r<0||c<0||r>=N||c>=N)?0:g[r][c]; }   /* パディング=外は 0 */
   function drawInput(hi){
-    var s=document.getElementById('inGrid');s.innerHTML='';var cell=26;
+    var s=document.getElementById("inGrid");s.innerHTML="";var cell=26;
     for(var r=0;r<N;r++)for(var c=0;c<N;c++){
       var v=img[r][c];
-      var rect=el('rect',{x:c*cell+1,y:r*cell+1,width:cell-1,height:cell-1,rx:2,
-        fill:gray(v/9), stroke:'#E4E1D8'});
-      rect.style.cursor='pointer';
-      (function(rr,cc){rect.addEventListener('click',function(){
+      var rect=el("rect",{x:c*cell+1,y:r*cell+1,width:cell-1,height:cell-1,rx:2,
+        fill:gray(v/9), stroke:"#E4E1D8"});
+      rect.style.cursor="pointer";
+      (function(rr,cc){rect.addEventListener("click",function(){
         img[rr][cc]=(img[rr][cc]+3)%12; drawAll();});})(r,c);
       s.appendChild(rect);
-      var t=el('text',{x:c*cell+cell/2+1,y:r*cell+cell/2+5,'text-anchor':'middle',
-        'font-size':11,fill:v>=6?'#fff':'#57534a'});
-      t.textContent=v; t.style.pointerEvents='none';
+      var t=el("text",{x:c*cell+cell/2+1,y:r*cell+cell/2+5,"text-anchor":"middle",
+        "font-size":11,fill:v>=6?"#fff":"#57534a"});
+      t.textContent=v; t.style.pointerEvents="none";
       s.appendChild(t);
     }
-    if(hi){
-      s.appendChild(el('rect',{x:hi[1]*cell+1,y:hi[0]*cell+1,width:cell*K,height:cell*K,rx:3,
-        fill:'rgba(232,180,76,.18)',stroke:'#E8B44C','stroke-width':3}));
+    if(hi){ /* パディング付きでは受容野が絵の外（0 の縁）へはみ出す。はみ出しごと描く */
+      s.appendChild(el("rect",{x:(hi[1]-PAD)*cell+1,y:(hi[0]-PAD)*cell+1,
+        width:cell*K,height:cell*K,rx:3,
+        fill:"rgba(232,180,76,.18)",stroke:"#E8B44C","stroke-width":3}));
     }
   }
   function drawKernel(){
-    var s=document.getElementById('kerGrid');s.innerHTML='';var cell=120/K, k=KERNELS[curK];
+    var s=document.getElementById("kerGrid");s.innerHTML="";var cell=120/K, k=KERNELS[curK];
     for(var r=0;r<K;r++)for(var c=0;c<K;c++){
-      s.appendChild(el('rect',{x:c*cell+1,y:r*cell+1,width:cell-2,height:cell-2,rx:3,fill:'#fff',stroke:'#E4E1D8'}));
-      var t=el('text',{x:c*cell+cell/2,y:r*cell+cell/2+5,'text-anchor':'middle','font-size':16,
-        fill:k[r][c]<0?'#b4493f':(k[r][c]>0?ARC:'#9A9488'),'font-weight':700});
-      t.textContent=(curK==='blur')?'⅑':k[r][c];s.appendChild(t);
+      s.appendChild(el("rect",{x:c*cell+1,y:r*cell+1,width:cell-2,height:cell-2,rx:3,fill:"#fff",stroke:"#E4E1D8"}));
+      var t=el("text",{x:c*cell+cell/2,y:r*cell+cell/2+5,"text-anchor":"middle","font-size":16,
+        fill:k[r][c]<0?"#b4493f":(k[r][c]>0?ARC:"#9A9488"),"font-weight":700});
+      t.textContent=(curK==="blur")?"⅑":k[r][c];s.appendChild(t);
     }
   }
-  function conv(){
-    var k=KERNELS[curK], div=(curK==='blur')?9:1, out=[], amax=0;
-    for(var i=0;i<M;i++){out[i]=[];for(var j=0;j<M;j++){
-      var sum=0;for(var u=0;u<K;u++)for(var v=0;v<K;v++)sum+=k[u][v]*img[i+u][j+v];
+  function conv(src){
+    src=src||img;
+    var m=M(), k=KERNELS[curK], div=(curK==="blur")?9:1, out=[], amax=0;
+    for(var i=0;i<m;i++){out[i]=[];for(var j=0;j<m;j++){
+      var sum=0;for(var u=0;u<K;u++)for(var v=0;v<K;v++)sum+=k[u][v]*px(src,i+u-PAD,j+v-PAD);
       sum/=div;out[i][j]=sum;if(Math.abs(sum)>amax)amax=Math.abs(sum);}}
-    return {out:out,amax:amax};
+    return {out:out,amax:amax,m:m};
   }
   function fmt(v){ return (Math.abs(v-Math.round(v))<1e-9)?String(Math.round(v)):v.toFixed(1); }
   function drawOutput(hi){
-    var c=conv(),s=document.getElementById('outGrid');s.innerHTML='';var cell=26;
-    for(var i=0;i<M;i++)for(var j=0;j<M;j++){
+    var c=conv(),m=c.m,s=document.getElementById("outGrid");s.innerHTML="";
+    var cell=(m<=12)?26:22, W=m*cell+2;
+    s.setAttribute("width",W); s.setAttribute("height",W); s.setAttribute("viewBox","0 0 "+W+" "+W);
+    for(var i=0;i<m;i++)for(var j=0;j<m;j++){
       var v=c.out[i][j], t=Math.min(1,Math.abs(v)/(c.amax||1));
-      var rect=el('rect',{x:j*cell+1,y:i*cell+1,width:cell-1,height:cell-1,rx:2,
-        fill:outColor(v,c.amax),stroke:'#E4E1D8'});
-      rect.style.cursor='pointer';
+      var rect=el("rect",{x:j*cell+1,y:i*cell+1,width:cell-1,height:cell-1,rx:2,
+        fill:outColor(v,c.amax),stroke:"#E4E1D8"});
+      rect.style.cursor="pointer";
       s.appendChild(rect);
-      var tx=el('text',{x:j*cell+cell/2+1,y:i*cell+cell/2+4.5,'text-anchor':'middle',
-        'font-size':9,fill:t>0.55?'#fff':(v<0?'#8a3a33':'#57534a')});
-      tx.textContent=fmt(v); tx.style.pointerEvents='none';
+      var tx=el("text",{x:j*cell+cell/2+1,y:i*cell+cell/2+4.5,"text-anchor":"middle",
+        "font-size":(cell>=26)?9:8.5,fill:t>0.55?"#fff":(v<0?"#8a3a33":"#57534a")});
+      tx.textContent=fmt(v); tx.style.pointerEvents="none";
       s.appendChild(tx);
-      (function(ii,jj){rect.addEventListener('click',function(){
+      (function(ii,jj){rect.addEventListener("click",function(){
         drawAll([ii,jj]); calcText(ii,jj);});})(i,j);
     }
-    if(hi){s.appendChild(el('rect',{x:hi[1]*cell+1,y:hi[0]*cell+1,width:cell,height:cell,rx:2,
-      fill:'none',stroke:'#E8B44C','stroke-width':3}));}
+    if(hi){s.appendChild(el("rect",{x:hi[1]*cell+1,y:hi[0]*cell+1,width:cell,height:cell,rx:2,
+      fill:"none",stroke:"#E8B44C","stroke-width":3}));}
+    document.getElementById("outCap").textContent=
+      "特徴マップ "+m+"×"+m+"（= 12−3+1"+(PAD?("+2×"+PAD):"")+"・タップで計算を表示）";
   }
   function calcText(r,c){
-    var k=KERNELS[curK],div=(curK==='blur')?9:1,parts=[],sum=0;
-    for(var u=0;u<K;u++)for(var v=0;v<K;v++){var w=k[u][v],x=img[r+u][c+v];sum+=w*x;
-      if(w!==0&&x!==0)parts.push((w<0?'(':'')+w+(w<0?')':'')+'×'+x);}
+    var k=KERNELS[curK],div=(curK==="blur")?9:1,parts=[],sum=0;
+    for(var u=0;u<K;u++)for(var v=0;v<K;v++){var w=k[u][v],x=px(img,r+u-PAD,c+v-PAD);sum+=w*x;
+      if(w!==0&&x!==0)parts.push((w<0?"(":"")+w+(w<0?")":"")+"×"+x);}
     sum/=div;
-    document.getElementById('calc').textContent=
-      '出力 ('+r+','+c+')  =  Σ w·x  =  '+(parts.length?parts.join(' + '):'0')+(div>1?'  ÷9':'')+'  =  '+fmt(sum);
+    document.getElementById("calc").textContent=
+      "出力 ("+r+","+c+")  =  Σ w·x  =  "+(parts.length?parts.join(" + "):"0（受容野が全部 0）")+(div>1?"  ÷9":"")+"  =  "+fmt(sum);
   }
-  function drawAll(hi){drawInput(hi);drawKernel();drawOutput(hi);}
-  // 絵の切り替え
-  document.querySelectorAll('#sprites .chip').forEach(function(ch){
-    ch.addEventListener('click',function(){
-      document.querySelectorAll('#sprites .chip').forEach(function(x){x.classList.remove('on');});
-      ch.classList.add('on'); loadSprite(ch.getAttribute('data-s')); drawAll();
-      document.getElementById('calc').textContent='出力のセルをタップすると、その位置の計算がここに出る。';
+  function drawAll(hi){drawInput(hi);drawKernel();drawOutput(hi);drawPool();}
+  document.querySelectorAll("#sprites .chip").forEach(function(ch){
+    ch.addEventListener("click",function(){
+      document.querySelectorAll("#sprites .chip").forEach(function(x){x.classList.remove("on");});
+      ch.classList.add("on"); loadSprite(ch.getAttribute("data-s")); drawAll();
+      document.getElementById("calc").textContent="出力のセルをタップすると、その位置の計算がここに出る。";
     });
   });
-  document.querySelectorAll('#kernels .chip').forEach(function(ch){
-    ch.addEventListener('click',function(){
-      document.querySelectorAll('#kernels .chip').forEach(function(x){x.classList.remove('on');});
-      ch.classList.add('on');curK=ch.getAttribute('data-k');drawAll();
-      document.getElementById('calc').textContent='フィルタ「'+ch.textContent+'」 ―― '+KDESC[curK];
+  document.querySelectorAll("#pads .chip").forEach(function(ch){
+    ch.addEventListener("click",function(){
+      document.querySelectorAll("#pads .chip").forEach(function(x){x.classList.remove("on");});
+      ch.classList.add("on"); PAD=+ch.getAttribute("data-p"); drawAll();
+      document.getElementById("calc").textContent = PAD
+        ? "外側に 0 の縁を "+PAD+" マス。端のセルは受容野の一部が絵の外（=0）に掛かる。"
+        : "パディングなし。フィルタが絵の中に収まる位置だけを計算する。";
+    });
+  });
+  document.querySelectorAll("#kernels .chip").forEach(function(ch){
+    ch.addEventListener("click",function(){
+      document.querySelectorAll("#kernels .chip").forEach(function(x){x.classList.remove("on");});
+      ch.classList.add("on");curK=ch.getAttribute("data-k");drawAll();
+      document.getElementById("calc").textContent="フィルタ「"+ch.textContent+"」 ―― "+KDESC[curK];
     });
   });
   var sliding=false;
-  document.getElementById('slideBtn').addEventListener('click',function(){
-    if(sliding)return;sliding=true;var seq=[];for(var i=0;i<M;i++)for(var j=0;j<M;j++)seq.push([i,j]);
+  document.getElementById("slideBtn").addEventListener("click",function(){
+    if(sliding)return;sliding=true;var m=M(),seq=[];for(var i=0;i<m;i++)for(var j=0;j<m;j++)seq.push([i,j]);
     var t=0;var iv=setInterval(function(){
       if(t>=seq.length){clearInterval(iv);sliding=false;drawAll();return;}
       var p=seq[t++];drawAll(p);calcText(p[0],p[1]);
     },60);
   });
-  document.getElementById('clearBtn').addEventListener('click',function(){
+  document.getElementById("clearBtn").addEventListener("click",function(){
     for(var r=0;r<N;r++)for(var c=0;c<N;c++)img[r][c]=0;drawAll();
-    document.getElementById('calc').textContent='全部 0 にした。セルをタップして描ける（タップで 0→3→6→9）。';
+    document.getElementById("calc").textContent="全部 0 にした。セルをタップして描ける（タップで 0→3→6→9）。";
   });
-  drawAll();
-  // ── プーリング節 ──────────────────────────────────────────────
-  // 自由に塗れる入力をそのまま使うと、クリックのたびに「たまたま窓の端で最大値が動く/動かない」が
-  // 変わってしまい、頑健性の実証にならない。各 2×2 窓の左上に山 (最大値) を置いた固定の特徴マップを使い、
-  // 実際に右下へ 1 マスずらす計算をして、山が同じ窓の中に残ることを見せる。
-  var POOL_BASE=[
-    [9,2,9,3,4],
-    [1,4,2,5,1],
-    [9,3,9,2,5],
-    [2,1,4,3,2],
-    [3,5,1,4,2]
-  ];
-  function shiftGrid(g,dr,dc){
-    // 右に dc・下に dr マスずらす。新しく視界に入る側は 0 (何も無い) で埋め、押し出された側は捨てる
-    var out=[];
-    for(var r=0;r<5;r++){out[r]=[];for(var c=0;c<5;c++){
-      var sr=r-dr,sc=c-dc;
-      out[r][c]=(sr>=0&&sc>=0)?g[sr][sc]:0;
-    }}
-    return out;
-  }
-  function poolOf(g){
-    // 2×2・stride 2 の max プーリング。5 は 2 で割り切れないので floor(5/2)=2 (最後の行/列は使わない)
-    var P=2,out=[];
-    for(var i=0;i<P;i++){out[i]=[];for(var j=0;j<P;j++){
-      var m=-1e9;for(var a=0;a<2;a++)for(var b=0;b<2;b++)m=Math.max(m,g[i*2+a][j*2+b]);
-      out[i][j]=m;
-    }}
-    return out;
-  }
+
+  // ── プーリング節: 上と同じ絵・同じフィルタの特徴マップをそのまま縮める ──
   var poolShifted=false;
-  function drawPool(){
-    var g=poolShifted?shiftGrid(POOL_BASE,1,1):POOL_BASE, pooled=poolOf(g);
-    var s=document.getElementById('poolInSvg');s.innerHTML='';var cell=200/5;
-    for(var r=0;r<5;r++)for(var c=0;c<5;c++){
-      var used=(r<4&&c<4); // floor(5/2)*2=4 の範囲だけがプーリングで使われる (5列目・5行目は切り捨て)
-      var rect=el('rect',{x:c*cell+1,y:r*cell+1,width:cell-2,height:cell-2,rx:3,
-        fill:used?gray(g[r][c]/9):'#F4F2EC',stroke:'#E4E1D8'});
-      if(!used)rect.setAttribute('opacity','0.55');
-      s.appendChild(rect);
-      var t=el('text',{x:c*cell+cell/2,y:r*cell+cell/2+4,'text-anchor':'middle','font-size':13,
-        fill:g[r][c]>=6?'#fff':'#2c2924','font-weight':g[r][c]===9?700:400});
-      t.textContent=g[r][c];s.appendChild(t);
-    }
-    // 2×2 窓の枠 (アクセント色) と、窓ごとの最大値セルの印 (破線)
-    for(var wi=0;wi<2;wi++)for(var wj=0;wj<2;wj++){
-      s.appendChild(el('rect',{x:wj*2*cell,y:wi*2*cell,width:cell*2,height:cell*2,rx:4,
-        fill:'none',stroke:ARC,'stroke-width':2.5}));
-      var bi=0,bj=0,bv=-1e9;
-      for(var a=0;a<2;a++)for(var b=0;b<2;b++){var rr=wi*2+a,cc=wj*2+b;if(g[rr][cc]>bv){bv=g[rr][cc];bi=a;bj=b;}}
-      s.appendChild(el('rect',{x:(wj*2+bj)*cell+3,y:(wi*2+bi)*cell+3,width:cell-6,height:cell-6,rx:3,
-        fill:'none',stroke:'#b4493f','stroke-width':2,'stroke-dasharray':'3 2'}));
-    }
-    var so=document.getElementById('poolOutSvg');so.innerHTML='';var ocell=92/2;
-    for(var i=0;i<2;i++)for(var j=0;j<2;j++){
-      so.appendChild(el('rect',{x:j*ocell+3,y:i*ocell+3,width:ocell-6,height:ocell-6,rx:5,
-        fill:gray(pooled[i][j]/9),stroke:ARC,'stroke-width':2.5}));
-      var ot=el('text',{x:j*ocell+ocell/2,y:i*ocell+ocell/2+5,'text-anchor':'middle','font-size':15,
-        fill:'#fff','font-weight':700});
-      ot.textContent=pooled[i][j];so.appendChild(ot);
-    }
-    document.getElementById('poolInCap').textContent=
-      '特徴マップ 5×5 ('+(poolShifted?'1 マスずらした後':'ずらす前')+')・太枠=2×2の窓・破線=窓内の最大値・灰色=切り捨てられる列/行';
-    var before=poolOf(POOL_BASE), after=poolOf(shiftGrid(POOL_BASE,1,1));
-    var flatB=[].concat(before[0],before[1]), flatA=[].concat(after[0],after[1]);
-    var same=flatB.every(function(v,i){return v===flatA[i];});
-    document.getElementById('poolOut').textContent=
-      'ずらす前の窓ごとの最大値: ['+flatB.join(', ')+']　／　1 マスずらした後: ['+flatA.join(', ')+']　→ '+
-      (same?'同じ窓の中に最大値が残っているため、プーリング後の出力は変わらない。':'最大値が窓をまたいで移動したため、出力が変わった。');
+  function shiftImg(g){
+    var out=[];
+    for(var r=0;r<N;r++){out[r]=[];for(var c=0;c<N;c++)out[r][c]=(r>0&&c>0)?g[r-1][c-1]:0;}
+    return out;
   }
-  document.getElementById('shiftBtn').addEventListener('click',function(){
+  function poolOf(o,m){
+    var P=Math.floor(m/2),out=[];
+    for(var i=0;i<P;i++){out[i]=[];for(var j=0;j<P;j++){
+      var mx=-1e9;for(var a=0;a<2;a++)for(var b=0;b<2;b++)mx=Math.max(mx,o[i*2+a][j*2+b]);
+      out[i][j]=mx;
+    }}
+    return out;
+  }
+  function drawPool(){
+    var base=conv(img), shf=conv(shiftImg(img));
+    var m=base.m, use=poolShifted?shf:base;
+    var pooled=poolOf(use.out,m), P=pooled.length;
+    var s=document.getElementById("poolInSvg");s.innerHTML="";
+    var cell=(m<=12)?20:17, W=m*cell+2;
+    s.setAttribute("width",W); s.setAttribute("height",W); s.setAttribute("viewBox","0 0 "+W+" "+W);
+    for(var r=0;r<m;r++)for(var c=0;c<m;c++){
+      var used=(r<P*2&&c<P*2);
+      var rect=el("rect",{x:c*cell+1,y:r*cell+1,width:cell-1,height:cell-1,
+        fill:used?outColor(use.out[r][c],use.amax):"#F4F2EC",stroke:"#EDEAE2"});
+      if(!used)rect.setAttribute("opacity","0.5");
+      s.appendChild(rect);
+    }
+    for(var wi=0;wi<P;wi++)for(var wj=0;wj<P;wj++)
+      s.appendChild(el("rect",{x:wj*2*cell+1,y:wi*2*cell+1,width:cell*2,height:cell*2,
+        fill:"none",stroke:ARC,"stroke-width":1.2,opacity:0.7}));
+    var so=document.getElementById("poolOutSvg");so.innerHTML="";
+    var oc=30, OW=P*oc+2;
+    so.setAttribute("width",OW); so.setAttribute("height",OW); so.setAttribute("viewBox","0 0 "+OW+" "+OW);
+    var pmax=0;for(var i2=0;i2<P;i2++)for(var j2=0;j2<P;j2++)pmax=Math.max(pmax,Math.abs(pooled[i2][j2]));
+    for(var i=0;i<P;i++)for(var j=0;j<P;j++){
+      so.appendChild(el("rect",{x:j*oc+1,y:i*oc+1,width:oc-2,height:oc-2,rx:3,
+        fill:outColor(pooled[i][j],pmax),stroke:ARC,"stroke-width":1.4}));
+      var t2=Math.min(1,Math.abs(pooled[i][j])/(pmax||1));
+      var ot=el("text",{x:j*oc+oc/2,y:i*oc+oc/2+4,"text-anchor":"middle","font-size":10.5,
+        fill:t2>0.55?"#fff":"#57534a","font-weight":700});
+      ot.textContent=fmt(pooled[i][j]);so.appendChild(ot);
+    }
+    document.getElementById("poolInCap").textContent=
+      "特徴マップ "+m+"×"+m+"（"+(poolShifted?"絵を右下へ 1 マスずらした後":"ずらす前")+"）・枠 = 2×2 の窓";
+    var pb=poolOf(base.out,m), pa=poolOf(shf.out,m);
+    var chF=0, tot=m*m;
+    for(var r2=0;r2<m;r2++)for(var c2=0;c2<m;c2++)
+      if(Math.abs(base.out[r2][c2]-shf.out[r2][c2])>1e-9)chF++;
+    var chP=0;
+    for(var i3=0;i3<P;i3++)for(var j3=0;j3<P;j3++)
+      if(Math.abs(pb[i3][j3]-pa[i3][j3])>1e-9)chP++;
+    var dF=0, dP=0;
+    for(var r3=0;r3<m;r3++)for(var c3=0;c3<m;c3++)dF+=Math.abs(base.out[r3][c3]-shf.out[r3][c3]);
+    for(var i4=0;i4<P;i4++)for(var j4=0;j4<P;j4++)dP+=Math.abs(pb[i4][j4]-pa[i4][j4]);
+    dF/=tot; dP/=(P*P);
+    document.getElementById("poolOut").textContent=
+      "絵を 1 マスずらすと ―― 特徴マップ: "+tot+" セル中 "+chF+" セルが変化（平均の変化 "+dF.toFixed(1)+"）"
+      +"　→　プーリング後: "+(P*P)+" セル中 "+chP+" セル（平均の変化 "+dP.toFixed(1)+"）。"
+      +"窓の中の移動は最大値に吸収されるため、ズレの影響が縮む。";
+  }
+  document.getElementById("shiftBtn").addEventListener("click",function(){
     poolShifted=!poolShifted;
-    this.textContent=poolShifted?'◀ ずらす前に戻す':'▶ 入力を 1 マスずらす';
+    this.textContent=poolShifted?"◀ ずらす前に戻す":"▶ 入力を 1 マスずらす";
     drawPool();
   });
-  drawPool();
+  drawAll();
 })();
 </script>
 
