@@ -212,13 +212,14 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
 <div class="fig-stage" id="sec1">
 <h2>畳み込み演算 — カーネルを滑らせて特徴を取り出す</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">入力はドット絵（12×12・数字は色の濃さ 0〜9）。絵とフィルタを選ぶと、3×3 を 1 マスずつ滑らせて内積を取った<strong>特徴マップ</strong>が現れる。<strong>パディング</strong>は入力の外側に 0 の縁を足す仕組みで、足すほど出力が大きくなる（なし→10×10、1→12×12、2→14×14）。入力のセルをタップすると濃さが一段変わり、<strong>出力のセルをタップするとその位置の計算</strong>が下に出る。</div>
+<div class="lead">入力はドット絵（24×24・濃さ 0〜9）。絵とフィルタを選ぶと、3×3 を滑らせて内積を取った<strong>特徴マップ</strong>が現れる ―― 機械が最初に「見る」のはこの反応の地図で、絵そのものではない。<strong>出力のセルをタップするとその位置の計算</strong>が下に出る（細かい値は「数字を表示」でも見られる）。入力のセルはタップで濃さが一段変わる。</div>
 </details>
 
 <div class="chips" id="sprites">
 <span class="chip on" data-s="cat">ねこ</span>
 <span class="chip" data-s="heart">ハート</span>
 <span class="chip" data-s="person">ひと</span>
+<span class="chip" id="numTgl">数字を表示</span>
 </div>
 <div class="chips" id="kernels">
 <span class="chip on" data-k="edgev">縦エッジ検出</span>
@@ -232,12 +233,15 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
 <span class="chip" data-p="1">パディング 1</span>
 <span class="chip" data-p="2">パディング 2</span>
 </div>
+<details class="foldbox" open><summary>説明</summary>
+<div class="note" id="padNote" style="margin:2px 0 8px"></div>
+</details>
 
 <details class="foldbox" open><summary>構成図</summary>
 <div class="grid-wrap">
   <div>
     <svg id="inGrid" width="314" height="314" viewBox="0 0 314 314"></svg>
-    <div class="gcap">入力 12×12（数字＝濃さ 0〜9・タップで一段変わる）</div>
+    <div class="gcap">入力 24×24（タップで濃さが一段変わる）</div>
   </div>
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:84px">
     <svg id="kerGrid" width="120" height="120" viewBox="0 0 120 120"></svg>
@@ -245,7 +249,7 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
   </div>
   <div>
     <svg id="outGrid" width="262" height="262" viewBox="0 0 262 262"></svg>
-    <div class="gcap" id="outCap">特徴マップ 10×10（= 12−3+1・タップで計算を表示）</div>
+    <div class="gcap" id="outCap">特徴マップ 22×22（= 24−3+1・タップで計算を表示）</div>
   </div>
 </div>
 <div class="legend">
@@ -285,11 +289,11 @@ $\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
 <div class="fig-stage" id="sec2">
 <h2>プーリング — 窓ごとの代表値で縮める</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">上の節と<strong>同じ絵・同じフィルタ</strong>の特徴マップを、2×2 の窓に区切って各窓の<strong>最大値だけ</strong>を残す（Max プーリング）。「入力を 1 マスずらす」を押すと、絵を右下へ 1 マスずらして畳み込みからやり直した結果と比べられる ―― ズレの影響がどれだけ縮むかが、下に数字で出る。</div>
+<div class="lead">プーリングの目的は<strong>要約</strong>: 2×2 の窓ごとに最大値だけを残して面積を 1/4 にする。細部は捨てるが「どこに何があるか」の配置は残る ―― 右の縮図でまだ絵が分かることがその証拠。おまけに、位置の小さなズレにも鈍くなる（実測つき）。実物の CNN の並びどおり、負の反応を 0 にする <strong>ReLU</strong> を通してから縮めている。</div>
 </details>
 
 <div class="ctrls">
-  <button class="btn" id="shiftBtn">▶ 入力を 1 マスずらす</button>
+  <button class="btn" id="shiftBtn">▶ 入力を右へ 1 マスずらす</button>
 </div>
 
 <details class="foldbox" open><summary>構成図</summary>
@@ -321,7 +325,7 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
 <script>
 (function(){
   var ARC="#6E7BA8";
-  var N=12, K=3, PAD=0;
+  var N=24, K=3, PAD=0, SHOWNUM=false;
   function M(){ return N-K+1+2*PAD; }
   var curK="edgev";
   var KERNELS={
@@ -338,19 +342,81 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
     sharp:"中心と周囲の差を強調し、輪郭が際立つ",
     blur:"周囲を均すため反応の差が小さくなる (輪郭がぼやける)"
   };
-  /* ドット絵（オリジナル絵柄・数字 0-9 が濃さ）。
-     ※ 実在ゲームのドット絵は権利があるため使わない。粗さだけ寄せた自作。
-     ねこの耳の斜め線は、縦・横どちらのフィルタにも掛かる（輪郭は縦横線に限らない） */
+  /* 24×24 のドット絵（オリジナル絵柄・数字 0-9 が濃さ）。
+     ※ 実在ゲームのドット絵は権利があるため使わない。粗さと雰囲気だけ寄せた自作 */
   var SPRITES={
-    cat:  ["099000000990","099900009990","099999999990","096666666690",
-           "096966669690","096666666690","096669966690","096699996690",
-           "096666666690","099999999990","000000000000","000000000000"],
-    heart:["000000000000","009900009900","099990099990","099999999990",
-           "099999999990","099999999990","009999999900","000999999000",
-           "000099990000","000009900000","000000000000","000000000000"],
-    person:["000099990000","000066660000","000069960000","000066660000",
-            "006699996600","006699996600","006699996600","000099990000",
-            "000099990000","000033330000","000033330000","000090090000"]
+    cat:  ["000000900000000009000000",
+           "000009990000000099900000",
+           "000099799000000997990000",
+           "000099799000000997990000",
+           "000099999666666999997000",
+           "000666666666666666667000",
+           "000666666666666666667000",
+           "000666699666666996667000",
+           "000666699666666996667000",
+           "000666666666666666667000",
+           "000666666668866666667000",
+           "000666666686686666667000",
+           "000066666666666666667000",
+           "000006666666666666700000",
+           "000006666666666666700000",
+           "000008886666666688800000",
+           "000006666666666666788800",
+           "000008886666666688808800",
+           "000006666666666666708800",
+           "000008886666666688808800",
+           "000006666666666666708800",
+           "000006666666666666708800",
+           "000000777770077777000000",
+           "000000777770077777000000"],
+    heart:["000000000000000000000000",
+           "000099999000000999990000",
+           "000977777999999777779000",
+           "009777777777777777777900",
+           "097777747777777777777790",
+           "097777444777777777777790",
+           "097777444777777777777790",
+           "097777777777777777777790",
+           "097777777777777777777790",
+           "097777777777777777777790",
+           "009777777777777777777900",
+           "009777777777777777777900",
+           "000977777777777777779000",
+           "000097777777777777790000",
+           "000009777777777777900000",
+           "000000997777777799000000",
+           "000000009977779900000000",
+           "000000000099990000000000",
+           "000000000000000000000000",
+           "000000000000000000000000",
+           "000000000000000000000000",
+           "000000000000000000000000",
+           "000000000000000000000000",
+           "000000000000000000000000"],
+    person:["000000009999999900000000",
+           "000000009999999900000000",
+           "000000009999999900000000",
+           "000000006666666700000000",
+           "000000006696696700000000",
+           "000000006666666700000000",
+           "000000006667766700000000",
+           "000000006688886700000000",
+           "000055555555555655560000",
+           "000055555555555655560000",
+           "000055555555555655560000",
+           "000066665555555666670000",
+           "000066665555555666670000",
+           "000066665555555666670000",
+           "000066665555555666670000",
+           "000066665555555666670000",
+           "000000004443344500000000",
+           "000000004443344500000000",
+           "000000004443344500000000",
+           "000000004443344500000000",
+           "000000004443344500000000",
+           "000000004443344500000000",
+           "000000008880088800000000",
+           "000000008880088800000000"]
   };
   var img=[];
   function loadSprite(id){
@@ -368,24 +434,26 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
   }
   function px(g,r,c){ return (r<0||c<0||r>=N||c>=N)?0:g[r][c]; }   /* パディング=外は 0 */
   function drawInput(hi){
-    var s=document.getElementById("inGrid");s.innerHTML="";var cell=26;
+    var s=document.getElementById("inGrid");s.innerHTML="";var cell=13;
     for(var r=0;r<N;r++)for(var c=0;c<N;c++){
       var v=img[r][c];
-      var rect=el("rect",{x:c*cell+1,y:r*cell+1,width:cell-1,height:cell-1,rx:2,
-        fill:gray(v/9), stroke:"#E4E1D8"});
+      var rect=el("rect",{x:c*cell+1,y:r*cell+1,width:cell-0.6,height:cell-0.6,
+        fill:gray(v/9), stroke:"#EDEAE2","stroke-width":0.5});
       rect.style.cursor="pointer";
       (function(rr,cc){rect.addEventListener("click",function(){
         img[rr][cc]=(img[rr][cc]+3)%12; drawAll();});})(r,c);
       s.appendChild(rect);
-      var t=el("text",{x:c*cell+cell/2+1,y:r*cell+cell/2+5,"text-anchor":"middle",
-        "font-size":11,fill:v>=6?"#fff":"#57534a"});
-      t.textContent=v; t.style.pointerEvents="none";
-      s.appendChild(t);
+      if(SHOWNUM){
+        var t=el("text",{x:c*cell+cell/2+0.5,y:r*cell+cell/2+3,"text-anchor":"middle",
+          "font-size":6.5,fill:v>=6?"#fff":"#8a857b"});
+        t.textContent=v; t.style.pointerEvents="none";
+        s.appendChild(t);
+      }
     }
-    if(hi){ /* パディング付きでは受容野が絵の外（0 の縁）へはみ出す。はみ出しごと描く */
+    if(hi){ /* 受容野。パディング付きでは絵の外（0 の縁）へはみ出して描く */
       s.appendChild(el("rect",{x:(hi[1]-PAD)*cell+1,y:(hi[0]-PAD)*cell+1,
-        width:cell*K,height:cell*K,rx:3,
-        fill:"rgba(232,180,76,.18)",stroke:"#E8B44C","stroke-width":3}));
+        width:cell*K,height:cell*K,rx:2,
+        fill:"rgba(232,180,76,.20)",stroke:"#E8B44C","stroke-width":2.4}));
     }
   }
   function drawKernel(){
@@ -408,25 +476,37 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
   function fmt(v){ return (Math.abs(v-Math.round(v))<1e-9)?String(Math.round(v)):v.toFixed(1); }
   function drawOutput(hi){
     var c=conv(),m=c.m,s=document.getElementById("outGrid");s.innerHTML="";
-    var cell=(m<=12)?26:22, W=m*cell+2;
+    var cell=(m<=24)?13:12, W=m*cell+2;
     s.setAttribute("width",W); s.setAttribute("height",W); s.setAttribute("viewBox","0 0 "+W+" "+W);
     for(var i=0;i<m;i++)for(var j=0;j<m;j++){
-      var v=c.out[i][j], t=Math.min(1,Math.abs(v)/(c.amax||1));
-      var rect=el("rect",{x:j*cell+1,y:i*cell+1,width:cell-1,height:cell-1,rx:2,
-        fill:outColor(v,c.amax),stroke:"#E4E1D8"});
+      var v=c.out[i][j];
+      var rect=el("rect",{x:j*cell+1,y:i*cell+1,width:cell-0.6,height:cell-0.6,
+        fill:outColor(v,c.amax),stroke:"#EDEAE2","stroke-width":0.5});
       rect.style.cursor="pointer";
       s.appendChild(rect);
-      var tx=el("text",{x:j*cell+cell/2+1,y:i*cell+cell/2+4.5,"text-anchor":"middle",
-        "font-size":(cell>=26)?9:8.5,fill:t>0.55?"#fff":(v<0?"#8a3a33":"#57534a")});
-      tx.textContent=fmt(v); tx.style.pointerEvents="none";
-      s.appendChild(tx);
+      if(SHOWNUM){
+        var t2=Math.min(1,Math.abs(v)/(c.amax||1));
+        var tx=el("text",{x:j*cell+cell/2+0.5,y:i*cell+cell/2+2.6,"text-anchor":"middle",
+          "font-size":6,fill:t2>0.55?"#fff":(v<0?"#8a3a33":"#8a857b")});
+        tx.textContent=fmt(v); tx.style.pointerEvents="none";
+        s.appendChild(tx);
+      }
       (function(ii,jj){rect.addEventListener("click",function(){
         drawAll([ii,jj]); calcText(ii,jj);});})(i,j);
     }
-    if(hi){s.appendChild(el("rect",{x:hi[1]*cell+1,y:hi[0]*cell+1,width:cell,height:cell,rx:2,
-      fill:"none",stroke:"#E8B44C","stroke-width":3}));}
+    if(hi){s.appendChild(el("rect",{x:hi[1]*cell+1,y:hi[0]*cell+1,width:cell,height:cell,
+      fill:"none",stroke:"#E8B44C","stroke-width":2.4}));}
     document.getElementById("outCap").textContent=
-      "特徴マップ "+m+"×"+m+"（= 12−3+1"+(PAD?("+2×"+PAD):"")+"・タップで計算を表示）";
+      "特徴マップ "+m+"×"+m+"（= 24−3+1"+(PAD?("+2×"+PAD):"")+"・タップで計算を表示）";
+    var note=document.getElementById("padNote");
+    if(note){
+      var after10 = N + 2*(PAD-1)*10;      /* 3×3 を 10 層: 1 層ごとに 2(1−PAD) 縮む */
+      note.textContent = PAD===1
+        ? "縁 1 周 → 出力は 24×24 のまま。何層重ねても絵が痩せず、端の画素も窓の中心になれる。"
+        : (PAD===0
+          ? "パディングなし → 1 層ごとに 2 ずつ痩せる。この 3×3 を 10 層重ねると 24×24 → "+(24-20)+"×"+(24-20)+"。端の画素は一度も窓の中心になれない。"
+          : "縁 2 周 → 出力が 26×26 に膨らむ。0 の縁とぶつかる場所に枠状の反応が出る（端の副作用も見える）。");
+    }
   }
   function calcText(r,c){
     var k=KERNELS[curK],div=(curK==="blur")?9:1,parts=[],sum=0;
@@ -437,20 +517,21 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
       "出力 ("+r+","+c+")  =  Σ w·x  =  "+(parts.length?parts.join(" + "):"0（受容野が全部 0）")+(div>1?"  ÷9":"")+"  =  "+fmt(sum);
   }
   function drawAll(hi){drawInput(hi);drawKernel();drawOutput(hi);drawPool();}
-  document.querySelectorAll("#sprites .chip").forEach(function(ch){
+  document.querySelectorAll("#sprites .chip[data-s]").forEach(function(ch){
     ch.addEventListener("click",function(){
-      document.querySelectorAll("#sprites .chip").forEach(function(x){x.classList.remove("on");});
+      document.querySelectorAll("#sprites .chip[data-s]").forEach(function(x){x.classList.remove("on");});
       ch.classList.add("on"); loadSprite(ch.getAttribute("data-s")); drawAll();
       document.getElementById("calc").textContent="出力のセルをタップすると、その位置の計算がここに出る。";
     });
+  });
+  var numTgl=document.getElementById("numTgl");
+  if(numTgl) numTgl.addEventListener("click",function(){
+    SHOWNUM=!SHOWNUM; numTgl.classList.toggle("on",SHOWNUM); drawAll();
   });
   document.querySelectorAll("#pads .chip").forEach(function(ch){
     ch.addEventListener("click",function(){
       document.querySelectorAll("#pads .chip").forEach(function(x){x.classList.remove("on");});
       ch.classList.add("on"); PAD=+ch.getAttribute("data-p"); drawAll();
-      document.getElementById("calc").textContent = PAD
-        ? "外側に 0 の縁を "+PAD+" マス。端のセルは受容野の一部が絵の外（=0）に掛かる。"
-        : "パディングなし。フィルタが絵の中に収まる位置だけを計算する。";
     });
   });
   document.querySelectorAll("#kernels .chip").forEach(function(ch){
@@ -460,13 +541,17 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
       document.getElementById("calc").textContent="フィルタ「"+ch.textContent+"」 ―― "+KDESC[curK];
     });
   });
-  var sliding=false;
+  var slideIv=null;
   document.getElementById("slideBtn").addEventListener("click",function(){
-    if(sliding)return;sliding=true;var m=M(),seq=[];for(var i=0;i<m;i++)for(var j=0;j<m;j++)seq.push([i,j]);
-    var t=0;var iv=setInterval(function(){
-      if(t>=seq.length){clearInterval(iv);sliding=false;drawAll();return;}
+    var btn=this;
+    if(slideIv){clearInterval(slideIv);slideIv=null;btn.textContent="▶ スライド (畳み込みを再生)";drawAll();return;}
+    var m=M(),seq=[];for(var i=0;i<m;i++)for(var j=0;j<m;j++)seq.push([i,j]);
+    var t=0;btn.textContent="■ 停止";
+    slideIv=setInterval(function(){
+      if(t>=seq.length){clearInterval(slideIv);slideIv=null;
+        btn.textContent="▶ スライド (畳み込みを再生)";drawAll();return;}
       var p=seq[t++];drawAll(p);calcText(p[0],p[1]);
-    },60);
+    },22);
   });
   document.getElementById("clearBtn").addEventListener("click",function(){
     for(var r=0;r<N;r++)for(var c=0;c<N;c++)img[r][c]=0;drawAll();
@@ -475,10 +560,13 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
 
   // ── プーリング節: 上と同じ絵・同じフィルタの特徴マップをそのまま縮める ──
   var poolShifted=false;
-  function shiftImg(g){
+  function shiftImg(g){          /* 右へ 1 マス */
     var out=[];
-    for(var r=0;r<N;r++){out[r]=[];for(var c=0;c<N;c++)out[r][c]=(r>0&&c>0)?g[r-1][c-1]:0;}
+    for(var r=0;r<N;r++){out[r]=[];for(var c=0;c<N;c++)out[r][c]=(c>0)?g[r][c-1]:0;}
     return out;
+  }
+  function relu(o){               /* 実物どおり: プーリングの前に負の反応を 0 に */
+    return o.map(function(row){ return row.map(function(v){ return v>0?v:0; }); });
   }
   function poolOf(o,m){
     var P=Math.floor(m/2),out=[];
@@ -489,55 +577,54 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
     return out;
   }
   function drawPool(){
-    var base=conv(img), shf=conv(shiftImg(img));
+    var b0=conv(img), s0=conv(shiftImg(img));
+    var base={out:relu(b0.out),m:b0.m}, shf={out:relu(s0.out),m:s0.m};
+    base.amax=0; base.out.forEach(function(r){r.forEach(function(v){if(v>base.amax)base.amax=v;});});
+    shf.amax=base.amax;
     var m=base.m, use=poolShifted?shf:base;
     var pooled=poolOf(use.out,m), P=pooled.length;
     var s=document.getElementById("poolInSvg");s.innerHTML="";
-    var cell=(m<=12)?20:17, W=m*cell+2;
+    var cell=(m<=24)?13:12, W=m*cell+2;
     s.setAttribute("width",W); s.setAttribute("height",W); s.setAttribute("viewBox","0 0 "+W+" "+W);
     for(var r=0;r<m;r++)for(var c=0;c<m;c++){
       var used=(r<P*2&&c<P*2);
-      var rect=el("rect",{x:c*cell+1,y:r*cell+1,width:cell-1,height:cell-1,
-        fill:used?outColor(use.out[r][c],use.amax):"#F4F2EC",stroke:"#EDEAE2"});
+      var rect=el("rect",{x:c*cell+1,y:r*cell+1,width:cell-0.6,height:cell-0.6,
+        fill:used?outColor(use.out[r][c],use.amax):"#F4F2EC",stroke:"#F0EDE6","stroke-width":0.4});
       if(!used)rect.setAttribute("opacity","0.5");
       s.appendChild(rect);
     }
     for(var wi=0;wi<P;wi++)for(var wj=0;wj<P;wj++)
       s.appendChild(el("rect",{x:wj*2*cell+1,y:wi*2*cell+1,width:cell*2,height:cell*2,
-        fill:"none",stroke:ARC,"stroke-width":1.2,opacity:0.7}));
+        fill:"none",stroke:ARC,"stroke-width":0.7,opacity:0.5}));
     var so=document.getElementById("poolOutSvg");so.innerHTML="";
-    var oc=30, OW=P*oc+2;
+    var oc=24, OW=P*oc+2;
     so.setAttribute("width",OW); so.setAttribute("height",OW); so.setAttribute("viewBox","0 0 "+OW+" "+OW);
     var pmax=0;for(var i2=0;i2<P;i2++)for(var j2=0;j2<P;j2++)pmax=Math.max(pmax,Math.abs(pooled[i2][j2]));
     for(var i=0;i<P;i++)for(var j=0;j<P;j++){
-      so.appendChild(el("rect",{x:j*oc+1,y:i*oc+1,width:oc-2,height:oc-2,rx:3,
-        fill:outColor(pooled[i][j],pmax),stroke:ARC,"stroke-width":1.4}));
+      so.appendChild(el("rect",{x:j*oc+1,y:i*oc+1,width:oc-1,height:oc-1,rx:2,
+        fill:outColor(pooled[i][j],pmax),stroke:"#E4E1D8","stroke-width":0.6}));
       var t2=Math.min(1,Math.abs(pooled[i][j])/(pmax||1));
-      var ot=el("text",{x:j*oc+oc/2,y:i*oc+oc/2+4,"text-anchor":"middle","font-size":10.5,
-        fill:t2>0.55?"#fff":"#57534a","font-weight":700});
+      var ot=el("text",{x:j*oc+oc/2,y:i*oc+oc/2+3.5,"text-anchor":"middle","font-size":9,
+        fill:t2>0.55?"#fff":"#57534a"});
       ot.textContent=fmt(pooled[i][j]);so.appendChild(ot);
     }
     document.getElementById("poolInCap").textContent=
-      "特徴マップ "+m+"×"+m+"（"+(poolShifted?"絵を右下へ 1 マスずらした後":"ずらす前")+"）・枠 = 2×2 の窓";
+      "特徴マップ（ReLU 後）"+m+"×"+m+"（"+(poolShifted?"絵を右へ 1 マスずらした後":"ずらす前")+"）・枠 = 2×2 の窓";
     var pb=poolOf(base.out,m), pa=poolOf(shf.out,m);
-    var chF=0, tot=m*m;
-    for(var r2=0;r2<m;r2++)for(var c2=0;c2<m;c2++)
-      if(Math.abs(base.out[r2][c2]-shf.out[r2][c2])>1e-9)chF++;
-    var chP=0;
-    for(var i3=0;i3<P;i3++)for(var j3=0;j3<P;j3++)
-      if(Math.abs(pb[i3][j3]-pa[i3][j3])>1e-9)chP++;
-    var dF=0, dP=0;
-    for(var r3=0;r3<m;r3++)for(var c3=0;c3<m;c3++)dF+=Math.abs(base.out[r3][c3]-shf.out[r3][c3]);
-    for(var i4=0;i4<P;i4++)for(var j4=0;j4<P;j4++)dP+=Math.abs(pb[i4][j4]-pa[i4][j4]);
-    dF/=tot; dP/=(P*P);
+    var dF=0,sF=0,dP=0,sP=0;
+    for(var r3=0;r3<m;r3++)for(var c3=0;c3<m;c3++){
+      dF+=Math.abs(base.out[r3][c3]-shf.out[r3][c3]); sF+=base.out[r3][c3]; }
+    for(var i4=0;i4<P;i4++)for(var j4=0;j4<P;j4++){
+      dP+=Math.abs(pb[i4][j4]-pa[i4][j4]); sP+=pb[i4][j4]; }
+    var relF=sF?Math.round(dF/sF*100):0, relP=sP?Math.round(dP/sP*100):0;
     document.getElementById("poolOut").textContent=
-      "絵を 1 マスずらすと ―― 特徴マップ: "+tot+" セル中 "+chF+" セルが変化（平均の変化 "+dF.toFixed(1)+"）"
-      +"　→　プーリング後: "+(P*P)+" セル中 "+chP+" セル（平均の変化 "+dP.toFixed(1)+"）。"
-      +"窓の中の移動は最大値に吸収されるため、ズレの影響が縮む。";
+      "セル数 "+(m*m)+" → "+(P*P)+"（計算量 1/4）。それでも絵の配置は右の縮図に残っている。"
+      +"絵を右へ 1 マスずらすと、反応の変化は全体の "+relF+"% 分 → プーリング後は "+relP+"% 分に縮む"
+      +"（窓の中の移動は最大値に吸収されるため）。";
   }
   document.getElementById("shiftBtn").addEventListener("click",function(){
     poolShifted=!poolShifted;
-    this.textContent=poolShifted?"◀ ずらす前に戻す":"▶ 入力を 1 マスずらす";
+    this.textContent=poolShifted?"◀ ずらす前に戻す":"▶ 入力を右へ 1 マスずらす";
     drawPool();
   });
   drawAll();
