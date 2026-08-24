@@ -283,7 +283,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 </details>
 
 <details class="foldbox figfold" open><summary>構成図</summary>
-<div class="nnfig mynet"><svg id="game" viewBox="0 0 380 130"></svg></div>
+<div class="nnfig mynet"><svg id="game" viewBox="0 0 380 146"></svg></div>
 <p class="fig-legend">判定者は文字だけで両方と話す。どちらかが機械。持ち時間 5 分</p>
 </details>
 
@@ -292,7 +292,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 
 <details class="foldbox" open style="margin-top:16px"><summary>実測の結果（2025 年・原型どおりの 3 者版）</summary>
 <div class="nnfig mynet"><svg id="chart" viewBox="0 0 380 190"></svg></div>
-<p class="fig-legend">判定者が「こちらが人間」と選んだ率。赤線＝チューリングの予言 30%　黒線＝本物の人間と互角 50%</p>
+<p class="fig-legend">判定者が「人間だ」と答えた割合。赤線＝チューリングの予言 30%　黒線＝本物の人間と互角 50%</p>
 </details>
 
 <dl class="facts">
@@ -303,11 +303,11 @@ and Intelligence</i>, Mind 誌。</dd>
 <dt>逆向きの失敗も起きた</dt>
 <dd>1991 年の Loebner 大会で、シェイクスピアに詳しすぎた<b>人間</b>が
 「人間がこんなに知っているはずがない」と機械側に判定された。</dd>
-<dt>2025 年、テストは合格された。ただし</dt>
-<dd>GPT-4.5（人格を演じる指示つき）は「人間だ」と選ばれた率 73% で、
-<b>本物の人間（27%）を上回った</b>。一方、判定者が見ていたのは主に言葉づかい
-（35%）と感情面（27%）で、知能そのものではない——「見分けられない」は
-「考えている」と同じか、という 1950 年からの問いは残ったまま。</dd>
+<dt>2025 年、機械はテストに合格した。ただし</dt>
+<dd>GPT-4.5（人格を演じる指示つき）は 73% の判定者に「人間だ」と判定され、
+<b>本物の人間（27%）を上回った</b>。ただし判定者が見ていたのは主に言葉づかい
+（35%）と感情面（27%）で、知能そのものではない。「見分けられない」ことは
+「考えている」ことになるのか——この問いには、1950 年からまだ誰も答えていない。</dd>
 </dl>
 
 <div class="srcnote">
@@ -582,7 +582,7 @@ C. Jones &amp; B. Bergen (2024) NAACL・(2025) arXiv:2503.23674。
      truth:'機械',
      rev:'<b>機械</b>はここでは「判定者」の側——1966 年の ELIZA（Weizenbaum）。'
        +'型に当てはめて聞き返しているだけだが、人間だと信じて悩みを打ち明ける'
-       +'利用者が現れた。2025 年の追試では 23% が人間と判定している。'},
+       +'利用者が現れた。2025 年の追試では 23% の判定者が人間だと答えた。'},
     {src:'記録 3 — 病院での問診',
      lines:[['判定者','なぜ入院しているのですか。'],
             ['相手','ここにいるべきじゃないんです。'],
@@ -619,9 +619,9 @@ C. Jones &amp; B. Bergen (2024) NAACL・(2025) arXiv:2503.23674。
     [['M122 60 C 190 60, 190 36, 258 36'],['M122 70 C 190 70, 190 94, 258 94']].forEach(function(d){
       svg.appendChild(el('path',{d:d[0],fill:'none',stroke:'#b9c0d8','stroke-width':1.6}));
     });
-    svg.appendChild(el('text',{x:190,y:52,'font-size':10,'text-anchor':'middle',fill:MUTED,
+    svg.appendChild(el('text',{x:190,y:68,'font-size':10,'text-anchor':'middle',fill:MUTED,
       stroke:'#FAFAF7','stroke-width':3,'paint-order':'stroke'},'文字だけ（声も姿もなし）'));
-    svg.appendChild(el('text',{x:190,y:118,'font-size':10,'text-anchor':'middle',fill:MUTED},
+    svg.appendChild(el('text',{x:190,y:136,'font-size':10,'text-anchor':'middle',fill:MUTED},
       '5 分ののち、どちらが人間かを答える'));
   }
 
