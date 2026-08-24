@@ -205,16 +205,21 @@ table{display:block;overflow-x:auto;max-width:100%}
 CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (カーネル) を画像の上で滑らせ</strong>、
 「この局所領域にエッジ・模様があるか?」をスキャンする。同じフィルタを全域で使い回す <strong>重み共有</strong>が、
 パラメータ数を劇的に減らし、位置がずれても同じ特徴を捉える <strong>並進不変性</strong>を生む。
-下の格子をクリックして絵を描き、フィルタを選び、特徴マップが浮かび上がる様子を確かめよう。</p>
+下のドット絵（数字＝色の濃さ）にフィルタを掛けて、それぞれのフィルタが何を拾うかを確かめよう。</p>
 </div>
 
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">畳み込み演算</a></li><li><a href="#sec2">プーリング</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>畳み込み演算 — カーネルを滑らせて特徴を取り出す</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">左の入力 (7×7) のセルをクリックして塗る。フィルタを選ぶと、3×3 を 1 マスずつ滑らせて内積を取った<strong>特徴マップ</strong>(5×5) が右に現れる。「スライド」で受容野が動く様子をアニメーションする。</div>
+<div class="lead">入力はドット絵（12×12・数字は色の濃さ 0〜9）。絵とフィルタを選ぶと、3×3 を 1 マスずつ滑らせて内積を取った<strong>特徴マップ</strong>（10×10）が現れる。入力のセルをタップすると濃さが一段変わり、<strong>出力のセルをタップするとその位置の計算</strong>が下に出る。</div>
 </details>
 
+<div class="chips" id="sprites">
+<span class="chip on" data-s="house">家</span>
+<span class="chip" data-s="heart">ハート</span>
+<span class="chip" data-s="robot">ロボ</span>
+</div>
 <div class="chips" id="kernels">
 <span class="chip on" data-k="edgev">縦エッジ検出</span>
 <span class="chip" data-k="edgeh">横エッジ検出</span>
@@ -226,21 +231,22 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
 <details class="foldbox" open><summary>構成図</summary>
 <div class="grid-wrap">
   <div>
-    <svg id="inGrid" width="224" height="224" viewBox="0 0 224 224"></svg>
-    <div class="gcap">入力画像 7×7 (クリックで塗る)</div>
+    <svg id="inGrid" width="314" height="314" viewBox="0 0 314 314"></svg>
+    <div class="gcap">入力 12×12（数字＝濃さ 0〜9・タップで一段変わる）</div>
   </div>
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:84px">
     <svg id="kerGrid" width="120" height="120" viewBox="0 0 120 120"></svg>
     <div class="gcap">フィルタ 3×3</div>
   </div>
   <div>
-    <svg id="outGrid" width="200" height="200" viewBox="0 0 200 200"></svg>
-    <div class="gcap">特徴マップ 5×5　(出力サイズ = 7−3+1 = 5)</div>
+    <svg id="outGrid" width="262" height="262" viewBox="0 0 262 262"></svg>
+    <div class="gcap">特徴マップ 10×10（= 12−3+1・タップで計算を表示）</div>
   </div>
 </div>
 <div class="legend">
-  <span><i style="background:#2c2924"></i>濃い = 正の大きい反応</span>
-  <span><i style="background:#fff;border:1px solid #E4E1D8"></i>白 = 負・弱い反応</span>
+  <span><i style="background:rgba(110,123,168,.8)"></i>青 = 正の反応</span>
+  <span><i style="background:rgba(180,73,63,.8)"></i>赤 = 負の反応</span>
+  <span><i style="background:#fff;border:1px solid #E4E1D8"></i>白 = 反応なし</span>
 </div>
 </details>
 
@@ -248,7 +254,7 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
   <button class="btn" id="slideBtn">▶ スライド (畳み込みを再生)</button>
   <button class="btn ghost" id="clearBtn">クリア</button>
 </div>
-<div class="readout" id="calc">フィルタを選び、入力を塗ってください。</div>
+<div class="readout" id="calc">出力のセルをタップすると、その位置の計算がここに出る。</div>
 
 <details class="foldbox"><summary>式と計算</summary>
 <div class="formula">
@@ -310,16 +316,15 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
 <script>
 (function(){
   var ARC="#6E7BA8";
-  var N=7, K=3, M=N-K+1; // input 7, kernel 3, output 5
-  var img=[], curK="edgev";
+  var N=12, K=3, M=N-K+1;              // 入力 12, フィルタ 3, 出力 10
+  var curK="edgev";
   var KERNELS={
     edgev:[[-1,0,1],[-1,0,1],[-1,0,1]],
     edgeh:[[-1,-1,-1],[0,0,0],[1,1,1]],
     lap:[[0,-1,0],[-1,4,-1],[0,-1,0]],
     sharp:[[0,-1,0],[-1,5,-1],[0,-1,0]],
-    blur:[[1,1,1],[1,1,1],[1,1,1]]  // averaged by /9 at use
+    blur:[[1,1,1],[1,1,1],[1,1,1]]  // 使用時に /9
   };
-  // フィルタを選んだとき「この形は何を検出するのか」を言葉でも伝える (見た目だけでは伝わりにくいため)
   var KDESC={
     edgev:"縦線の左右で強く反応する (横方向の明暗差=縦エッジを検出)",
     edgeh:"横線の上下で強く反応する (縦方向の明暗差=横エッジを検出)",
@@ -327,23 +332,51 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
     sharp:"中心と周囲の差を強調し、輪郭が際立つ",
     blur:"周囲を均すため反応の差が小さくなる (輪郭がぼやける)"
   };
-  // seed a simple diagonal stroke + vertical bar
-  for(var r=0;r<N;r++){img[r]=[];for(var c=0;c<N;c++){img[r][c]= (c===2||c===3||r===c)?1:0;}}
+  /* ドット絵（オリジナル絵柄・数字 0-9 が濃さ）。
+     ※ 実在ゲームのドット絵は権利があるため使わない。粗さだけ寄せた自作。 */
+  var SPRITES={
+    house:["000009900000","000099990000","000999999000","009999999900",
+           "099999999990","999999999999","066666666660","066666666660",
+           "066669966660","066669966660","066669966660","333333333333"],
+    heart:["000000000000","009900009900","099990099990","099999999990",
+           "099999999990","099999999990","009999999900","000999999000",
+           "000099990000","000009900000","000000000000","000000000000"],
+    robot:["000900009000","000900009000","009999999900","009000000900",
+           "009090090900","009090090900","009000000900","009066660900",
+           "009000000900","009999999900","000000000000","000000000000"]
+  };
+  var img=[];
+  function loadSprite(id){
+    var sp=SPRITES[id];
+    for(var r=0;r<N;r++){img[r]=[];for(var c=0;c<N;c++)img[r][c]=+sp[r].charAt(c);}
+  }
+  loadSprite('house');
   var SVGNS="http://www.w3.org/2000/svg";
   function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
   function gray(v){v=Math.max(0,Math.min(1,v));var g=Math.round(255-v*215);return"rgb("+g+","+g+","+g+")";}
+  function outColor(v,amax){
+    if(amax<1e-9||Math.abs(v)<1e-9) return '#fff';
+    var t=Math.min(1,Math.abs(v)/amax)*0.85;
+    return v>0 ? 'rgba(110,123,168,'+t.toFixed(2)+')' : 'rgba(180,73,63,'+t.toFixed(2)+')';
+  }
   function drawInput(hi){
-    var s=document.getElementById('inGrid');s.innerHTML='';var cell=224/N;
+    var s=document.getElementById('inGrid');s.innerHTML='';var cell=26;
     for(var r=0;r<N;r++)for(var c=0;c<N;c++){
-      var rect=el('rect',{x:c*cell+1,y:r*cell+1,width:cell-2,height:cell-2,rx:3,
-        fill: img[r][c]?'#2c2924':'#fff', stroke:'#E4E1D8'});
+      var v=img[r][c];
+      var rect=el('rect',{x:c*cell+1,y:r*cell+1,width:cell-1,height:cell-1,rx:2,
+        fill:gray(v/9), stroke:'#E4E1D8'});
       rect.style.cursor='pointer';
-      (function(rr,cc){rect.addEventListener('click',function(){img[rr][cc]=img[rr][cc]?0:1;drawAll();});})(r,c);
+      (function(rr,cc){rect.addEventListener('click',function(){
+        img[rr][cc]=(img[rr][cc]+3)%12; drawAll();});})(r,c);
       s.appendChild(rect);
+      var t=el('text',{x:c*cell+cell/2+1,y:r*cell+cell/2+5,'text-anchor':'middle',
+        'font-size':11,fill:v>=6?'#fff':'#57534a'});
+      t.textContent=v; t.style.pointerEvents='none';
+      s.appendChild(t);
     }
-    if(hi){ // highlight 3x3 receptive field at hi=[r,c]
-      s.appendChild(el('rect',{x:hi[1]*cell,y:hi[0]*cell,width:cell*K,height:cell*K,rx:4,
-        fill:'rgba(110,123,168,.16)',stroke:ARC,'stroke-width':3}));
+    if(hi){
+      s.appendChild(el('rect',{x:hi[1]*cell+1,y:hi[0]*cell+1,width:cell*K,height:cell*K,rx:3,
+        fill:'rgba(232,180,76,.18)',stroke:'#E8B44C','stroke-width':3}));
     }
   }
   function drawKernel(){
@@ -356,38 +389,53 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
     }
   }
   function conv(){
-    var k=KERNELS[curK], div=(curK==='blur')?9:1, out=[], mn=1e9,mx=-1e9;
+    var k=KERNELS[curK], div=(curK==='blur')?9:1, out=[], amax=0;
     for(var i=0;i<M;i++){out[i]=[];for(var j=0;j<M;j++){
       var sum=0;for(var u=0;u<K;u++)for(var v=0;v<K;v++)sum+=k[u][v]*img[i+u][j+v];
-      sum/=div;out[i][j]=sum;if(sum<mn)mn=sum;if(sum>mx)mx=sum;}}
-    return {out:out,mn:mn,mx:mx};
+      sum/=div;out[i][j]=sum;if(Math.abs(sum)>amax)amax=Math.abs(sum);}}
+    return {out:out,amax:amax};
   }
-  function norm(v,mn,mx){if(mx-mn<1e-6)return .5;return (v-mn)/(mx-mn);}
+  function fmt(v){ return (Math.abs(v-Math.round(v))<1e-9)?String(Math.round(v)):v.toFixed(1); }
   function drawOutput(hi){
-    var c=conv(),s=document.getElementById('outGrid');s.innerHTML='';var cell=200/M;
+    var c=conv(),s=document.getElementById('outGrid');s.innerHTML='';var cell=26;
     for(var i=0;i<M;i++)for(var j=0;j<M;j++){
-      var nv=norm(c.out[i][j],c.mn,c.mx);
-      var rect=el('rect',{x:j*cell+1,y:i*cell+1,width:cell-2,height:cell-2,rx:3,fill:gray(nv),stroke:'#E4E1D8'});
+      var v=c.out[i][j], t=Math.min(1,Math.abs(v)/(c.amax||1));
+      var rect=el('rect',{x:j*cell+1,y:i*cell+1,width:cell-1,height:cell-1,rx:2,
+        fill:outColor(v,c.amax),stroke:'#E4E1D8'});
+      rect.style.cursor='pointer';
       s.appendChild(rect);
+      var tx=el('text',{x:j*cell+cell/2+1,y:i*cell+cell/2+4.5,'text-anchor':'middle',
+        'font-size':9,fill:t>0.55?'#fff':(v<0?'#8a3a33':'#57534a')});
+      tx.textContent=fmt(v); tx.style.pointerEvents='none';
+      s.appendChild(tx);
+      (function(ii,jj){rect.addEventListener('click',function(){
+        drawAll([ii,jj]); calcText(ii,jj);});})(i,j);
     }
-    if(hi){s.appendChild(el('rect',{x:hi[1]*cell,y:hi[0]*cell,width:cell,height:cell,rx:3,
-      fill:'none',stroke:ARC,'stroke-width':3}));}
+    if(hi){s.appendChild(el('rect',{x:hi[1]*cell+1,y:hi[0]*cell+1,width:cell,height:cell,rx:2,
+      fill:'none',stroke:'#E8B44C','stroke-width':3}));}
   }
   function calcText(r,c){
     var k=KERNELS[curK],div=(curK==='blur')?9:1,parts=[],sum=0;
     for(var u=0;u<K;u++)for(var v=0;v<K;v++){var w=k[u][v],x=img[r+u][c+v];sum+=w*x;
-      if(x)parts.push((w<0?'(':'')+w+(w<0?')':'')+'×'+x);}
+      if(w!==0&&x!==0)parts.push((w<0?'(':'')+w+(w<0?')':'')+'×'+x);}
     sum/=div;
     document.getElementById('calc').textContent=
-      '位置 ('+r+','+c+') の特徴マップ値  =  Σ w·x  =  '+(parts.length?parts.join(' + '):'0')+(div>1?'  ÷9':'')+'  =  '+sum.toFixed(2);
+      '出力 ('+r+','+c+')  =  Σ w·x  =  '+(parts.length?parts.join(' + '):'0')+(div>1?'  ÷9':'')+'  =  '+fmt(sum);
   }
   function drawAll(hi){drawInput(hi);drawKernel();drawOutput(hi);}
-  // events
+  // 絵の切り替え
+  document.querySelectorAll('#sprites .chip').forEach(function(ch){
+    ch.addEventListener('click',function(){
+      document.querySelectorAll('#sprites .chip').forEach(function(x){x.classList.remove('on');});
+      ch.classList.add('on'); loadSprite(ch.getAttribute('data-s')); drawAll();
+      document.getElementById('calc').textContent='出力のセルをタップすると、その位置の計算がここに出る。';
+    });
+  });
   document.querySelectorAll('#kernels .chip').forEach(function(ch){
     ch.addEventListener('click',function(){
       document.querySelectorAll('#kernels .chip').forEach(function(x){x.classList.remove('on');});
       ch.classList.add('on');curK=ch.getAttribute('data-k');drawAll();
-      document.getElementById('calc').textContent='フィルタ「'+ch.textContent+'」を選択 ―― '+KDESC[curK]+'。スライドで内積を確認。';
+      document.getElementById('calc').textContent='フィルタ「'+ch.textContent+'」 ―― '+KDESC[curK];
     });
   });
   var sliding=false;
@@ -396,15 +444,13 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
     var t=0;var iv=setInterval(function(){
       if(t>=seq.length){clearInterval(iv);sliding=false;drawAll();return;}
       var p=seq[t++];drawAll(p);calcText(p[0],p[1]);
-    },140);
+    },60);
   });
   document.getElementById('clearBtn').addEventListener('click',function(){
     for(var r=0;r<N;r++)for(var c=0;c<N;c++)img[r][c]=0;drawAll();
-    // 直前のクリックで残った数値を消す (空の入力なのに古い計算結果が残ると食い違う)
-    document.getElementById('calc').textContent='フィルタを選び、入力を塗ってください。';
+    document.getElementById('calc').textContent='全部 0 にした。セルをタップして描ける（タップで 0→3→6→9）。';
   });
   drawAll();
-
   // ── プーリング節 ──────────────────────────────────────────────
   // 自由に塗れる入力をそのまま使うと、クリックのたびに「たまたま窓の端で最大値が動く/動かない」が
   // 変わってしまい、頑健性の実証にならない。各 2×2 窓の左上に山 (最大値) を置いた固定の特徴マップを使い、
