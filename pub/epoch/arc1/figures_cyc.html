@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- epoch-meta:start 共有されたときのカード。単一出典 = outputs/publish/epoch/epoch_meta.py -->
-<meta name="description" content="Cyc が「常識」を全部書き下そうとした試みを、知識ベースの推論として動かせる図解。記号 AI の到達点と限界。無料。">
-<meta property="og:title" content="Cyc 常識推論 — EPOCH 図解">
-<meta property="og:description" content="Cyc が「常識」を全部書き下そうとした試みを、知識ベースの推論として動かせる図解。記号 AI の到達点と限界。無料。">
+<meta name="description" content="Cyc（1984〜）の常識推論を動かせる図解。常識を辺として書き、規則に合った組から新しい辺を 1 本ずつ導く。無料。">
+<meta property="og:title" content="Cyc — 常識を辺として書き、規則で増やす — EPOCH Arc 1 図解">
+<meta property="og:description" content="Cyc（1984〜）の常識推論を動かせる図解。常識を辺として書き、規則に合った組から新しい辺を 1 本ずつ導く。無料。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="EPOCH — 時代の前夜">
 <meta property="og:locale" content="ja_JP">
@@ -14,74 +14,63 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://manga-epoch.github.io/viewer/og/arc1-figures_cyc.jpg">
 <!-- epoch-meta:end -->
-<title>Cyc 常識推論 — EPOCH 図解</title>
+<title>Cyc — 常識を辺として書き、規則で増やす — EPOCH Arc 1 図解</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){
-  if(typeof renderMathInElement==='function'){
-    renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
-  }
-}
+function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
-
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,sans-serif;background:#FAFAF7;color:#1A1A1A;line-height:1.7}
-nav{background:#F4F2EC;padding:8px 12px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-nav select{background:#E4E1D8;color:#1A1A1A;border:1px solid #C8C4B8;border-radius:6px;padding:6px 8px;font-size:14px;flex:1;max-width:400px}
-nav button{background:#E4E1D8;color:#565248;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:14px}
-nav button:hover{background:#C8C4B8}
-.page{display:none;max-width:800px;margin:0 auto;padding:16px}
-.page.active{display:block}
-.section{background:#F4F2EC;border-radius:10px;padding:20px;margin:16px 0}
-.section h3{color:#3f6178;font-size:16px;margin-bottom:8px;border-bottom:1px solid #E4E1D8;padding-bottom:6px}
-h2{color:#5B7C99;margin-bottom:4px}
-.arc-label{color:#9A9488;font-size:13px;margin-bottom:12px}
-.formula{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:16px;margin:8px 0;font-size:14px;line-height:1.9;color:#1A1A1A;overflow-x:auto}
-.formula .katex{font-size:1.05em;color:#5B7C99}
-.formula .katex-display{margin:6px 0}
-.formula .hl{color:#5B7C99;font-weight:bold}
-.formula .note{color:#565248;font-size:12px;font-style:italic}
-.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0;padding:8px;background:#FAFAF7;border-radius:6px}
-.controls label{color:#565248;font-size:13px}
-.controls input[type=range]{width:100px}
-.val{color:#5B7C99;font-weight:bold;min-width:36px;display:inline-block}
-.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
-.pro,.con,.achieved,.challenge{padding:10px;border-radius:6px;font-size:13px}
-.pro{background:#e7f4ea;border:1px solid #15803d}.pro::before{content:'✓ '}
-.con{background:#f7efef;border:1px solid #b4493f}.con::before{content:'✗ '}
-.achieved{background:#F4F2EC;border:1px solid #3f6178}.achieved::before{content:'◎ '}
-.challenge{background:#f6f0e0;border:1px solid #3f6178}.challenge::before{content:'※ '}
-.breadcrumb{background:#FAFAF7;border-left:3px solid #3f6178;padding:10px 14px;margin:8px 0 16px;border-radius:4px;font-size:13px;color:#565248}
-.breadcrumb .tags{display:block;color:#9A9488;font-size:12px;margin-top:4px}
-.back-link{background:#F4F2EC;border:1px solid #E4E1D8;border-radius:8px;padding:14px 16px;margin-top:24px;text-align:center}
-.back-link a{color:#3f6178;text-decoration:none;font-size:14px}
-.back-link a:hover{text-decoration:underline}
-.ref-card{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:12px 0}
-.ref-card h4{color:#5B7C99;font-size:15px;margin-bottom:6px}
-.ref-card .ref-formula{background:#F4F2EC;border-radius:4px;padding:8px 10px;margin:8px 0;font-family:'Courier New',monospace;font-size:13px;color:#1A1A1A;overflow-x:auto}
-.ref-card .ref-meta{font-size:12px;color:#9A9488;margin-top:6px}
-.ref-card .ref-tag{display:inline-block;background:#eef1f5;color:#5B7C99;padding:2px 8px;border-radius:3px;font-size:11px;margin-right:4px;margin-top:4px}
-@media(max-width:600px){.pros-cons{grid-template-columns:1fr}}
-
-body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; padding-bottom:64px }
-.page { display:block !important; max-width:820px; margin:0 auto; padding:14px }
-.intro { max-width:760px; margin:44px auto 8px; padding:0 20px }
-.intro h1 { color:#1A1A1A; margin-bottom:10px; font-size:clamp(1.6rem,4vw,2.05rem); font-weight:700; letter-spacing:-.02em; line-height:1.3 }
-.intro p { color:#565248; font-size:15px; line-height:1.9 }
-.fig-crumb { max-width:820px; margin:18px auto 0; padding:0 20px; font-size:12.5px; color:#9A9488 }
-.fig-crumb a { color:#3f6178; text-decoration:underline }
-.fig-crumb a:hover { color:#1A1A1A }
-.fig-stage { background:#fff; border:1px solid #E4E1D8; border-radius:14px; max-width:860px; margin:26px auto; padding:10px 6px; overflow:hidden }
-.fig-stage .page { color:#1A1A1A; margin:0 auto }
-.scene2-teaser { max-width:760px; margin:28px auto 0; padding:18px 22px; background:#F4F2EC; border:1px solid #E4E1D8; border-left:4px solid #5B7C99; border-radius:0 10px 10px 0; font-size:13.5px; line-height:1.85; color:#565248; text-align:left }
-.scene2-teaser strong { color:#1A1A1A }
-.scene2-teaser a { color:#3f6178; font-weight:700; text-decoration:underline }
-.back-link { max-width:820px; margin:36px auto 0; padding:0 20px; text-align:center }
-.back-link a { color:#1A1A1A; text-decoration:none; padding:11px 22px; background:#fff; border:1px solid #CFCBBE; border-radius:6px; display:inline-block; font-weight:600; font-size:14px }
-.back-link a:hover { background:#F4F2EC }
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#5B7C99;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.9;margin:0;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+.fig-crumb{max-width:860px;margin:18px auto 0;padding:0 20px;font-size:12.5px;color:var(--ink-muted)}
+.fig-crumb a{color:var(--link);text-decoration:underline}
+.fig-crumb a:hover{color:var(--ink)}
+.intro{max-width:760px;margin:40px auto 8px;padding:0 20px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub);margin-bottom:12px}
+.intro h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:0 0 12px}
+.intro p{color:var(--ink-sub);font-size:15.5px;line-height:1.9}
+.intro strong{color:var(--ink)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;max-width:880px;margin:26px auto;padding:24px 22px}
+.fig-stage h2{font-size:1.15rem;font-weight:700;margin:6px 0 4px;letter-spacing:-.01em}
+.fig-stage h2::before{content:"";display:inline-block;width:22px;height:3px;background:var(--arc);border-radius:2px;margin-right:10px;vertical-align:middle}
+.fig-stage .lead{color:var(--ink-sub);font-size:14px;margin:2px 0 18px;line-height:1.8}
+.fig-stage h3{font-size:1.0rem;font-weight:700;margin:26px 0 8px}
+.fig-stage p{font-size:14.5px;color:#2c2924}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrl{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-sub);min-width:120px}
+.ctrl label{font-weight:700;color:var(--ink);font-size:12.5px}
+.ctrl .val{font-variant-numeric:tabular-nums;color:var(--link);font-weight:700}
+input[type=range]{accent-color:var(--arc);width:100%}
+.btn{background:var(--ink);color:var(--bg);border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.btn.ghost.on{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1px solid var(--border);background:#fff;border-radius:18px;padding:6px 14px;font-size:12.5px;color:var(--ink-sub);cursor:pointer}
+.chip.on{border-color:var(--arc);background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+.grid-wrap{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;justify-content:center;margin:10px 0}
+.gcap{text-align:center;font-size:12px;color:var(--ink-muted);margin-top:8px}
+.formula{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:15px;text-align:center}
+.note{font-size:13px;color:var(--ink-sub);line-height:1.8}
+.readout{font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0;white-space:pre-wrap}
+.kv{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-sub)}
+.kv b{color:var(--ink)}
+table.mini{border-collapse:collapse;font-size:13.5px;margin:6px auto}
+table.mini th,table.mini td{border:1px solid var(--border);padding:7px 13px;text-align:center}
+table.mini th{background:var(--surface);font-weight:700}
+table.mini td.hl{background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+svg text{font-family:"Inter","Noto Sans JP",sans-serif}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-sub);justify-content:center;margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.back-link{max-width:820px;margin:36px auto 0;padding:0 20px;text-align:center}
+.back-link a{color:var(--ink);text-decoration:none;padding:11px 22px;background:#fff;border:1px solid #CFCBBE;border-radius:6px;display:inline-block;font-weight:600;font-size:14px}
+.back-link a:hover{background:var(--surface)}
+/* ※ ここでいちばん大事なのは「解説の**押した場所**へ戻ること」（読者の指摘）。
+   だから解説へ戻るだけを語で大きく左に置き、前後の図解と一覧は
+   ◁ □ ▷ のアイコンにして右へ寄せる（語はホバーで出す）。 */
 /* KaTeX が読み上げ用に置く MathML は隠しているが、overflow が効かず
    中身がページ幅を押し広げることがある（スマホで横スクロールが出る）。
    見えないものが幅を作らないよう塞ぐ。 */
@@ -89,39 +78,126 @@ body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Int
 /* 長い別行立ての数式は、ページごと横スクロールさせず、その枠の中で流す */
 .katex-display{overflow-x:auto;overflow-y:hidden;padding:2px 0}
 .katex-display>.katex{white-space:nowrap}
-.fig-topnav { max-width:820px; margin:14px auto 0; padding:0 20px }
-/* ナビは ↩ ◁ ◻ ▷ の 4 アイコンだけ。語はホバーで出す（読者の指摘）。
-   ↩ は「巻末解説の読んでいた場所へ戻る」なので、他と区別できる色で左端に置く。
-   ※ ツールチップは opacity:0 でもレイアウトを占め、非表示のままページ幅を
-      押し広げる（スマホで横スクロールが出た）。display で出し入れする。 */
-.fig-pager { display:flex; gap:8px; align-items:center; justify-content:flex-end }
-.fig-pager .fp-ico { position:relative; flex:none; width:40px; height:40px; border-radius:9px;
- border:1px solid #E4E1D8; background:#fff; color:#565248; text-decoration:none;
- display:flex; align-items:center; justify-content:center; font-size:16px; line-height:1 }
-.fig-pager .fp-ico:hover { background:#F4F2EC; color:#1A1A1A }
-.fig-pager .fp-ico[aria-disabled="true"] { opacity:.3; pointer-events:none }
-.fig-pager .fp-comm { margin-right:auto; border-color:#5B7C99; color:#3f6178;
- background:rgba(91,124,153,.08); font-size:18px }
-.fig-pager .fp-comm:hover { background:rgba(91,124,153,.16); color:#3f6178 }
-.fig-pager .fp-ico::after { content:attr(data-t); position:absolute; bottom:calc(100% + 6px);
- left:50%; transform:translateX(-50%); background:#1A1A1A; color:#FAFAF7; font-size:11.5px;
- font-weight:600; padding:5px 10px; border-radius:5px; line-height:1.6;
- white-space:normal; width:max-content; max-width:min(260px,58vw); text-align:center;
- pointer-events:none; z-index:5; display:none }
-.fig-pager .fp-ico:hover::after, .fig-pager .fp-ico:focus-visible::after { display:block }
-.fig-pager .fp-comm::after { left:0; transform:none }
-.fig-pager .fp-ico:last-child::after { left:auto; right:0; transform:none }
-.back-link .fig-pager .fp-ico::after { bottom:auto; top:calc(100% + 6px) }
-.fig-grid { max-width:820px; margin:28px auto; padding:0 20px; display:grid; grid-template-columns:1fr; gap:14px }
-.fig-card { background:#fff; border:1px solid #E4E1D8; border-radius:12px; overflow:hidden; transition:transform .15s,border-color .15s,box-shadow .15s }
-.fig-card:hover { transform:translateY(-2px); border-color:#5B7C99; box-shadow:0 8px 24px rgba(26,26,26,.08) }
-.fig-card a { display:block; padding:20px 22px; text-decoration:none; color:inherit }
-.fig-card .fig-emoji { display:none }
-.fig-card h3 { color:#1A1A1A; font-size:17px; font-weight:700; margin-bottom:6px }
-.fig-card h3 small { color:#9A9488; font-size:11px; font-weight:400; margin-left:6px }
-.fig-card p { color:#565248; font-size:13px; line-height:1.75; margin-bottom:8px }
-.fig-card .fig-tag { display:inline-block; background:#F4F2EC; color:#565248; border:1px solid #E4E1D8; padding:2px 8px; border-radius:10px; font-size:11px; margin-right:4px; margin-top:4px }
+.fig-topnav{max-width:820px;margin:14px auto 0;padding:0 20px}
+.fig-pager{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.fig-pager a{text-decoration:none;font-weight:600;color:var(--ink);line-height:1}
+.fig-pager .fp-comm{margin-right:auto;border-color:var(--arc);color:var(--link);
+ background:rgba(var(--arcrgba),.08);font-size:18px}
+.fig-pager .fp-comm:hover{background:rgba(var(--arcrgba),.16);color:var(--link)}
+.fig-pager .fp-ico{flex:none;position:relative;width:40px;height:40px;border-radius:9px;
+ border:1px solid var(--border);background:#fff;display:flex;align-items:center;
+ justify-content:center;font-size:16px;color:var(--ink-sub)}
+.fig-pager .fp-ico:hover{background:var(--surface);color:var(--ink)}
+.fig-pager .fp-ico[aria-disabled="true"]{opacity:.3;pointer-events:none}
+/* ホバーで語を出す（触ることしか分からないアイコンにしない） */
+.fig-pager .fp-ico::after{content:attr(data-t);position:absolute;bottom:calc(100% + 6px);
+ left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:11.5px;
+ font-weight:600;padding:5px 10px;border-radius:5px;line-height:1.6;
+ white-space:normal;width:max-content;max-width:min(260px,58vw);text-align:center;
+ pointer-events:none;z-index:5;display:none}
+.fig-pager .fp-ico:hover::after,.fig-pager .fp-ico:focus-visible::after{display:block}
+.fig-pager .fp-comm::after{left:0;transform:none}
+.fig-pager .fp-ico:last-child::after{left:auto;right:0;transform:none}
+.back-link .fig-pager .fp-ico::after{bottom:auto;top:calc(100% + 6px)}
 
+.fig-grid{max-width:840px;margin:28px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fig-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s,box-shadow .15s}
+.fig-card:hover{transform:translateY(-2px);border-color:var(--arc);box-shadow:0 8px 24px rgba(26,26,26,.08)}
+.fig-card a{display:block;padding:20px 22px;text-decoration:none;color:inherit}
+.fig-card h3{font-size:16px;font-weight:700;margin:0 0 6px}
+.fig-card h3 small{color:var(--ink-muted);font-size:11px;font-weight:400;margin-left:6px}
+.fig-card p{font-size:13px;line-height:1.7;color:var(--ink-sub);margin:0 0 8px}
+.fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
+
+.nnfig{width:100%;margin:8px auto 2px;text-align:center}
+.figfold{position:sticky;top:4px;z-index:3;background:var(--bg);
+ padding-bottom:4px;box-shadow:0 6px 10px -8px rgba(0,0,0,.18)}
+@media(max-width:620px){.nnfig{position:static;box-shadow:none;padding-bottom:0}}
+
+.nnfig svg{width:100%;height:auto;display:block;margin:0 auto}
+.nnfig.wide svg{max-width:660px}
+.calcbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+ padding:12px 16px;margin:14px 0}
+.calcbox>summary,.foldbox>summary{cursor:pointer;list-style:none;font-size:12.5px;font-weight:700;
+ color:var(--ink-muted);display:flex;align-items:center;gap:7px;padding:2px 0;letter-spacing:.04em}
+.foldbox{margin:6px 0}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"▾";font-size:10px;color:var(--link);transition:transform .15s}
+.foldbox:not([open])>summary::before{transform:rotate(-90deg)}
+.foldbox>summary:hover{color:var(--ink-sub)}
+.calcbox>summary::-webkit-details-marker{display:none}
+.calcbox>summary::before{content:"▾";font-size:11px;color:var(--link);transition:transform .15s}
+.calcbox:not([open])>summary::before{transform:rotate(-90deg)}
+.calcbox:not([open])>summary{margin:-2px 0}
+.calcbox .rst{margin-top:10px;text-align:center}
+/* 出力の図と、その切り替えを横に並べる（縦に間延びさせない） */
+.outrow{display:flex;gap:16px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+/* 図と、その右のダイヤル列 */
+.figrow{display:flex;gap:14px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.figrow .nnfig{flex:1 1 380px;min-width:280px}
+.dials{display:flex;flex-direction:column;gap:10px;padding-top:26px}
+
+.dial{display:flex;flex-direction:column;align-items:center;width:78px;
+ touch-action:none;-webkit-user-select:none;user-select:none;
+ -webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.dial .dname{font-size:11.5px;color:#8a6b4f;margin-bottom:3px;letter-spacing:.02em}
+.dial.lit .dname{font-weight:700}
+.dial.lit .dwin{box-shadow:inset 0 7px 7px -7px rgba(60,50,35,.45),
+ inset 0 -7px 7px -7px rgba(60,50,35,.45), 0 0 0 2px #F0C97E}
+.dial .dbtn{width:100%;height:22px;border:1px solid var(--border);background:#FCFBF8;color:var(--ink-sub);
+ font-size:10px;line-height:1;cursor:pointer;padding:0;font-family:inherit;touch-action:manipulation}
+.dial .dbtn:hover{background:#EFECE4;color:var(--ink)}
+.dial .dbtn:active{background:#E2DED4}
+/* ⚠ touch-action:none が無いと、スマホで回そうとした指をブラウザが
+   ページのスクロールとして横取りする（pointerdown の preventDefault では止まらない）。 */
+.dial .dwin{width:100%;height:66px;overflow:hidden;position:relative;background:#F6F4EF;
+ border-left:1px solid var(--border);border-right:1px solid var(--border);
+ box-shadow:inset 0 7px 7px -7px rgba(60,50,35,.45), inset 0 -7px 7px -7px rgba(60,50,35,.45);
+ touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
+.dial .dcol{position:absolute;left:0;right:0;top:0;transition:transform .11s cubic-bezier(.2,.9,.3,1.4)}
+.dial .dcol span{display:block;height:22px;line-height:22px;text-align:center;color:#A9A399;
+ font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;font-variant-numeric:tabular-nums}
+.dial .dcol span.cur{color:var(--ink);font-size:14.5px;font-weight:700}
+.dial .dwin::after{content:"";position:absolute;left:0;right:0;top:22px;height:22px;
+ background:rgba(110,123,168,.07);
+ border-top:1px solid rgba(110,123,168,.45);border-bottom:1px solid rgba(110,123,168,.45);
+ pointer-events:none}
+/* ⚠ ここは上の .dial 系より後ろに置くこと。同じ強さなら後勝ちなので、
+   前に置くと height:66px などに負けて効かない（実際に効いていなかった）。 */
+@media(max-width:620px){
+ /* 図とダイヤルを縦に積む。横並びのままだとダイヤル列が 80px まで潰れる（実測） */
+ .figrow{display:block}
+ .figfold{position:static;box-shadow:none;padding-bottom:0}
+ .dials{flex-direction:row;justify-content:center;padding-top:6px;flex-wrap:nowrap;
+   gap:10px;width:100%}
+ .dial{flex:1 1 0;width:auto;max-width:118px;min-width:88px}
+ .dial .dname{font-size:11px;margin-bottom:2px}
+ .dial .dbtn{height:26px;font-size:11px}
+ .dial .dwin{height:54px}
+ .dial .dcol span{height:18px;line-height:18px;font-size:13px}
+ .dial .dcol span.cur{font-size:15px}
+ .dial .dwin::after{top:18px;height:18px}
+}
+.outrow .chips{flex-direction:column;align-items:stretch;margin:6px 0 0;min-width:150px}
+@media(max-width:560px){.outrow .chips{flex-direction:row;min-width:0}}
+.calcbox .rst .btn{font-size:12.5px;padding:7px 14px}
+
+.mynet svg{width:100%;max-width:480px;height:auto;display:block;margin:0 auto}
+@media(max-width:520px){.mynet{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
+.mflow{stroke-dasharray:5 6;animation:mflow 1s linear infinite}
+@keyframes mflow{to{stroke-dashoffset:-11}}
+@media(prefers-reduced-motion:reduce){.mflow{animation:none}}
+.why{max-width:560px;margin:10px auto 0;padding:12px 15px;background:#fff;
+ border:1px solid var(--border);border-radius:12px;font-size:13.5px;line-height:1.9}
+.why b.rl{color:var(--link)}
+.facts{margin:18px auto 0;max-width:640px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px;font-size:13.5px;line-height:1.9}
+.facts dt{font-weight:700;margin-top:8px}
+.facts dd{margin:0 0 0 1em}
+.rulebox{font-size:13px;line-height:2.0}
+.rulebox code{font-family:"SFMono-Regular",Menlo,monospace;font-size:11.5px;color:var(--ink-muted)}
+.srcnote{max-width:640px;margin:10px auto 0;font-size:12.5px;color:var(--ink-muted);line-height:1.8}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -178,159 +254,444 @@ pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
 </style></head>
 <body>
-<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; Cyc 常識推論</div>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; Cyc — 常識を辺として書き、規則で増やす</div>
 <div class="fig-topnav"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene3" data-t="巻末解説に戻る（Scene 3「専門家の時代」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_mycin.html" data-t="一つ前の図解へ（MYCIN 推論）" aria-label="一つ前の図解へ（MYCIN 推論）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_strips.html" data-t="一つ後の図解へ（STRIPS プランニング）" aria-label="一つ後の図解へ（STRIPS プランニング）">&#9655;</a></nav></div>
-
 <div class="intro">
-<h1>Cyc 常識推論 — 知識グラフから新事実を導く</h1><p>1984 年、ダグラス・レナトが始めた <strong>「常識を全部 IF-THEN で書く」</strong>プロジェクト。基本構造は <strong>三つ組</strong> (主語 — 述語 — 目的語)。これは現代の <strong>Knowledge Graph</strong> (Google KG, Wikidata) や <strong>RDF/SPARQL</strong> の祖先。「木は葉を持つ」+「葉は光合成できる」→「木は光合成できる」のような <strong>transitive inference</strong> を「INFER」ボタンで体感できます。</p>
+<div class="eyebrow">ARC 1 ／ SCENE 3 — 専門家を機械に閉じ込める</div>
+<h1>Cyc — 常識を辺として書き、規則で増やす</h1>
+<p><strong>知識は「木 —(一種)→ 植物」のような辺。推論とは、
+規則の前提に合った辺の組から新しい辺を 1 本ずつ足すこと。</strong>
+2 ホップ先を何でも繋ぐのではない——述語の並びが規則に合った組だけが繋がる。</p>
+<p>1984 年、ダグラス・レナトが始めた「常識を明示的に全部書く」プロジェクト。
+ここでは断言 4 本と規則 3 本で動かす。</p>
 </div>
 
-<div class="fig-stage"><div class="page" id="cyc">
-<h2>Cyc 常識推論 — 知識グラフから新事実を導く</h2>
-<div class="arc-label">Arc 1 Scene 3 Tech Nugget #2 — page 10、レナトが 40 年かけて書き続けた「常識を全部 IF-THEN で書く」プロジェクト</div>
+<div class="fig-stage">
+<h2>ルールが新しい辺を足す</h2>
 
-<div class="section">
-<h3>数式と仕組み</h3>
-<div class="formula">
-<span class="hl">Cyc</span> (Stanford → Cycorp, 1984~) は、人間が「当たり前」と思っている事実 ―― 木は葉を持つ、水は飲める、火は熱い ―― を機械が扱える形に書き下す、レナトが 40 年かけたプロジェクト。<br><br>
-基本構造は <span class="hl">三つ組 (triple)</span>: <strong>主語 — 述語 — 目的語</strong>。これは現代の <strong>Knowledge Graph</strong> (Google KG, Wikidata) や <strong>RDF/SPARQL</strong> の祖先。<br><br>
-$(\text{Tree}, \text{HAS-PART}, \text{leaves}) \quad \land \quad (\text{leaves}, \text{CAN-DO}, \text{photosynthesis}) \Rightarrow (\text{Tree}, \text{CAN-DO}, \text{photosynthesis})$<br><br>
-<span class="note">これは <strong>transitive inference</strong> (推移的推論)。「木は葉を持つ」+「葉は光合成できる」→「木は光合成できる」が導出される。同様の論理で、現代の検索エンジンは「○○ の創設者は誰?」のような質問に答えている。</span>
+<details class="foldbox" open><summary>説明</summary>
+<p>実線が最初から書いてある常識（断言）。「推論を 1 歩」を押すと、
+規則の前提に合う辺の組を探し、<b>見つかった組から新しい辺を 1 本</b>足す。
+使った前提 2 本と規則はそのたびに光る。</p>
+<p>足された辺は次の推論の<b>材料になる</b>——「木は光合成ができる」が入ると、
+そこで初めて「木には日光が必要」を導ける。</p>
+</details>
+
+<details class="foldbox figfold" open><summary>構成図</summary>
+<div class="nnfig mynet"><svg id="net" viewBox="0 0 380 264"></svg></div>
+<p class="fig-legend">実線＝書いてある常識　太線＝推論で足した辺　琥珀＝いま使った前提と新しい辺</p>
+</details>
+
+<details class="calcbox"><summary>規則 3 本（前提の型に合った組だけが繋がる）</summary>
+<div class="readout rulebox" id="rules"></div>
+</details>
+
+<div class="stepnav">
+  <button class="btn" id="step">推論を 1 歩</button>
+  <button class="btn ghost" id="rs">やり直す</button>
+</div>
+<div class="why" id="why">まだ何も導いていない。</div>
+
+<dl class="facts">
+<dt>Cyc（1984〜）</dt>
+<dd>常識を明示的な断言と規則で書き切ろうとするプロジェクト。専用の論理言語 CycL を持ち、
+断言は数百万件。40 年を超えて今も Cycorp が続けている。</dd>
+<dt>同じ形の考え方が生きている場所</dt>
+<dd>「もの — 関係 — もの」の三つ組で知識を持つ形は、Wikidata などの知識グラフや
+RDF/OWL に生きている。</dd>
+<dt>壁</dt>
+<dd>常識は書いても書いても尽きない。何を書き忘れているかは、困るまで分からない
+（知識獲得ボトルネック）。</dd>
+</dl>
+
+<div class="srcnote">
+※ ノード 5 個・断言 4 本・規則 3 本は説明のための小さな例。
+述語名は CycL の genls（〜の一種）/ capableOf（〜ができる）に対応させた日本語で表記。
 </div>
 </div>
-
-<div class="section">
-<h3>インタラクティブ: KB を拡張して INFER を観察</h3>
-<p style="color:#565248;font-size:13px">初期 KB に 4 つの事実が入っている。「INFER (推論)」ボタンを押すと、Cyc が transitive 推論を実行し、新事実を導出。グラフが拡張される。</p>
-
-<div class="perceptron-svg-wrap" style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;margin:12px 0">
-
-<div style="text-align:center;margin-bottom:12px">
-<button id="cyc-infer-btn" style="background:#5B7C99;color:#FAFAF7;border:0;padding:10px 20px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:14px">INFER (1 ステップ推論実行)</button>
-<button id="cyc-reset-btn" style="background:#F4F2EC;color:#565248;border:1px solid #C8C4B8;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px">リセット</button>
-</div>
-
-<svg id="cyc-svg" viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;background:#FAFAF7;border-radius:6px">
-<defs>
-<marker id="arrow-cyc" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-<path d="M 0 0 L 10 5 L 0 10 z" fill="#565248"/>
-</marker>
-<marker id="arrow-cyc-new" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-<path d="M 0 0 L 10 5 L 0 10 z" fill="#15803d"/>
-</marker>
-</defs>
-
-<!-- Initial nodes -->
-<g id="cyc-node-tree"><circle cx="120" cy="100" r="40" fill="#F4F2EC" stroke="#5B7C99" stroke-width="2"/><text x="120" y="105" text-anchor="middle" fill="#5B7C99" font-size="14" font-weight="bold">Tree</text></g>
-<g id="cyc-node-leaves"><circle cx="320" cy="100" r="40" fill="#F4F2EC" stroke="#5B7C99" stroke-width="2"/><text x="320" y="105" text-anchor="middle" fill="#5B7C99" font-size="14" font-weight="bold">leaves</text></g>
-<g id="cyc-node-photo"><circle cx="520" cy="100" r="42" fill="#F4F2EC" stroke="#5B7C99" stroke-width="2"/><text x="520" y="98" text-anchor="middle" fill="#5B7C99" font-size="11" font-weight="bold">photo-</text><text x="520" y="115" text-anchor="middle" fill="#5B7C99" font-size="11" font-weight="bold">synthesis</text></g>
-<g id="cyc-node-sun"><circle cx="640" cy="240" r="40" fill="#F4F2EC" stroke="#5B7C99" stroke-width="2"/><text x="640" y="245" text-anchor="middle" fill="#5B7C99" font-size="14" font-weight="bold">sun</text></g>
-<g id="cyc-node-sunlight"><circle cx="440" cy="240" r="42" fill="#F4F2EC" stroke="#5B7C99" stroke-width="2"/><text x="440" y="245" text-anchor="middle" fill="#5B7C99" font-size="12" font-weight="bold">sunlight</text></g>
-
-<!-- Initial edges with labels -->
-<line x1="160" y1="100" x2="280" y2="100" stroke="#565248" stroke-width="2" marker-end="url(#arrow-cyc)"/>
-<text x="220" y="92" text-anchor="middle" fill="#565248" font-size="11" font-family="monospace">HAS-PART</text>
-
-<line x1="360" y1="100" x2="478" y2="100" stroke="#565248" stroke-width="2" marker-end="url(#arrow-cyc)"/>
-<text x="420" y="92" text-anchor="middle" fill="#565248" font-size="11" font-family="monospace">CAN-DO</text>
-
-<line x1="520" y1="142" x2="445" y2="200" stroke="#565248" stroke-width="2" marker-end="url(#arrow-cyc)"/>
-<text x="510" y="180" text-anchor="middle" fill="#565248" font-size="11" font-family="monospace">REQUIRES</text>
-
-<line x1="482" y1="240" x2="600" y2="240" stroke="#565248" stroke-width="2" marker-end="url(#arrow-cyc)"/>
-<text x="540" y="232" text-anchor="middle" fill="#565248" font-size="11" font-family="monospace">COMES-FROM</text>
-
-<!-- Inferred edges (hidden initially) -->
-<g id="cyc-inferred-1" opacity="0">
-<line x1="160" y1="115" x2="478" y2="115" stroke="#15803d" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow-cyc-new)"/>
-<text x="320" y="135" text-anchor="middle" fill="#15803d" font-size="11" font-family="monospace" font-weight="bold">CAN-DO  (INFER)</text>
-</g>
-
-<g id="cyc-inferred-2" opacity="0">
-<line x1="160" y1="135" x2="400" y2="220" stroke="#15803d" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arrow-cyc-new)"/>
-<text x="230" y="195" text-anchor="middle" fill="#15803d" font-size="11" font-family="monospace" font-weight="bold">REQUIRES </text>
-</g>
-</svg>
-</div>
-
-<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;margin-top:12px;color:#565248;font-size:13px">
-<strong>推論ログ</strong>
-<div style="color:#565248;font-size:11.5px;margin-top:3px;line-height:1.7">ここが「検索」と「推論」の分かれ目。<b style="color:#565248">最初から書いてあった事実</b>と、<b style="color:#15803d">ルールから新しく導かれた事実</b>を、この記録で区別できる。Cyc が目指したのは、人が書いていないことを言えるようになることだった。</div>
-<div id="cyc-log" style="background:#FAFAF7;border-radius:4px;padding:10px;margin-top:6px;font-family:monospace;font-size:12px;color:#565248;min-height:80px">
-<div>初期 KB（人が書いた事実）: 4 件</div>
-<div style="color:#565248">  (Tree HAS-PART leaves)　木は葉を持つ</div>
-<div style="color:#565248">  (leaves CAN-DO photosynthesis)　葉は光合成ができる</div>
-<div style="color:#565248">  (photosynthesis REQUIRES sunlight)　光合成には日光が要る</div>
-<div style="color:#565248">  (sunlight COMES-FROM sun)　日光は太陽から来る</div>
-<div style="color:#5B7C99">→ INFER ボタンを押してください</div>
-</div>
-</div>
+<div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene3" data-t="巻末解説に戻る（Scene 3「専門家の時代」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_mycin.html" data-t="一つ前の図解へ（MYCIN 推論）" aria-label="一つ前の図解へ（MYCIN 推論）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_strips.html" data-t="一つ後の図解へ（STRIPS プランニング）" aria-label="一つ後の図解へ（STRIPS プランニング）">&#9655;</a></nav></div>
 
 <script>
 (function(){
-var step = 0;
-var logEl = document.getElementById('cyc-log');
-var btn = document.getElementById('cyc-infer-btn');
-var reset = document.getElementById('cyc-reset-btn');
-var i1 = document.getElementById('cyc-inferred-1');
-var i2 = document.getElementById('cyc-inferred-2');
 
-function addLog(text, color){
-var d = document.createElement('div');
-d.style.color = color || '#15803d';
-d.textContent = text;
-logEl.appendChild(d);
-logEl.scrollTop = logEl.scrollHeight;
-}
+  var ARC="#5B7C99", BAD="#b4493f", INK="#1A1A1A", MUTED="#9A9488", EDGE="#8d99c4";
+  var SVGNS="http://www.w3.org/2000/svg";
+  function el(t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);
+    if(txt!=null)e.textContent=txt;return e;}
+  function g(id){return document.getElementById(id);}
+  // ---- 数の見せ方。桁を出しすぎると辺のラベルが太って隣とぶつかる（幾何を実測して決めた）
+  // ※ ちょうど 0 を指数表記にしない。ReLU で死んだユニットや正解値 0 が 0e+0 と出て、
+  //   「0 なのか極小の数なのか」が読めなくなる（実際に出た）。
+  function nf(v){var a=Math.abs(v); if(a===0) return '0';
+    return a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=0.1?v.toFixed(2):a>=0.001?v.toFixed(3):v.toExponential(0);}
+  function ns(v){var a=Math.abs(v); if(a===0) return '0';
+    return a>=10?v.toFixed(0):a>=1?v.toFixed(1):a>=0.01?v.toFixed(2):v.toExponential(0);}
+  function f2(v){return v.toFixed(2);}
+  function vec(a,f){var i,o=[];for(i=0;i<a.length;i++)o.push((f||nf)(a[i]));return "( "+o.join(", ")+" )";}
+  // 式の途中に負数を挟むとき。「+ -0.80」ではなく「− 0.80」と書く。
+  function sgn(v,d){return (v<0?' − ':' + ')+Math.abs(v).toFixed(d==null?2:d);}
 
-btn.addEventListener('click', function(){
-if(step === 0){
-addLog('Step 1: 木は葉を持つ ∧ 葉は光合成ができる');
-addLog('       ⇒ 新しく導いた: 木は光合成ができる  (Tree CAN-DO photosynthesis)', '#15803d');
-i1.style.transition = 'opacity 0.6s';
-i1.style.opacity = '1';
-step = 1;
-} else if(step === 1){
-addLog('Step 2: 木は光合成ができる ∧ 光合成には日光が要る');
-addLog('       ⇒ 新しく導いた: 木には日光が要る  (Tree REQUIRES sunlight)', '#15803d');
-i2.style.transition = 'opacity 0.6s';
-i2.style.opacity = '1';
-step = 2;
-} else {
-addLog('これ以上は導けない（この 4 件から言えることは出尽くした）', '#5B7C99');
-btn.disabled = true;
-btn.style.opacity = '0.5';
-btn.style.cursor = 'not-allowed';
-}
-});
+  // ---- データセット（入力は 0/1 の四隅まわり）
+  function mk(kind){
+    // ※ かんたん例で四隅を使うと、点が境界線の**真上**に載って正解率が上がりきらない
+    //   （既定の重みで 86% にしかならず「分けられる例」に見えない）。2 クラスタにする。
+    var pts=[],i,j,r=function(){return (Math.random()-0.5)*0.20;};
+    // AND: 両方 1 のときだけ 1。XOR と同じ四隅を使うので、直線 1 本で
+    // 分けられる／分けられないの対比がそのまま出る。
+    var spec = (kind==='xor')
+      ? [[0,0,0],[0,1,1],[1,0,1],[1,1,0]]
+      : [[0,0,0],[0,1,0],[1,0,0],[1,1,1]];
+    for(i=0;i<spec.length;i++) for(j=0;j<9;j++)
+      pts.push({x:Math.min(1,Math.max(0,spec[i][0]+r())),
+                y:Math.min(1,Math.max(0,spec[i][1]+r())),l:spec[i][2]});
+    return pts;
+  }
+  var DS={easy:mk('easy'), xor:mk('xor')}, curDs='easy';
+  function plot(svg,pts,decide,pad){
+    pad=pad||26; svg.innerHTML='';
+    var S=300, W=S-pad*2;
+    var X=function(x){return pad+x*W;}, Y=function(y){return S-pad-y*W;};
+    // 決定領域を格子で塗る
+    var N=44, cw=W/N, k, m;
+    for(k=0;k<N;k++) for(m=0;m<N;m++){
+      var xx=(k+0.5)/N, yy=(m+0.5)/N, v=decide(xx,yy);
+      if(v==null) continue;
+      svg.appendChild(el('rect',{x:X(xx)-cw/2,y:Y(yy)-cw/2,width:cw+0.6,height:cw+0.6,
+        fill: v>=0.5?ARC:BAD, opacity: 0.10+0.13*Math.abs(v-0.5)*2}));
+    }
+    svg.appendChild(el('rect',{x:pad,y:pad,width:W,height:W,fill:'none',stroke:'#E4E1D8'}));
+    svg.appendChild(el('text',{x:pad,y:S-8,'font-size':11,fill:MUTED},'x₁ →'));
+    svg.appendChild(el('text',{x:pad-6,y:pad-8,'font-size':11,fill:MUTED},'x₂ ↑'));
+    var ok=0;
+    for(k=0;k<pts.length;k++){
+      var p=pts[k], d=decide(p.x,p.y), pred=(d!=null&&d>=0.5)?1:0;
+      if(pred===p.l) ok++;
+      svg.appendChild(el('circle',{cx:X(p.x),cy:Y(p.y),r:5,
+        fill: p.l?ARC:'#fff', stroke: p.l?ARC:BAD,'stroke-width':1.6}));
+    }
+    return ok/pts.length;
+  }
+  // ---- ニューラルネットの幾何。②③④は 2-3-2、⑤は 2-3-3-3-3-2。描き手は下の renderNet ひとつ。
+  // ※ 縦の間隔は**列ごとに**変える。丸の下の注記（m=… / 正解 …）と、その下の丸の名前
+  //   （n₂ / y₂）が同じ隙間を取り合って重なるため。丸の直径 42 に対して隙間 36 では、
+  //   注記(+36)と次の名前(−29)が 13 しか離れず、実測で文字がぶつかった。
+  function geom(shape,VW,cy,gaps,r,pad){
+    var xs=[],ys=[],i,j,n=shape.length;
+    for(i=0;i<n;i++) xs.push(pad + (VW-pad*2)*(n>1?i/(n-1):0));
+    for(i=0;i<n;i++){var gp=(gaps.length?gaps[i]:gaps),a=[];
+      for(j=0;j<shape[i];j++)a.push(cy+gp*(j-(shape[i]-1)/2));ys.push(a);}
+    return {shape:shape,xs:xs,ys:ys,r:r,VW:VW};
+  }
+  function paint(v,bad){
+    var c = bad ? '180,73,63' : '110,123,168';
+    return 'rgba('+c+','+(0.05+0.62*Math.max(0,Math.min(1,v))).toFixed(3)+')';
+  }
 
-reset.addEventListener('click', function(){
-step = 0;
-i1.style.opacity = '0';
-i2.style.opacity = '0';
-logEl.innerHTML = '<div>初期 KB: 4 facts</div><div style="color:#565248">  (Tree HAS-PART leaves)</div><div style="color:#565248">  (leaves CAN-DO photosynthesis)</div><div style="color:#565248">  (photosynthesis REQUIRES sunlight)</div><div style="color:#565248">  (sunlight COMES-FROM sun)</div><div style="color:#5B7C99">→ INFER ボタンを押してください</div>';
-btn.disabled = false;
-btn.style.opacity = '1';
-btn.style.cursor = 'pointer';
-});
+  // ※ 辺のラベルは **t（辺上の位置）を送り元ごとにずらして**置く。同じ t に置くと
+  //   左右対称なニューラルネットでは中央で必ず重なる（x₁→n₂ と x₂→n₁ の中点が一致する）。
+  //   下の T0/T1 は「隣り合うラベルが x で 43 単位以上離れるか、y で 20 単位以上離れる」
+  //   ことを 12 本すべてについて実測して決めた値。数字の桁を増やすと崩れる。
+  var SUB=['₀','₁','₂','₃'];
+  var T0=[0.42,0.76];
+  var T1=[[0.16,0.27],[0.44,0.55],[0.74,0.84]];
+  // ※ ②③ はラベルが 2 行＋▲▼ で幅も高さも違うので、専用の位置表を持つ。
+  //   ④⑤（1 行ラベル）と共用すると、片方を直すともう片方が崩れる。
+  var T0B=[0.36,0.80], T1B=[[0.36,0.66],[0.36,0.74],[0.36,0.84]];
+  function renderNet(svg,gg,o){
+    svg.innerHTML='';
+    var i,j,k,n=gg.shape.length;
+    for(i=0;i<n-1;i++){
+      var st=o.edgeState?o.edgeState(i):2;
+      for(j=0;j<gg.shape[i];j++) for(k=0;k<gg.shape[i+1];k++){
+        var a={x1:(gg.xs[i]+gg.r).toFixed(1), y1:gg.ys[i][j].toFixed(1),
+               x2:(gg.xs[i+1]-gg.r).toFixed(1), y2:gg.ys[i+1][k].toFixed(1),
+               stroke:o.edgeInk?o.edgeInk(i,j,k):EDGE,
+               'stroke-width':(o.edgeW?o.edgeW(i,j,k):1.3).toFixed(2),
+               opacity:(st?1:0.14).toFixed(2)};
+        if(st===2) a['class']=o.rev?'nnfr':'nnf';
+        svg.appendChild(el('line',a));
+      }
+    }
+    if(o.edgeLabel) for(i=0;i<n-1;i++){
+      if(o.edgeState && !o.edgeState(i)) continue;
+      for(j=0;j<gg.shape[i];j++) for(k=0;k<gg.shape[i+1];k++){
+        var s=o.edgeLabel(i,j,k); if(s==null) continue;
+        var t=o.edgeT(i,j,k), fs=o.efs||12.5;
+        var ax=gg.xs[i]+gg.r, bx=gg.xs[i+1]-gg.r;
+        var px=ax+(bx-ax)*t, py=gg.ys[i][j]+(gg.ys[i+1][k]-gg.ys[i][j])*t;
+        // 配列で返ってきたら [名前, 数字] の 2 段。横に並べず縦に積むのは、
+        // 横幅を増やすと隣のラベルとぶつかるため（T0/T1 は実測で決めた値）。
+        var two=(typeof s!=='string'), nmS=two?s[0]:null, vS=two?s[1]:s;
+        var wd=Math.max(vS.length,(nmS||'').length)*fs*0.60+6;
+        var hh=two?fs*2.9:fs*1.6, top=py-(two?fs*1.80:fs*0.80);
+        var edit=o.step?o.step(i,j,k):false;
+        svg.appendChild(el('rect',{x:(px-wd/2).toFixed(1),y:top.toFixed(1),
+          width:wd.toFixed(1),height:hh.toFixed(1),rx:3,fill:'#fff',opacity:0.93}));
+        var ink=o.labelInkAt?o.labelInkAt(i,j,k):(o.labelInk||'#565248');
+        var nInk=edit?'#8a6b4f':(o.nameInkAt?o.nameInkAt(i,j,k):ARC);
+        var thru='';
+        // いまダイヤルで触っている重みは、名前も数値も光彩で囲って目立たせる
+        // （どこが変わっているのか分からない、という読者の指摘）。
+        var lit=o.hl?o.hl(i,j,k):false;
+        var halo=function(x,y,size,txt){
+          svg.appendChild(el('text',{x:x,y:y,'font-size':size,'text-anchor':'middle',
+            fill:'none',stroke:'#F6D9A8','stroke-width':5,'stroke-linejoin':'round',
+            style:'paint-order:stroke;pointer-events:none'},txt));
+        };
+        if(two){
+          if(lit) halo(px.toFixed(1),(py-fs*0.52).toFixed(1),(fs*0.86).toFixed(1),nmS);
+          svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
+            'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',
+            fill:lit?'#8a6b4f':nInk,style:thru},nmS));
+        }
+        if(lit) halo(px.toFixed(1),(py+(two?fs*1.02:fs*0.35)).toFixed(1),fs,vS);
+        svg.appendChild(el('text',{x:px.toFixed(1),y:(py+(two?fs*1.02:fs*0.35)).toFixed(1),
+          'font-size':fs,'text-anchor':'middle',fill:lit?INK:ink,
+          'font-weight':lit?'700':'400',style:thru},vS));
+      }
+    }
+    for(i=0;i<n;i++) for(j=0;j<gg.shape[i];j++){
+      var lit=o.nodeState?o.nodeState(i,j):1, cx=gg.xs[i], cy=gg.ys[i][j];
+      svg.appendChild(el('circle',{cx:cx.toFixed(1),cy:cy.toFixed(1),r:gg.r,
+        fill:o.nodeFill?o.nodeFill(i,j):'#EAEDF7',
+        stroke:o.nodeStroke?o.nodeStroke(i,j):'#6E7BA8','stroke-width':1.6,
+        opacity:(lit?1:0.2).toFixed(2)}));
+      var nm=o.nodeName?o.nodeName(i,j):null;
+      if(nm) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy-gg.r-8).toFixed(1),'font-size':12.5,
+        'text-anchor':'middle',fill:MUTED,'font-style':'italic',
+        opacity:(lit?1:0.3).toFixed(2)},nm));
+      var tv=o.nodeText?o.nodeText(i,j):null;
+      if(tv!=null) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy+5).toFixed(1),
+        'font-size':o.nfs||14.5,'text-anchor':'middle',fill:INK,
+        opacity:(lit?1:0.25).toFixed(2)},tv));
+      var sb=o.nodeSub?o.nodeSub(i,j):null;
+      if(sb) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy+gg.r+15).toFixed(1),'font-size':11.5,
+        'text-anchor':'middle',fill:o.subInk||MUTED,opacity:(lit?1:0.3).toFixed(2)},sb));
+    }
+    if(o.deco) o.deco(svg);
+  }
+  // ---- 機械式スロット（図の外・右側）。読者の指摘に沿って作り直した:
+  //   ・図の中ではなく右にまとめる（図が読みやすくなる。数値は図と同期）
+  //   ・角丸をやめ、暗い窓に凹みを付けて本物のスロットらしく
+  //   ・名前は枠の外の上に置く
+  //   ・PC で払いにくいので、上下のボタンと**マウスホイール**でも 1 段ずつ動く
+  //   ・払ったあとの減速を強める（0.90 → 0.72）
+  var DIALS={};                      // {箱の id: [{i,j,k}...]}
+  var HLW=null;                      // いま触っている重み {i,j,k}
+  function isHL(i,j,k){ return !!HLW && HLW.i===i && HLW.j===j && HLW.k===k; }
+  function buildDials(boxId, list, get, set, after){
+    var box=g(boxId); if(!box) return;
+    if(box.getAttribute('data-built')!=='1'){
+      box.setAttribute('data-built','1');
+      box.innerHTML='';
+      list.forEach(function(w,n){
+        var d=document.createElement('div'); d.className='dial';
+        d.innerHTML='<div class="dname">'+w.nm+'</div>'
+          +'<button class="dbtn" data-d="1" aria-label="ひとつ増やす">▲</button>'
+          +'<div class="dwin"><div class="dcol"></div></div>'
+          +'<button class="dbtn" data-d="-1" aria-label="ひとつ減らす">▼</button>';
+        box.appendChild(d);
+        var col=d.querySelector('.dcol'), win=d.querySelector('.dwin');
+        var st=(w.st||0.1), lo=(w.lo==null?-6:w.lo), hi=(w.hi==null?6:w.hi);
+        var q=function(v){ return Math.round(v/st)*st; };
+        var val=function(){ return get(w.i,w.j,w.k); };
+        var put=function(v){ HLW={i:w.i,j:w.j,k:w.k};
+          set(w.i,w.j,w.k, Math.max(lo,Math.min(hi, +q(v).toFixed(4)))); after(); };
+        d.querySelectorAll('.dbtn').forEach(function(btn){
+          var dd=+btn.getAttribute('data-d'), t=null, iv=null;
+          btn.addEventListener('pointerdown',function(ev){
+            ev.preventDefault(); put(val()+dd*st);
+            t=setTimeout(function(){ iv=setInterval(function(){ put(val()+dd*st); },110); },420);
+            var stop=function(){ clearTimeout(t); if(iv)clearInterval(iv);
+              window.removeEventListener('pointerup',stop); };
+            window.addEventListener('pointerup',stop);
+          });
+        });
+        // マウスホイールで 1 段ずつ（PC では払うより確実）
+        win.addEventListener('wheel',function(ev){
+          ev.preventDefault(); put(val() + (ev.deltaY<0?st:-st));
+        },{passive:false});
+        // 払う。離したあとの減速は強め
+        win.addEventListener('pointerdown',function(ev){
+          ev.preventDefault();
+          // ※ 1 回ごとに 0.1 へ丸めると、小刻みな移動が毎回 0 に戻って積み上がらない
+          //   （実際に払っても値が動かなかった）。掴んだ時の値からの差を貯めて使う。
+          var last=ev.clientY, vel=0, raf=null, base=val(), acc=0;
+          var apply=function(dy){ acc += -dy/22*st; put(base+acc); };
+          var onMove=function(m){ var dy=m.clientY-last; last=m.clientY; vel=dy; apply(dy); };
+          var glide=function(){ vel*=0.86; if(Math.abs(vel)<0.35){raf=null;return;}
+            apply(vel); raf=requestAnimationFrame(glide); };
+          var onUp=function(){ window.removeEventListener('pointermove',onMove);
+            window.removeEventListener('pointerup',onUp);
+            if(Math.abs(vel)>1.2) raf=requestAnimationFrame(glide); };
+          window.addEventListener('pointermove',onMove);
+          window.addEventListener('pointerup',onUp);
+        });
+        w._col=col;
+      });
+      DIALS[boxId]=list;
+    }
+    // 窓の中身を書き直す（上 2 段・現在・下 2 段）
+    (DIALS[boxId]||list).forEach(function(w){
+      if(!w._col) return;
+      var host=w._col.closest('.dial');
+      if(host) host.classList.toggle('lit', isHL(w.i,w.j,w.k));
+      var v=get(w.i,w.j,w.k), st=(w.st||0.1), dg=(w.dg==null?1:w.dg), h='';
+      [2,1,0,-1,-2].forEach(function(o){
+        h+='<span'+(o===0?' class="cur"':'')+'>'+(v+o*st).toFixed(dg)+'</span>';
+      });
+      w._col.innerHTML=h;
+      var rowh=(window.matchMedia('(max-width:620px)').matches)?18:22;
+      w._col.style.transform='translateY(-'+rowh+'px)';
+    });
+  }
+  function heads(svg,gg,labs,y){
+    var i; for(i=0;i<labs.length;i++)
+      svg.appendChild(el('text',{x:gg.xs[i].toFixed(1),y:y,'font-size':13,'text-anchor':'middle',
+        fill:MUTED},labs[i]));
+  }
+
+
+
+  /* ===== グラフのモデル ===== */
+  var NODES={
+    tree: {jp:'木',     en:'Tree',           x:64,  y:150},
+    plant:{jp:'植物',   en:'Plant',          x:170, y:64},
+    org:  {jp:'生き物', en:'Organism',       x:308, y:44},
+    photo:{jp:'光合成', en:'Photosynthesis', x:196, y:196},
+    sun:  {jp:'日光',   en:'Sunlight',       x:322, y:170}
+  };
+  var PRED={genls:'一種', can:'できる', need:'必要'};
+  var PEN ={genls:'genls', can:'capableOf', need:'requires'};
+  var BASE=[
+    ['tree','genls','plant'],
+    ['plant','genls','org'],
+    ['plant','can','photo'],
+    ['photo','need','sun']
+  ];
+  var RULES=[
+    {id:'R1', nm:'継承',
+     jp:'X は Y の一種 ＋ Y は Z ができる → X も Z ができる',
+     m:function(E){ return match2(E,'genls','can'); }, out:'can'},
+    {id:'R2', nm:'推移',
+     jp:'X は Y の一種 ＋ Y は Z の一種 → X も Z の一種',
+     m:function(E){ return match2(E,'genls','genls'); }, out:'genls'},
+    {id:'R3', nm:'連鎖',
+     jp:'X は Z ができる ＋ Z には W が必要 → X にも W が必要',
+     m:function(E){ return match2(E,'can','need'); }, out:'need'}
+  ];
+  /* (X p Y) と (Y q Z) を突き合わせる。型（述語の並び）が合った組だけ返す */
+  function match2(E,p,q){
+    var out=[];
+    E.forEach(function(a){ if(a[1]!==p) return;
+      E.forEach(function(b){ if(b[1]!==q || b[0]!==a[2]) return;
+        out.push({x:a[0], z:b[2], p1:a, p2:b});
+      });
+    });
+    return out;
+  }
+  function hasEdge(E,x,p,z){
+    return E.some(function(e){ return e[0]===x&&e[1]===p&&e[2]===z; });
+  }
+
+  var E=[], derived=[], last=null;
+  function reset(){ E=BASE.map(function(e){return e.slice();}); derived=[]; last=null; draw(); }
+  function stepOnce(){
+    for(var i=0;i<RULES.length;i++){
+      var r=RULES[i], cand=r.m(E), j;
+      for(j=0;j<cand.length;j++){
+        var c=cand[j];
+        if(c.x===c.z || hasEdge(E,c.x,r.out,c.z)) continue;
+        var ne=[c.x,r.out,c.z];
+        E.push(ne); derived.push(ne);
+        last={rule:r, pre:[c.p1,c.p2], edge:ne};
+        draw(); return;
+      }
+    }
+    last={done:true}; draw();
+  }
+
+  /* ===== 描画。ノードはふわふわ漂う（位置はモデル、揺れは見た目だけ） ===== */
+  var t0=0, still=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function pos(id, t){
+    var n=NODES[id];
+    if(still) return [n.x, n.y];
+    /* ノードごとに位相をずらした小さな円運動。±3px */
+    var ph=id.length*1.7 + id.charCodeAt(0);
+    return [n.x + 3*Math.sin(t/1400+ph), n.y + 3*Math.cos(t/1700+ph*1.3)];
+  }
+  function isPre(e){ return last&&last.pre&&last.pre.some(function(p){return p===e;}); }
+  function isNew(e){ return last&&last.edge===e; }
+
+  function draw(t){
+    t=t||t0;
+    var svg=g('net'); svg.innerHTML='';
+    var P={}; Object.keys(NODES).forEach(function(id){ P[id]=pos(id,t); });
+    /* 辺 */
+    E.forEach(function(e){
+      var a=P[e[0]], b=P[e[2]];
+      var dx=b[0]-a[0], dy=b[1]-a[1], L=Math.sqrt(dx*dx+dy*dy);
+      var ux=dx/L, uy=dy/L;
+      var x1=a[0]+ux*34, y1=a[1]+uy*17, x2=b[0]-ux*34, y2=b[1]-uy*17;
+      var isD=derived.indexOf(e)>=0, hot=isPre(e)||isNew(e);
+      var ln=el('line',{x1:x1,y1:y1,x2:x2,y2:y2,
+        stroke: hot?'#E8B44C':(isD?ARC:'#b9c0d8'),
+        'stroke-width': hot?2.6:(isD?2.2:1.4)});
+      if(isNew(e)) ln.setAttribute('class','mflow');
+      svg.appendChild(ln);
+      /* 矢じり */
+      svg.appendChild(el('path',{d:'M'+x2+' '+y2+' L'+(x2-ux*7-uy*3.5)+' '+(y2-uy*7+ux*3.5)
+        +' L'+(x2-ux*7+uy*3.5)+' '+(y2-uy*7-ux*3.5)+' Z',
+        fill: hot?'#E8B44C':(isD?ARC:'#b9c0d8')}));
+      /* 述語ラベル（白フチで線に負けない） */
+      var mx=(x1+x2)/2, my=(y1+y2)/2;
+      var tx=el('text',{x:mx,y:my-4,'font-size':10,'text-anchor':'middle',
+        fill: hot?'#8a6b12':(isD?ARC:MUTED),'font-weight':hot||isD?'700':'400',
+        stroke:'#FAFAF7','stroke-width':3,'paint-order':'stroke'},PRED[e[1]]);
+      svg.appendChild(tx);
+    });
+    /* ノード */
+    Object.keys(NODES).forEach(function(id){
+      var p=P[id], n=NODES[id];
+      var hot=last&&last.edge&&(last.edge[0]===id||last.edge[2]===id);
+      svg.appendChild(el('ellipse',{cx:p[0],cy:p[1],rx:34,ry:17,
+        fill:'#fff',stroke:hot?'#E8B44C':'var(--border)','stroke-width':hot?2.2:1.2}));
+      svg.appendChild(el('text',{x:p[0],y:p[1]-1,'font-size':12.5,'text-anchor':'middle',
+        fill:INK,'font-weight':'700'},n.jp));
+      svg.appendChild(el('text',{x:p[0],y:p[1]+14,'font-size':7.5,'text-anchor':'middle',
+        fill:MUTED},n.en));
+    });
+  }
+  function loop(t){ t0=t; if(!still) draw(t); requestAnimationFrame(loop); }
+
+  function say(){
+    var w=g('why');
+    if(!last){ w.innerHTML='まだ何も導いていない。'; return; }
+    if(last.done){
+      w.innerHTML='<b>これ以上、規則の前提に合う組は無い。</b> 導いたのは '
+        +derived.length+' 本（断言 '+BASE.length+' 本から）。'
+        +'2 ホップで届く組でも、述語の並びが規則に合わなければ繋がらない。';
+      return;
+    }
+    function s(e){ return NODES[e[0]].jp+' —('+PRED[e[1]]+')→ '+NODES[e[2]].jp; }
+    w.innerHTML='<b class="rl">'+last.rule.id+' '+last.rule.nm+'</b>: '+last.rule.jp+'<br>'
+      +'前提: '+s(last.pre[0])+'　＋　'+s(last.pre[1])+'<br>'
+      +'→ 新しい辺: <b>'+s(last.edge)+'</b>';
+  }
+  g('rules').innerHTML=RULES.map(function(r){
+    return '<div><b>'+r.id+' '+r.nm+'</b>　'+r.jp
+      +'　<code>'+PEN.genls+'/'+PEN.can+'/'+PEN.need+'</code></div>';
+  }).join('');
+  g('rules').innerHTML=RULES.map(function(r){
+    return '<div><b>'+r.id+' '+r.nm+'</b>　'+r.jp+'</div>';
+  }).join('')+'<div><code>一種 = genls ／ できる = capableOf ／ 必要 = requires（CycL の述語）</code></div>';
+
+  g('step').onclick=function(){ stepOnce(); say(); };
+  g('rs').onclick=function(){ reset(); say(); };
+  reset(); say();
+  requestAnimationFrame(loop);
 })();
 </script>
-</div>
-
-<div class="section">
-<h3>試してみよう</h3>
-<div class="achieved">INFER を押すと、KB の事実 2 つを組み合わせて <strong>新事実</strong>「Tree CAN-DO photosynthesis」が導出される。これは Tree という単語と photosynthesis という単語の <strong>直接の関係を、機械が KB に書いていない</strong> にもかかわらず、推論で繋げた瞬間。これが <strong>transitive inference</strong>。</div>
-<div class="achieved">もう一度 INFER を押すと、「Tree REQUIRES sunlight」が導出される。Cyc は何百万もの事実を組み合わせて、人間が直接書いていない事実を 100 万通りも生成できる ―― これがレナトの「常識を機械に与える」夢。</div>
-<div class="challenge">考えてみよう: Cyc の発想は今も生きている。Google 検索が「日本の総理大臣は誰?」と聞くと正しく答えられるのは、内部に <strong>Knowledge Graph</strong> という Cyc 的な知識ベースを持っているから (ただし学習で自動構築されている)。Wikidata、Wolfram Alpha、SPARQL ―― 全部 Cyc の延長線上にある。</div>
-</div>
-
-
-</div></div>
-
-
-
-<div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene3" data-t="巻末解説に戻る（Scene 3「専門家の時代」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_mycin.html" data-t="一つ前の図解へ（MYCIN 推論）" aria-label="一つ前の図解へ（MYCIN 推論）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_strips.html" data-t="一つ後の図解へ（STRIPS プランニング）" aria-label="一つ後の図解へ（STRIPS プランニング）">&#9655;</a></nav></div>
-
 <script>
 (function(){
   var m = /[?&]from=(figlink\d+)/.exec(location.search);

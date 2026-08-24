@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- epoch-meta:start 共有されたときのカード。単一出典 = outputs/publish/epoch/epoch_meta.py -->
-<meta name="description" content="STRIPS（1971・Shakey ロボット）のプランナーをブロックワールドで動かす図解。precondition / add / delete で行動を定義する仕組みは、現代の LLM エージェント（ReAct, Plan-and-Execute）の祖先。無料。">
-<meta property="og:title" content="STRIPS プランナー — EPOCH 図解">
-<meta property="og:description" content="STRIPS（1971・Shakey ロボット）のプランナーをブロックワールドで動かす図解。precondition / add / delete で行動を定義する仕組みは、現代の LLM エージェント（ReAct, Plan-and-Execute）の祖先。無料。">
+<meta name="description" content="STRIPS（1971・Shakey ロボット）のプランナーを部屋 3 つの世界で動かす図解。行動を前提・追加・削除の 3 つの目録で書く発明は、PDDL と自動計画へ受け継がれた。無料。">
+<meta property="og:title" content="STRIPS — 行動を 3 つの目録で書く — EPOCH Arc 1 図解">
+<meta property="og:description" content="STRIPS（1971・Shakey ロボット）のプランナーを部屋 3 つの世界で動かす図解。行動を前提・追加・削除の 3 つの目録で書く発明は、PDDL と自動計画へ受け継がれた。無料。">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="EPOCH — 時代の前夜">
 <meta property="og:locale" content="ja_JP">
@@ -14,74 +14,63 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://manga-epoch.github.io/viewer/og/arc1-figures_strips.jpg">
 <!-- epoch-meta:end -->
-<title>STRIPS プランナー — EPOCH 図解</title>
+<title>STRIPS — 行動を 3 つの目録で書く — EPOCH Arc 1 図解</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){
-  if(typeof renderMathInElement==='function'){
-    renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
-  }
-}
+function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
-
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,sans-serif;background:#FAFAF7;color:#1A1A1A;line-height:1.7}
-nav{background:#F4F2EC;padding:8px 12px;position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-nav select{background:#E4E1D8;color:#1A1A1A;border:1px solid #C8C4B8;border-radius:6px;padding:6px 8px;font-size:14px;flex:1;max-width:400px}
-nav button{background:#E4E1D8;color:#565248;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:14px}
-nav button:hover{background:#C8C4B8}
-.page{display:none;max-width:800px;margin:0 auto;padding:16px}
-.page.active{display:block}
-.section{background:#F4F2EC;border-radius:10px;padding:20px;margin:16px 0}
-.section h3{color:#3f6178;font-size:16px;margin-bottom:8px;border-bottom:1px solid #E4E1D8;padding-bottom:6px}
-h2{color:#5B7C99;margin-bottom:4px}
-.arc-label{color:#9A9488;font-size:13px;margin-bottom:12px}
-.formula{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:16px;margin:8px 0;font-size:14px;line-height:1.9;color:#1A1A1A;overflow-x:auto}
-.formula .katex{font-size:1.05em;color:#5B7C99}
-.formula .katex-display{margin:6px 0}
-.formula .hl{color:#5B7C99;font-weight:bold}
-.formula .note{color:#565248;font-size:12px;font-style:italic}
-.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0;padding:8px;background:#FAFAF7;border-radius:6px}
-.controls label{color:#565248;font-size:13px}
-.controls input[type=range]{width:100px}
-.val{color:#5B7C99;font-weight:bold;min-width:36px;display:inline-block}
-.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
-.pro,.con,.achieved,.challenge{padding:10px;border-radius:6px;font-size:13px}
-.pro{background:#e7f4ea;border:1px solid #15803d}.pro::before{content:'✓ '}
-.con{background:#f7efef;border:1px solid #b4493f}.con::before{content:'✗ '}
-.achieved{background:#F4F2EC;border:1px solid #3f6178}.achieved::before{content:'◎ '}
-.challenge{background:#f6f0e0;border:1px solid #3f6178}.challenge::before{content:'※ '}
-.breadcrumb{background:#FAFAF7;border-left:3px solid #3f6178;padding:10px 14px;margin:8px 0 16px;border-radius:4px;font-size:13px;color:#565248}
-.breadcrumb .tags{display:block;color:#9A9488;font-size:12px;margin-top:4px}
-.back-link{background:#F4F2EC;border:1px solid #E4E1D8;border-radius:8px;padding:14px 16px;margin-top:24px;text-align:center}
-.back-link a{color:#3f6178;text-decoration:none;font-size:14px}
-.back-link a:hover{text-decoration:underline}
-.ref-card{background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:14px;margin:12px 0}
-.ref-card h4{color:#5B7C99;font-size:15px;margin-bottom:6px}
-.ref-card .ref-formula{background:#F4F2EC;border-radius:4px;padding:8px 10px;margin:8px 0;font-family:'Courier New',monospace;font-size:13px;color:#1A1A1A;overflow-x:auto}
-.ref-card .ref-meta{font-size:12px;color:#9A9488;margin-top:6px}
-.ref-card .ref-tag{display:inline-block;background:#eef1f5;color:#5B7C99;padding:2px 8px;border-radius:3px;font-size:11px;margin-right:4px;margin-top:4px}
-@media(max-width:600px){.pros-cons{grid-template-columns:1fr}}
-
-body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; padding-bottom:64px }
-.page { display:block !important; max-width:820px; margin:0 auto; padding:14px }
-.intro { max-width:760px; margin:44px auto 8px; padding:0 20px }
-.intro h1 { color:#1A1A1A; margin-bottom:10px; font-size:clamp(1.6rem,4vw,2.05rem); font-weight:700; letter-spacing:-.02em; line-height:1.3 }
-.intro p { color:#565248; font-size:15px; line-height:1.9 }
-.fig-crumb { max-width:820px; margin:18px auto 0; padding:0 20px; font-size:12.5px; color:#9A9488 }
-.fig-crumb a { color:#3f6178; text-decoration:underline }
-.fig-crumb a:hover { color:#1A1A1A }
-.fig-stage { background:#fff; border:1px solid #E4E1D8; border-radius:14px; max-width:860px; margin:26px auto; padding:10px 6px; overflow:hidden }
-.fig-stage .page { color:#1A1A1A; margin:0 auto }
-.scene2-teaser { max-width:760px; margin:28px auto 0; padding:18px 22px; background:#F4F2EC; border:1px solid #E4E1D8; border-left:4px solid #5B7C99; border-radius:0 10px 10px 0; font-size:13.5px; line-height:1.85; color:#565248; text-align:left }
-.scene2-teaser strong { color:#1A1A1A }
-.scene2-teaser a { color:#3f6178; font-weight:700; text-decoration:underline }
-.back-link { max-width:820px; margin:36px auto 0; padding:0 20px; text-align:center }
-.back-link a { color:#1A1A1A; text-decoration:none; padding:11px 22px; background:#fff; border:1px solid #CFCBBE; border-radius:6px; display:inline-block; font-weight:600; font-size:14px }
-.back-link a:hover { background:#F4F2EC }
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#5B7C99;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.9;margin:0;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+.fig-crumb{max-width:860px;margin:18px auto 0;padding:0 20px;font-size:12.5px;color:var(--ink-muted)}
+.fig-crumb a{color:var(--link);text-decoration:underline}
+.fig-crumb a:hover{color:var(--ink)}
+.intro{max-width:760px;margin:40px auto 8px;padding:0 20px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub);margin-bottom:12px}
+.intro h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:0 0 12px}
+.intro p{color:var(--ink-sub);font-size:15.5px;line-height:1.9}
+.intro strong{color:var(--ink)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;max-width:880px;margin:26px auto;padding:24px 22px}
+.fig-stage h2{font-size:1.15rem;font-weight:700;margin:6px 0 4px;letter-spacing:-.01em}
+.fig-stage h2::before{content:"";display:inline-block;width:22px;height:3px;background:var(--arc);border-radius:2px;margin-right:10px;vertical-align:middle}
+.fig-stage .lead{color:var(--ink-sub);font-size:14px;margin:2px 0 18px;line-height:1.8}
+.fig-stage h3{font-size:1.0rem;font-weight:700;margin:26px 0 8px}
+.fig-stage p{font-size:14.5px;color:#2c2924}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrl{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-sub);min-width:120px}
+.ctrl label{font-weight:700;color:var(--ink);font-size:12.5px}
+.ctrl .val{font-variant-numeric:tabular-nums;color:var(--link);font-weight:700}
+input[type=range]{accent-color:var(--arc);width:100%}
+.btn{background:var(--ink);color:var(--bg);border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.btn.ghost.on{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1px solid var(--border);background:#fff;border-radius:18px;padding:6px 14px;font-size:12.5px;color:var(--ink-sub);cursor:pointer}
+.chip.on{border-color:var(--arc);background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+.grid-wrap{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;justify-content:center;margin:10px 0}
+.gcap{text-align:center;font-size:12px;color:var(--ink-muted);margin-top:8px}
+.formula{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:15px;text-align:center}
+.note{font-size:13px;color:var(--ink-sub);line-height:1.8}
+.readout{font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0;white-space:pre-wrap}
+.kv{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-sub)}
+.kv b{color:var(--ink)}
+table.mini{border-collapse:collapse;font-size:13.5px;margin:6px auto}
+table.mini th,table.mini td{border:1px solid var(--border);padding:7px 13px;text-align:center}
+table.mini th{background:var(--surface);font-weight:700}
+table.mini td.hl{background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+svg text{font-family:"Inter","Noto Sans JP",sans-serif}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-sub);justify-content:center;margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.back-link{max-width:820px;margin:36px auto 0;padding:0 20px;text-align:center}
+.back-link a{color:var(--ink);text-decoration:none;padding:11px 22px;background:#fff;border:1px solid #CFCBBE;border-radius:6px;display:inline-block;font-weight:600;font-size:14px}
+.back-link a:hover{background:var(--surface)}
+/* ※ ここでいちばん大事なのは「解説の**押した場所**へ戻ること」（読者の指摘）。
+   だから解説へ戻るだけを語で大きく左に置き、前後の図解と一覧は
+   ◁ □ ▷ のアイコンにして右へ寄せる（語はホバーで出す）。 */
 /* KaTeX が読み上げ用に置く MathML は隠しているが、overflow が効かず
    中身がページ幅を押し広げることがある（スマホで横スクロールが出る）。
    見えないものが幅を作らないよう塞ぐ。 */
@@ -89,39 +78,137 @@ body { background:#FAFAF7 !important; color:#1A1A1A !important; font-family:"Int
 /* 長い別行立ての数式は、ページごと横スクロールさせず、その枠の中で流す */
 .katex-display{overflow-x:auto;overflow-y:hidden;padding:2px 0}
 .katex-display>.katex{white-space:nowrap}
-.fig-topnav { max-width:820px; margin:14px auto 0; padding:0 20px }
-/* ナビは ↩ ◁ ◻ ▷ の 4 アイコンだけ。語はホバーで出す（読者の指摘）。
-   ↩ は「巻末解説の読んでいた場所へ戻る」なので、他と区別できる色で左端に置く。
-   ※ ツールチップは opacity:0 でもレイアウトを占め、非表示のままページ幅を
-      押し広げる（スマホで横スクロールが出た）。display で出し入れする。 */
-.fig-pager { display:flex; gap:8px; align-items:center; justify-content:flex-end }
-.fig-pager .fp-ico { position:relative; flex:none; width:40px; height:40px; border-radius:9px;
- border:1px solid #E4E1D8; background:#fff; color:#565248; text-decoration:none;
- display:flex; align-items:center; justify-content:center; font-size:16px; line-height:1 }
-.fig-pager .fp-ico:hover { background:#F4F2EC; color:#1A1A1A }
-.fig-pager .fp-ico[aria-disabled="true"] { opacity:.3; pointer-events:none }
-.fig-pager .fp-comm { margin-right:auto; border-color:#5B7C99; color:#3f6178;
- background:rgba(91,124,153,.08); font-size:18px }
-.fig-pager .fp-comm:hover { background:rgba(91,124,153,.16); color:#3f6178 }
-.fig-pager .fp-ico::after { content:attr(data-t); position:absolute; bottom:calc(100% + 6px);
- left:50%; transform:translateX(-50%); background:#1A1A1A; color:#FAFAF7; font-size:11.5px;
- font-weight:600; padding:5px 10px; border-radius:5px; line-height:1.6;
- white-space:normal; width:max-content; max-width:min(260px,58vw); text-align:center;
- pointer-events:none; z-index:5; display:none }
-.fig-pager .fp-ico:hover::after, .fig-pager .fp-ico:focus-visible::after { display:block }
-.fig-pager .fp-comm::after { left:0; transform:none }
-.fig-pager .fp-ico:last-child::after { left:auto; right:0; transform:none }
-.back-link .fig-pager .fp-ico::after { bottom:auto; top:calc(100% + 6px) }
-.fig-grid { max-width:820px; margin:28px auto; padding:0 20px; display:grid; grid-template-columns:1fr; gap:14px }
-.fig-card { background:#fff; border:1px solid #E4E1D8; border-radius:12px; overflow:hidden; transition:transform .15s,border-color .15s,box-shadow .15s }
-.fig-card:hover { transform:translateY(-2px); border-color:#5B7C99; box-shadow:0 8px 24px rgba(26,26,26,.08) }
-.fig-card a { display:block; padding:20px 22px; text-decoration:none; color:inherit }
-.fig-card .fig-emoji { display:none }
-.fig-card h3 { color:#1A1A1A; font-size:17px; font-weight:700; margin-bottom:6px }
-.fig-card h3 small { color:#9A9488; font-size:11px; font-weight:400; margin-left:6px }
-.fig-card p { color:#565248; font-size:13px; line-height:1.75; margin-bottom:8px }
-.fig-card .fig-tag { display:inline-block; background:#F4F2EC; color:#565248; border:1px solid #E4E1D8; padding:2px 8px; border-radius:10px; font-size:11px; margin-right:4px; margin-top:4px }
+.fig-topnav{max-width:820px;margin:14px auto 0;padding:0 20px}
+.fig-pager{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.fig-pager a{text-decoration:none;font-weight:600;color:var(--ink);line-height:1}
+.fig-pager .fp-comm{margin-right:auto;border-color:var(--arc);color:var(--link);
+ background:rgba(var(--arcrgba),.08);font-size:18px}
+.fig-pager .fp-comm:hover{background:rgba(var(--arcrgba),.16);color:var(--link)}
+.fig-pager .fp-ico{flex:none;position:relative;width:40px;height:40px;border-radius:9px;
+ border:1px solid var(--border);background:#fff;display:flex;align-items:center;
+ justify-content:center;font-size:16px;color:var(--ink-sub)}
+.fig-pager .fp-ico:hover{background:var(--surface);color:var(--ink)}
+.fig-pager .fp-ico[aria-disabled="true"]{opacity:.3;pointer-events:none}
+/* ホバーで語を出す（触ることしか分からないアイコンにしない） */
+.fig-pager .fp-ico::after{content:attr(data-t);position:absolute;bottom:calc(100% + 6px);
+ left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:11.5px;
+ font-weight:600;padding:5px 10px;border-radius:5px;line-height:1.6;
+ white-space:normal;width:max-content;max-width:min(260px,58vw);text-align:center;
+ pointer-events:none;z-index:5;display:none}
+.fig-pager .fp-ico:hover::after,.fig-pager .fp-ico:focus-visible::after{display:block}
+.fig-pager .fp-comm::after{left:0;transform:none}
+.fig-pager .fp-ico:last-child::after{left:auto;right:0;transform:none}
+.back-link .fig-pager .fp-ico::after{bottom:auto;top:calc(100% + 6px)}
 
+.fig-grid{max-width:840px;margin:28px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fig-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s,box-shadow .15s}
+.fig-card:hover{transform:translateY(-2px);border-color:var(--arc);box-shadow:0 8px 24px rgba(26,26,26,.08)}
+.fig-card a{display:block;padding:20px 22px;text-decoration:none;color:inherit}
+.fig-card h3{font-size:16px;font-weight:700;margin:0 0 6px}
+.fig-card h3 small{color:var(--ink-muted);font-size:11px;font-weight:400;margin-left:6px}
+.fig-card p{font-size:13px;line-height:1.7;color:var(--ink-sub);margin:0 0 8px}
+.fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
+
+.nnfig{width:100%;margin:8px auto 2px;text-align:center}
+.figfold{position:sticky;top:4px;z-index:3;background:var(--bg);
+ padding-bottom:4px;box-shadow:0 6px 10px -8px rgba(0,0,0,.18)}
+@media(max-width:620px){.nnfig{position:static;box-shadow:none;padding-bottom:0}}
+
+.nnfig svg{width:100%;height:auto;display:block;margin:0 auto}
+.nnfig.wide svg{max-width:660px}
+.calcbox{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+ padding:12px 16px;margin:14px 0}
+.calcbox>summary,.foldbox>summary{cursor:pointer;list-style:none;font-size:12.5px;font-weight:700;
+ color:var(--ink-muted);display:flex;align-items:center;gap:7px;padding:2px 0;letter-spacing:.04em}
+.foldbox{margin:6px 0}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"▾";font-size:10px;color:var(--link);transition:transform .15s}
+.foldbox:not([open])>summary::before{transform:rotate(-90deg)}
+.foldbox>summary:hover{color:var(--ink-sub)}
+.calcbox>summary::-webkit-details-marker{display:none}
+.calcbox>summary::before{content:"▾";font-size:11px;color:var(--link);transition:transform .15s}
+.calcbox:not([open])>summary::before{transform:rotate(-90deg)}
+.calcbox:not([open])>summary{margin:-2px 0}
+.calcbox .rst{margin-top:10px;text-align:center}
+/* 出力の図と、その切り替えを横に並べる（縦に間延びさせない） */
+.outrow{display:flex;gap:16px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+/* 図と、その右のダイヤル列 */
+.figrow{display:flex;gap:14px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.figrow .nnfig{flex:1 1 380px;min-width:280px}
+.dials{display:flex;flex-direction:column;gap:10px;padding-top:26px}
+
+.dial{display:flex;flex-direction:column;align-items:center;width:78px;
+ touch-action:none;-webkit-user-select:none;user-select:none;
+ -webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.dial .dname{font-size:11.5px;color:#8a6b4f;margin-bottom:3px;letter-spacing:.02em}
+.dial.lit .dname{font-weight:700}
+.dial.lit .dwin{box-shadow:inset 0 7px 7px -7px rgba(60,50,35,.45),
+ inset 0 -7px 7px -7px rgba(60,50,35,.45), 0 0 0 2px #F0C97E}
+.dial .dbtn{width:100%;height:22px;border:1px solid var(--border);background:#FCFBF8;color:var(--ink-sub);
+ font-size:10px;line-height:1;cursor:pointer;padding:0;font-family:inherit;touch-action:manipulation}
+.dial .dbtn:hover{background:#EFECE4;color:var(--ink)}
+.dial .dbtn:active{background:#E2DED4}
+/* ⚠ touch-action:none が無いと、スマホで回そうとした指をブラウザが
+   ページのスクロールとして横取りする（pointerdown の preventDefault では止まらない）。 */
+.dial .dwin{width:100%;height:66px;overflow:hidden;position:relative;background:#F6F4EF;
+ border-left:1px solid var(--border);border-right:1px solid var(--border);
+ box-shadow:inset 0 7px 7px -7px rgba(60,50,35,.45), inset 0 -7px 7px -7px rgba(60,50,35,.45);
+ touch-action:none;overscroll-behavior:contain;-webkit-user-select:none;user-select:none}
+.dial .dcol{position:absolute;left:0;right:0;top:0;transition:transform .11s cubic-bezier(.2,.9,.3,1.4)}
+.dial .dcol span{display:block;height:22px;line-height:22px;text-align:center;color:#A9A399;
+ font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;font-variant-numeric:tabular-nums}
+.dial .dcol span.cur{color:var(--ink);font-size:14.5px;font-weight:700}
+.dial .dwin::after{content:"";position:absolute;left:0;right:0;top:22px;height:22px;
+ background:rgba(110,123,168,.07);
+ border-top:1px solid rgba(110,123,168,.45);border-bottom:1px solid rgba(110,123,168,.45);
+ pointer-events:none}
+/* ⚠ ここは上の .dial 系より後ろに置くこと。同じ強さなら後勝ちなので、
+   前に置くと height:66px などに負けて効かない（実際に効いていなかった）。 */
+@media(max-width:620px){
+ /* 図とダイヤルを縦に積む。横並びのままだとダイヤル列が 80px まで潰れる（実測） */
+ .figrow{display:block}
+ .figfold{position:static;box-shadow:none;padding-bottom:0}
+ .dials{flex-direction:row;justify-content:center;padding-top:6px;flex-wrap:nowrap;
+   gap:10px;width:100%}
+ .dial{flex:1 1 0;width:auto;max-width:118px;min-width:88px}
+ .dial .dname{font-size:11px;margin-bottom:2px}
+ .dial .dbtn{height:26px;font-size:11px}
+ .dial .dwin{height:54px}
+ .dial .dcol span{height:18px;line-height:18px;font-size:13px}
+ .dial .dcol span.cur{font-size:15px}
+ .dial .dwin::after{top:18px;height:18px}
+}
+.outrow .chips{flex-direction:column;align-items:stretch;margin:6px 0 0;min-width:150px}
+@media(max-width:560px){.outrow .chips{flex-direction:row;min-width:0}}
+.calcbox .rst .btn{font-size:12.5px;padding:7px 14px}
+
+.mynet svg{width:100%;max-width:480px;height:auto;display:block;margin:0 auto}
+@media(max-width:520px){.mynet{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
+.stfacts{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:8px auto 0;max-width:520px}
+.stfacts span{font-size:12.5px;padding:4px 10px;border-radius:14px;background:#fff;
+ border:1px solid var(--border)}
+.stfacts span.add{background:rgba(21,128,61,.10);border-color:rgba(21,128,61,.4);color:#15803d;font-weight:700}
+.stfacts span.del{opacity:.45;text-decoration:line-through}
+.opcard{max-width:520px;margin:10px auto 0;padding:12px 15px;background:#fff;
+ border:1px solid var(--border);border-radius:12px;font-size:13.5px;line-height:1.9}
+.opcard .nm{font-weight:700;font-size:14.5px}
+.opcard .row{display:flex;gap:8px;align-items:baseline}
+.opcard .row b{flex:0 0 92px;font-size:12px;color:var(--ink-sub)}
+.opcard .en{font-size:10.5px;color:var(--ink-muted);font-weight:400}
+.opcard .ok{color:#15803d}
+.opcard .plus{color:#15803d;font-weight:700}
+.opcard .minus{color:#b4493f;text-decoration:line-through}
+.plan{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:10px auto 0;max-width:560px}
+.plan span{font-size:12.5px;padding:5px 11px;border-radius:9px;background:var(--surface);
+ border:1px solid var(--border)}
+.plan span.now{background:rgba(240,201,126,.35);border-color:#E8B44C;font-weight:700}
+.plan span.did{opacity:.5}
+.facts{margin:18px auto 0;max-width:640px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px;font-size:13.5px;line-height:1.9}
+.facts dt{font-weight:700;margin-top:8px}
+.facts dd{margin:0 0 0 1em}
+.srcnote{max-width:640px;margin:10px auto 0;font-size:12.5px;color:var(--ink-muted);line-height:1.8}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -178,248 +265,462 @@ pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
 </style></head>
 <body>
-<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; STRIPS プランナー</div>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; STRIPS — 行動を 3 つの目録で書く</div>
 <div class="fig-topnav"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene3" data-t="巻末解説に戻る（Scene 3「専門家の時代」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_cyc.html" data-t="一つ前の図解へ（Cyc 常識推論）" aria-label="一つ前の図解へ（Cyc 常識推論）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="#" data-t="次の図解はありません" aria-label="次の図解はありません" aria-disabled="true" tabindex="-1">&#9655;</a></nav></div>
-
 <div class="intro">
-<h1>STRIPS プランナー — ブロックワールドで「行動の計画」を作る</h1><p>1971 年 SRI Fikes & Nilsson、世界初の自律移動ロボット <strong>Shakey</strong> (1966-1972) を動かした「状態空間探索」システム。各アクションは <strong>precondition / add-list / delete-list</strong> の 3 つで定義される。初期状態 → 目標状態 への <strong>plan (行動の列)</strong> を自動で探索する仕組みは、2022 年以降の <strong>LLM エージェント</strong> (ReAct, Plan-and-Execute, AutoGPT) の祖先 ―― Bitter Lesson が「単純な敗北ではない」と言う理由。</p>
+<div class="eyebrow">ARC 1 ／ SCENE 3 — 専門家を機械に閉じ込める</div>
+<h1>STRIPS — 行動を 3 つの目録で書く</h1>
+<p><strong>行動を「前提条件・追加・削除」の 3 点で書き、
+書かれていないものは変わらないと約束する。世界は事実の集合。
+すると計画づくりは、事実の集合から集合への探索になる。</strong></p>
+<p>1971 年、SRI の Fikes と Nilsson。ロボット Shakey を動かすために作られた。
+ここでは部屋 3 つ・行動 2 種類で動かす。</p>
 </div>
 
-<div class="fig-stage"><div class="page" id="strips">
-<h2>STRIPS プランナー — ブロックワールドで「行動の計画」を作る</h2>
-<div class="arc-label">Arc 1 Scene 3 おまけ — 1971 SRI Fikes &amp; Nilsson、Shakey ロボットを動かした「状態空間探索」が、現代の LLM エージェントへ</div>
+<div class="fig-stage">
+<h2>前提・追加・削除で行動を書く</h2>
 
-<div class="section">
-<h3>数式と仕組み</h3>
-<div class="formula">
-<span class="hl">STRIPS</span> (Stanford Research Institute Problem Solver, 1971) は、<strong>初期状態 → 目標状態</strong> に到達するための「行動の列 (plan)」を自動で探索するシステム。Shakey ロボット (1966-1972、世界初の自律移動ロボット) の制御に使われた。<br><br>
-各アクションは 3 つの集合で定義される:<br>
-$\text{Action} = \langle \text{precondition},\ \text{add-list},\ \text{delete-list} \rangle$<br><br>
-例: <code>pickup(A)</code> = 「A を掴む」<br>
-- precondition: A が table 上、A の上に何もない、手が空いている<br>
-- add-list: 手が A を持っている<br>
-- delete-list: A は table 上ではなくなる、手は空いていない<br><br>
-<span class="note">STRIPS は <strong>state-space search</strong> (状態空間探索) を行う。現代の <strong>LLM エージェント</strong> (ReAct, Plan-and-Execute, AutoGPT) は、LLM が plan を「生成」する点で違うが、根本構造は同じ ―― 状態 → アクション → 状態の繰り返しで目標に到達する。</span>
-</div>
-</div>
+<details class="foldbox" open><summary>説明</summary>
+<p>目標を選ぶと、プランナが<b>事実の集合の探索</b>で行動の列を作る。
+「1 歩実行」を押すたびに行動カードが出る——<b>前提が揃っているか確かめ、
+追加リストの事実を足し、削除リストの事実を消す</b>。それ以外は触らない。</p>
+<p>下の札が、いまの世界のすべて。緑＝いま足された事実、打ち消し線＝いま消された事実。</p>
+</details>
 
-<div class="section">
-<h3>インタラクティブ: ブロックワールドで plan を観察</h3>
-<p style="color:#565248;font-size:13px">初期状態: A が B の上、C が table の上。目標状態: C が B の上、A が table の上。STRIPS が plan を 4 ステップで導出し、アニメーション再生する。</p>
+<details class="foldbox figfold" open><summary>構成図</summary>
+<div class="nnfig mynet"><svg id="world" viewBox="0 0 380 128"></svg></div>
+<div class="stfacts" id="facts"></div>
+</details>
 
-<div class="perceptron-svg-wrap" style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;margin:12px 0">
+<div class="opcard" id="op"></div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-<div style="background:#F4F2EC;border-radius:8px;padding:10px;text-align:center">
-<div style="color:#565248;font-size:11px;margin-bottom:4px">初期状態</div>
-<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
-<rect x="50" y="40" width="60" height="40" rx="4" fill="#5B7C99" stroke="#3f6178" stroke-width="2"/>
-<text x="80" y="65" text-anchor="middle" fill="#FAFAF7" font-size="20" font-weight="bold">A</text>
-<rect x="50" y="80" width="60" height="40" rx="4" fill="#3f6178" stroke="#3f6178" stroke-width="2"/>
-<text x="80" y="105" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">B</text>
-<rect x="130" y="80" width="60" height="40" rx="4" fill="#15803d" stroke="#15803d" stroke-width="2"/>
-<text x="160" y="105" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">C</text>
-<line x1="0" y1="120" x2="200" y2="120" stroke="#565248" stroke-width="2"/>
-<text x="100" y="20" text-anchor="middle" fill="#565248" font-size="10" font-family="monospace">(on A B) (on-table C)</text>
-</svg>
-</div>
-<div style="background:#F4F2EC;border-radius:8px;padding:10px;text-align:center">
-<div style="color:#565248;font-size:11px;margin-bottom:4px">目標状態</div>
-<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg" style="max-width:100%">
-<rect x="20" y="80" width="60" height="40" rx="4" fill="#5B7C99" stroke="#3f6178" stroke-width="2"/>
-<text x="50" y="105" text-anchor="middle" fill="#FAFAF7" font-size="20" font-weight="bold">A</text>
-<rect x="130" y="40" width="60" height="40" rx="4" fill="#15803d" stroke="#15803d" stroke-width="2"/>
-<text x="160" y="65" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">C</text>
-<rect x="130" y="80" width="60" height="40" rx="4" fill="#3f6178" stroke="#3f6178" stroke-width="2"/>
-<text x="160" y="105" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">B</text>
-<line x1="0" y1="120" x2="200" y2="120" stroke="#565248" stroke-width="2"/>
-<text x="100" y="20" text-anchor="middle" fill="#565248" font-size="10" font-family="monospace">(on-table A) (on C B)</text>
-</svg>
-</div>
-</div>
+<details class="calcbox"><summary>行動の定義（2 種類）</summary>
+<div class="readout" id="ops"></div>
+</details>
 
-<div style="text-align:center;margin:12px 0">
-<button id="strips-play-btn" style="background:#5B7C99;color:#FAFAF7;border:0;padding:10px 20px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:14px">Plan 実行 (4 ステップ)</button>
-<button id="strips-step-btn" style="background:#F4F2EC;color:#565248;border:1px solid #C8C4B8;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px">→ 1 ステップ</button>
-<button id="strips-reset-btn" style="background:#F4F2EC;color:#565248;border:1px solid #C8C4B8;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13px;margin-left:8px">リセット</button>
+<div class="chips" id="goals"></div>
+<div class="stepnav">
+  <button class="btn" id="go">1 歩実行</button>
+  <button class="btn ghost" id="rs">最初に戻す</button>
 </div>
+<div class="plan" id="plan"></div>
+<div class="readout" id="r1" style="display:none"></div>
 
-<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px">
-<div style="color:#565248;font-size:11px;margin-bottom:6px">現在状態 (ステップ <span id="strips-step-num">0</span> / 4)</div>
-<svg id="strips-world" viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;background:#FAFAF7;border-radius:4px">
-<line x1="0" y1="145" x2="400" y2="145" stroke="#565248" stroke-width="2"/>
-<text x="200" y="160" text-anchor="middle" fill="#9A9488" font-size="10">table</text>
-<g id="strips-block-A">
-<rect x="80" y="65" width="60" height="40" rx="4" fill="#5B7C99" stroke="#3f6178" stroke-width="2"/>
-<text x="110" y="90" text-anchor="middle" fill="#FAFAF7" font-size="20" font-weight="bold">A</text>
-</g>
-<g id="strips-block-B">
-<rect x="80" y="105" width="60" height="40" rx="4" fill="#3f6178" stroke="#3f6178" stroke-width="2"/>
-<text x="110" y="130" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">B</text>
-</g>
-<g id="strips-block-C">
-<rect x="200" y="105" width="60" height="40" rx="4" fill="#15803d" stroke="#15803d" stroke-width="2"/>
-<text x="230" y="130" text-anchor="middle" fill="#1A1A1A" font-size="20" font-weight="bold">C</text>
-</g>
-<g id="strips-hand">
-<rect x="320" y="20" width="60" height="20" rx="4" fill="#F4F2EC" stroke="#C8C4B8" stroke-width="1"/>
-<text x="350" y="34" text-anchor="middle" fill="#565248" font-size="10" font-family="monospace">hand: 空</text>
-</g>
-</svg>
-</div>
+<dl class="facts">
+<dt>何が新しかったか</dt>
+<dd>この<b>行動の書き方</b>そのもの。前提・追加・削除の 3 点で書き、
+「書かれていないものは変わらない」と約束することで、
+行動のたびに世界の全部を書き直さずに済ませた（STRIPS 仮定）。</dd>
+<dt>先にあったもの</dt>
+<dd>「目標との差を見て次の行動を選ぶ」考え方は GPS（Newell &amp; Simon, 1959〜）が先。
+STRIPS の新しさは表現の形式と、実物のロボット Shakey で動かしたこと。</dd>
+<dt>直系の子孫</dt>
+<dd>計画記述言語 <b>PDDL</b>（1998〜）と自動計画の分野。ロボットの
+タスクプランニング（ROS 2 の PlanSys2 など）は今もこの書き方で動く。
+経路探索の <b>A*</b>（1968）も同じ Shakey 計画から生まれた。</dd>
+<dt>LLM エージェント・VLA との関係</dt>
+<dd>直系ではない。LLM エージェントの「計画→実行」は発想が似ているという類推まで。
+VLA（視覚-言語-行動モデル）は端から端まで学習する別系統で、
+現在は VLM に PDDL を書かせて古典プランナと組み合わせる研究が進んでいる。</dd>
+</dl>
 
-<div style="background:#FAFAF7;border:1px solid #E4E1D8;border-radius:8px;padding:12px;margin-top:10px;color:#565248;font-size:13px">
-<strong>Plan ログ</strong>
-<div id="strips-log" style="background:#FAFAF7;border-radius:4px;padding:10px;margin-top:6px;font-family:monospace;font-size:12px;color:#565248;min-height:80px">
-<div>初期: (on A B) (on-table C) (clear A) (clear C) (hand-empty)</div>
-<div>目標: (on-table A) (on C B)</div>
-<div style="color:#5B7C99">→ Plan 実行ボタンを押してください</div>
+<div class="srcnote">
+※ 部屋 3 つ・行動 2 種類は説明のための小さな例。Shakey の実物は部屋の間で
+箱を押して回った。行動の 3 点セットの原語は precondition / add list / delete list。
 </div>
 </div>
+<div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene3" data-t="巻末解説に戻る（Scene 3「専門家の時代」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_cyc.html" data-t="一つ前の図解へ（Cyc 常識推論）" aria-label="一つ前の図解へ（Cyc 常識推論）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="#" data-t="次の図解はありません" aria-label="次の図解はありません" aria-disabled="true" tabindex="-1">&#9655;</a></nav></div>
 
 <script>
 (function(){
-// Block positions (x, y for block top-left)
-var POSITIONS = {
-A_on_B: {x:80, y:65},
-A_on_table: {x:80, y:105},
-B_on_table: {x:80, y:105},
-B_on_table_right: {x:200, y:105},
-C_on_table: {x:200, y:105},
-C_on_B: {x:200, y:65},
-hand_A: {x:80, y:5},
-hand_B: {x:80, y:5},
-hand_C: {x:200, y:5},
-};
 
-var steps = [
-{action: 'unstack(A, B)', desc: 'A を B から取る (precondition: clear A, on A B, hand-empty)',
- blocks: {A: {x:80, y:5}, B: {x:80, y:105}, C: {x:200, y:105}}, hand: 'A'},
-{action: 'putdown(A)', desc: 'A を table に置く (add: on-table A, hand-empty / del: hand A)',
- blocks: {A: {x:80, y:105}, B: {x:80, y:105}, C: {x:200, y:105}}, hand: '空'},
-{action: 'pickup(C)', desc: 'C を table から取る (precondition: clear C, on-table C, hand-empty)',
- blocks: {A: {x:80, y:105}, B: {x:80, y:105}, C: {x:200, y:5}}, hand: 'C'},
-{action: 'stack(C, B)', desc: 'C を B の上に積む (add: on C B, hand-empty / del: hand C)',
- blocks: {A: {x:80, y:105}, B: {x:80, y:105}, C: {x:200, y:65}}, hand: '空'},
-];
+  var ARC="#5B7C99", BAD="#b4493f", INK="#1A1A1A", MUTED="#9A9488", EDGE="#8d99c4";
+  var SVGNS="http://www.w3.org/2000/svg";
+  function el(t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);
+    if(txt!=null)e.textContent=txt;return e;}
+  function g(id){return document.getElementById(id);}
+  // ---- 数の見せ方。桁を出しすぎると辺のラベルが太って隣とぶつかる（幾何を実測して決めた）
+  // ※ ちょうど 0 を指数表記にしない。ReLU で死んだユニットや正解値 0 が 0e+0 と出て、
+  //   「0 なのか極小の数なのか」が読めなくなる（実際に出た）。
+  function nf(v){var a=Math.abs(v); if(a===0) return '0';
+    return a>=100?v.toFixed(0):a>=10?v.toFixed(1):a>=0.1?v.toFixed(2):a>=0.001?v.toFixed(3):v.toExponential(0);}
+  function ns(v){var a=Math.abs(v); if(a===0) return '0';
+    return a>=10?v.toFixed(0):a>=1?v.toFixed(1):a>=0.01?v.toFixed(2):v.toExponential(0);}
+  function f2(v){return v.toFixed(2);}
+  function vec(a,f){var i,o=[];for(i=0;i<a.length;i++)o.push((f||nf)(a[i]));return "( "+o.join(", ")+" )";}
+  // 式の途中に負数を挟むとき。「+ -0.80」ではなく「− 0.80」と書く。
+  function sgn(v,d){return (v<0?' − ':' + ')+Math.abs(v).toFixed(d==null?2:d);}
 
-// Initial layout: A is stacked on B at left (so B should be at left position too)
-// Adjust: initial → B at left (80), A on B (80, top=65), C at right (200)
-// 各ブロックの初期位置。moveBlock はここからの差分で動かす
-var initLayout = {A: {x:80, y:65}, B: {x:80, y:105}, C: {x:200, y:105}};
+  // ---- データセット（入力は 0/1 の四隅まわり）
+  function mk(kind){
+    // ※ かんたん例で四隅を使うと、点が境界線の**真上**に載って正解率が上がりきらない
+    //   （既定の重みで 86% にしかならず「分けられる例」に見えない）。2 クラスタにする。
+    var pts=[],i,j,r=function(){return (Math.random()-0.5)*0.20;};
+    // AND: 両方 1 のときだけ 1。XOR と同じ四隅を使うので、直線 1 本で
+    // 分けられる／分けられないの対比がそのまま出る。
+    var spec = (kind==='xor')
+      ? [[0,0,0],[0,1,1],[1,0,1],[1,1,0]]
+      : [[0,0,0],[0,1,0],[1,0,0],[1,1,1]];
+    for(i=0;i<spec.length;i++) for(j=0;j<9;j++)
+      pts.push({x:Math.min(1,Math.max(0,spec[i][0]+r())),
+                y:Math.min(1,Math.max(0,spec[i][1]+r())),l:spec[i][2]});
+    return pts;
+  }
+  var DS={easy:mk('easy'), xor:mk('xor')}, curDs='easy';
+  function plot(svg,pts,decide,pad){
+    pad=pad||26; svg.innerHTML='';
+    var S=300, W=S-pad*2;
+    var X=function(x){return pad+x*W;}, Y=function(y){return S-pad-y*W;};
+    // 決定領域を格子で塗る
+    var N=44, cw=W/N, k, m;
+    for(k=0;k<N;k++) for(m=0;m<N;m++){
+      var xx=(k+0.5)/N, yy=(m+0.5)/N, v=decide(xx,yy);
+      if(v==null) continue;
+      svg.appendChild(el('rect',{x:X(xx)-cw/2,y:Y(yy)-cw/2,width:cw+0.6,height:cw+0.6,
+        fill: v>=0.5?ARC:BAD, opacity: 0.10+0.13*Math.abs(v-0.5)*2}));
+    }
+    svg.appendChild(el('rect',{x:pad,y:pad,width:W,height:W,fill:'none',stroke:'#E4E1D8'}));
+    svg.appendChild(el('text',{x:pad,y:S-8,'font-size':11,fill:MUTED},'x₁ →'));
+    svg.appendChild(el('text',{x:pad-6,y:pad-8,'font-size':11,fill:MUTED},'x₂ ↑'));
+    var ok=0;
+    for(k=0;k<pts.length;k++){
+      var p=pts[k], d=decide(p.x,p.y), pred=(d!=null&&d>=0.5)?1:0;
+      if(pred===p.l) ok++;
+      svg.appendChild(el('circle',{cx:X(p.x),cy:Y(p.y),r:5,
+        fill: p.l?ARC:'#fff', stroke: p.l?ARC:BAD,'stroke-width':1.6}));
+    }
+    return ok/pts.length;
+  }
+  // ---- ニューラルネットの幾何。②③④は 2-3-2、⑤は 2-3-3-3-3-2。描き手は下の renderNet ひとつ。
+  // ※ 縦の間隔は**列ごとに**変える。丸の下の注記（m=… / 正解 …）と、その下の丸の名前
+  //   （n₂ / y₂）が同じ隙間を取り合って重なるため。丸の直径 42 に対して隙間 36 では、
+  //   注記(+36)と次の名前(−29)が 13 しか離れず、実測で文字がぶつかった。
+  function geom(shape,VW,cy,gaps,r,pad){
+    var xs=[],ys=[],i,j,n=shape.length;
+    for(i=0;i<n;i++) xs.push(pad + (VW-pad*2)*(n>1?i/(n-1):0));
+    for(i=0;i<n;i++){var gp=(gaps.length?gaps[i]:gaps),a=[];
+      for(j=0;j<shape[i];j++)a.push(cy+gp*(j-(shape[i]-1)/2));ys.push(a);}
+    return {shape:shape,xs:xs,ys:ys,r:r,VW:VW};
+  }
+  function paint(v,bad){
+    var c = bad ? '180,73,63' : '110,123,168';
+    return 'rgba('+c+','+(0.05+0.62*Math.max(0,Math.min(1,v))).toFixed(3)+')';
+  }
 
-// Update steps to use correct positions
-// Step 0 (after unstack(A,B)): A in hand, B remains at left, C remains at right
-// Step 1 (after putdown(A)): A on table - but where? Use right of B
-steps[0].blocks = {A: {x:80, y:5}, B: {x:80, y:105}, C: {x:200, y:105}};
-steps[1].blocks = {A: {x:280, y:105}, B: {x:80, y:105}, C: {x:200, y:105}};
-steps[2].blocks = {A: {x:280, y:105}, B: {x:80, y:105}, C: {x:200, y:5}};
-steps[3].blocks = {A: {x:280, y:105}, B: {x:80, y:105}, C: {x:80, y:65}};
+  // ※ 辺のラベルは **t（辺上の位置）を送り元ごとにずらして**置く。同じ t に置くと
+  //   左右対称なニューラルネットでは中央で必ず重なる（x₁→n₂ と x₂→n₁ の中点が一致する）。
+  //   下の T0/T1 は「隣り合うラベルが x で 43 単位以上離れるか、y で 20 単位以上離れる」
+  //   ことを 12 本すべてについて実測して決めた値。数字の桁を増やすと崩れる。
+  var SUB=['₀','₁','₂','₃'];
+  var T0=[0.42,0.76];
+  var T1=[[0.16,0.27],[0.44,0.55],[0.74,0.84]];
+  // ※ ②③ はラベルが 2 行＋▲▼ で幅も高さも違うので、専用の位置表を持つ。
+  //   ④⑤（1 行ラベル）と共用すると、片方を直すともう片方が崩れる。
+  var T0B=[0.36,0.80], T1B=[[0.36,0.66],[0.36,0.74],[0.36,0.84]];
+  function renderNet(svg,gg,o){
+    svg.innerHTML='';
+    var i,j,k,n=gg.shape.length;
+    for(i=0;i<n-1;i++){
+      var st=o.edgeState?o.edgeState(i):2;
+      for(j=0;j<gg.shape[i];j++) for(k=0;k<gg.shape[i+1];k++){
+        var a={x1:(gg.xs[i]+gg.r).toFixed(1), y1:gg.ys[i][j].toFixed(1),
+               x2:(gg.xs[i+1]-gg.r).toFixed(1), y2:gg.ys[i+1][k].toFixed(1),
+               stroke:o.edgeInk?o.edgeInk(i,j,k):EDGE,
+               'stroke-width':(o.edgeW?o.edgeW(i,j,k):1.3).toFixed(2),
+               opacity:(st?1:0.14).toFixed(2)};
+        if(st===2) a['class']=o.rev?'nnfr':'nnf';
+        svg.appendChild(el('line',a));
+      }
+    }
+    if(o.edgeLabel) for(i=0;i<n-1;i++){
+      if(o.edgeState && !o.edgeState(i)) continue;
+      for(j=0;j<gg.shape[i];j++) for(k=0;k<gg.shape[i+1];k++){
+        var s=o.edgeLabel(i,j,k); if(s==null) continue;
+        var t=o.edgeT(i,j,k), fs=o.efs||12.5;
+        var ax=gg.xs[i]+gg.r, bx=gg.xs[i+1]-gg.r;
+        var px=ax+(bx-ax)*t, py=gg.ys[i][j]+(gg.ys[i+1][k]-gg.ys[i][j])*t;
+        // 配列で返ってきたら [名前, 数字] の 2 段。横に並べず縦に積むのは、
+        // 横幅を増やすと隣のラベルとぶつかるため（T0/T1 は実測で決めた値）。
+        var two=(typeof s!=='string'), nmS=two?s[0]:null, vS=two?s[1]:s;
+        var wd=Math.max(vS.length,(nmS||'').length)*fs*0.60+6;
+        var hh=two?fs*2.9:fs*1.6, top=py-(two?fs*1.80:fs*0.80);
+        var edit=o.step?o.step(i,j,k):false;
+        svg.appendChild(el('rect',{x:(px-wd/2).toFixed(1),y:top.toFixed(1),
+          width:wd.toFixed(1),height:hh.toFixed(1),rx:3,fill:'#fff',opacity:0.93}));
+        var ink=o.labelInkAt?o.labelInkAt(i,j,k):(o.labelInk||'#565248');
+        var nInk=edit?'#8a6b4f':(o.nameInkAt?o.nameInkAt(i,j,k):ARC);
+        var thru='';
+        // いまダイヤルで触っている重みは、名前も数値も光彩で囲って目立たせる
+        // （どこが変わっているのか分からない、という読者の指摘）。
+        var lit=o.hl?o.hl(i,j,k):false;
+        var halo=function(x,y,size,txt){
+          svg.appendChild(el('text',{x:x,y:y,'font-size':size,'text-anchor':'middle',
+            fill:'none',stroke:'#F6D9A8','stroke-width':5,'stroke-linejoin':'round',
+            style:'paint-order:stroke;pointer-events:none'},txt));
+        };
+        if(two){
+          if(lit) halo(px.toFixed(1),(py-fs*0.52).toFixed(1),(fs*0.86).toFixed(1),nmS);
+          svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
+            'font-size':(fs*0.86).toFixed(1),'text-anchor':'middle',
+            fill:lit?'#8a6b4f':nInk,style:thru},nmS));
+        }
+        if(lit) halo(px.toFixed(1),(py+(two?fs*1.02:fs*0.35)).toFixed(1),fs,vS);
+        svg.appendChild(el('text',{x:px.toFixed(1),y:(py+(two?fs*1.02:fs*0.35)).toFixed(1),
+          'font-size':fs,'text-anchor':'middle',fill:lit?INK:ink,
+          'font-weight':lit?'700':'400',style:thru},vS));
+      }
+    }
+    for(i=0;i<n;i++) for(j=0;j<gg.shape[i];j++){
+      var lit=o.nodeState?o.nodeState(i,j):1, cx=gg.xs[i], cy=gg.ys[i][j];
+      svg.appendChild(el('circle',{cx:cx.toFixed(1),cy:cy.toFixed(1),r:gg.r,
+        fill:o.nodeFill?o.nodeFill(i,j):'#EAEDF7',
+        stroke:o.nodeStroke?o.nodeStroke(i,j):'#6E7BA8','stroke-width':1.6,
+        opacity:(lit?1:0.2).toFixed(2)}));
+      var nm=o.nodeName?o.nodeName(i,j):null;
+      if(nm) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy-gg.r-8).toFixed(1),'font-size':12.5,
+        'text-anchor':'middle',fill:MUTED,'font-style':'italic',
+        opacity:(lit?1:0.3).toFixed(2)},nm));
+      var tv=o.nodeText?o.nodeText(i,j):null;
+      if(tv!=null) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy+5).toFixed(1),
+        'font-size':o.nfs||14.5,'text-anchor':'middle',fill:INK,
+        opacity:(lit?1:0.25).toFixed(2)},tv));
+      var sb=o.nodeSub?o.nodeSub(i,j):null;
+      if(sb) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy+gg.r+15).toFixed(1),'font-size':11.5,
+        'text-anchor':'middle',fill:o.subInk||MUTED,opacity:(lit?1:0.3).toFixed(2)},sb));
+    }
+    if(o.deco) o.deco(svg);
+  }
+  // ---- 機械式スロット（図の外・右側）。読者の指摘に沿って作り直した:
+  //   ・図の中ではなく右にまとめる（図が読みやすくなる。数値は図と同期）
+  //   ・角丸をやめ、暗い窓に凹みを付けて本物のスロットらしく
+  //   ・名前は枠の外の上に置く
+  //   ・PC で払いにくいので、上下のボタンと**マウスホイール**でも 1 段ずつ動く
+  //   ・払ったあとの減速を強める（0.90 → 0.72）
+  var DIALS={};                      // {箱の id: [{i,j,k}...]}
+  var HLW=null;                      // いま触っている重み {i,j,k}
+  function isHL(i,j,k){ return !!HLW && HLW.i===i && HLW.j===j && HLW.k===k; }
+  function buildDials(boxId, list, get, set, after){
+    var box=g(boxId); if(!box) return;
+    if(box.getAttribute('data-built')!=='1'){
+      box.setAttribute('data-built','1');
+      box.innerHTML='';
+      list.forEach(function(w,n){
+        var d=document.createElement('div'); d.className='dial';
+        d.innerHTML='<div class="dname">'+w.nm+'</div>'
+          +'<button class="dbtn" data-d="1" aria-label="ひとつ増やす">▲</button>'
+          +'<div class="dwin"><div class="dcol"></div></div>'
+          +'<button class="dbtn" data-d="-1" aria-label="ひとつ減らす">▼</button>';
+        box.appendChild(d);
+        var col=d.querySelector('.dcol'), win=d.querySelector('.dwin');
+        var st=(w.st||0.1), lo=(w.lo==null?-6:w.lo), hi=(w.hi==null?6:w.hi);
+        var q=function(v){ return Math.round(v/st)*st; };
+        var val=function(){ return get(w.i,w.j,w.k); };
+        var put=function(v){ HLW={i:w.i,j:w.j,k:w.k};
+          set(w.i,w.j,w.k, Math.max(lo,Math.min(hi, +q(v).toFixed(4)))); after(); };
+        d.querySelectorAll('.dbtn').forEach(function(btn){
+          var dd=+btn.getAttribute('data-d'), t=null, iv=null;
+          btn.addEventListener('pointerdown',function(ev){
+            ev.preventDefault(); put(val()+dd*st);
+            t=setTimeout(function(){ iv=setInterval(function(){ put(val()+dd*st); },110); },420);
+            var stop=function(){ clearTimeout(t); if(iv)clearInterval(iv);
+              window.removeEventListener('pointerup',stop); };
+            window.addEventListener('pointerup',stop);
+          });
+        });
+        // マウスホイールで 1 段ずつ（PC では払うより確実）
+        win.addEventListener('wheel',function(ev){
+          ev.preventDefault(); put(val() + (ev.deltaY<0?st:-st));
+        },{passive:false});
+        // 払う。離したあとの減速は強め
+        win.addEventListener('pointerdown',function(ev){
+          ev.preventDefault();
+          // ※ 1 回ごとに 0.1 へ丸めると、小刻みな移動が毎回 0 に戻って積み上がらない
+          //   （実際に払っても値が動かなかった）。掴んだ時の値からの差を貯めて使う。
+          var last=ev.clientY, vel=0, raf=null, base=val(), acc=0;
+          var apply=function(dy){ acc += -dy/22*st; put(base+acc); };
+          var onMove=function(m){ var dy=m.clientY-last; last=m.clientY; vel=dy; apply(dy); };
+          var glide=function(){ vel*=0.86; if(Math.abs(vel)<0.35){raf=null;return;}
+            apply(vel); raf=requestAnimationFrame(glide); };
+          var onUp=function(){ window.removeEventListener('pointermove',onMove);
+            window.removeEventListener('pointerup',onUp);
+            if(Math.abs(vel)>1.2) raf=requestAnimationFrame(glide); };
+          window.addEventListener('pointermove',onMove);
+          window.addEventListener('pointerup',onUp);
+        });
+        w._col=col;
+      });
+      DIALS[boxId]=list;
+    }
+    // 窓の中身を書き直す（上 2 段・現在・下 2 段）
+    (DIALS[boxId]||list).forEach(function(w){
+      if(!w._col) return;
+      var host=w._col.closest('.dial');
+      if(host) host.classList.toggle('lit', isHL(w.i,w.j,w.k));
+      var v=get(w.i,w.j,w.k), st=(w.st||0.1), dg=(w.dg==null?1:w.dg), h='';
+      [2,1,0,-1,-2].forEach(function(o){
+        h+='<span'+(o===0?' class="cur"':'')+'>'+(v+o*st).toFixed(dg)+'</span>';
+      });
+      w._col.innerHTML=h;
+      var rowh=(window.matchMedia('(max-width:620px)').matches)?18:22;
+      w._col.style.transform='translateY(-'+rowh+'px)';
+    });
+  }
+  function heads(svg,gg,labs,y){
+    var i; for(i=0;i<labs.length;i++)
+      svg.appendChild(el('text',{x:gg.xs[i].toFixed(1),y:y,'font-size':13,'text-anchor':'middle',
+        fill:MUTED},labs[i]));
+  }
 
-var step = 0;
-var logEl = document.getElementById('strips-log');
-var stepEl = document.getElementById('strips-step-num');
-var playBtn = document.getElementById('strips-play-btn');
-var stepBtn = document.getElementById('strips-step-btn');
-var resetBtn = document.getElementById('strips-reset-btn');
 
-// ※ もとは rect と text の x/y を別々に動かしていた。CSS の transition は
-//    SVG の text の x/y には効かないので、**記号だけが先に飛んで**箱が後から
-//    追いかける動きになっていた（読者の指摘）。
-//    箱と記号を包む <g> ごと transform で動かせば、必ず一緒に動く。
-function moveBlock(id, pos){
-var el = document.getElementById('strips-block-' + id);
-var base = initLayout[id];
-el.style.transition = 'transform 0.5s ease';
-el.style.transform = 'translate(' + (pos.x - base.x) + 'px,' + (pos.y - base.y) + 'px)';
-}
 
-function setHand(label){
-var t = document.getElementById('strips-hand').querySelector('text');
-t.textContent = 'hand: ' + label;
-}
+  /* ===== 世界のモデル。事実の集合 = {ロボ:部屋, 箱:部屋} ===== */
+  var ROOMS=['A','B','C'];                     /* A-B-C と並び、隣どうしだけ行き来できる */
+  function adj(x,y){ return Math.abs(ROOMS.indexOf(x)-ROOMS.indexOf(y))===1; }
+  var S0={rob:'A', box:'B'};
+  var S={rob:S0.rob, box:S0.box};
 
-function applyStep(i){
-var s = steps[i];
-moveBlock('A', s.blocks.A);
-moveBlock('B', s.blocks.B);
-moveBlock('C', s.blocks.C);
-setHand(s.hand);
-}
+  /* 行動スキーマ。前提 / 追加 / 削除 の 3 点がすべて */
+  function ops(st){
+    var out=[];
+    ROOMS.forEach(function(to){
+      if(adj(st.rob,to)) out.push({
+        nm:'移動 '+st.rob+'→'+to, en:'GOTHRU',
+        pre:['ロボは'+st.rob], add:['ロボは'+to], del:['ロボは'+st.rob],
+        ap:function(s){ return {rob:to, box:s.box}; }});
+    });
+    ROOMS.forEach(function(to){
+      if(st.rob===st.box && adj(st.box,to)) out.push({
+        nm:'箱を押す '+st.box+'→'+to, en:'PUSHTHRU',
+        pre:['ロボは'+st.rob,'箱は'+st.box,'ロボと箱が同じ部屋'],
+        add:['箱は'+to,'ロボは'+to], del:['箱は'+st.box,'ロボは'+st.rob],
+        ap:function(s){ return {rob:to, box:to}; }});
+    });
+    return out;
+  }
 
-function addLog(text, color){
-var d = document.createElement('div');
-d.style.color = color || '#15803d';
-d.textContent = text;
-logEl.appendChild(d);
-logEl.scrollTop = logEl.scrollHeight;
-}
+  /* ===== プランナ。状態は 9 通りしかないので幅優先で厳密に解く ===== */
+  function plan(goalFn){
+    var seen={}, q=[{s:{rob:S.rob,box:S.box}, path:[]}], n=0;
+    while(q.length){
+      var c=q.shift(); n++;
+      if(goalFn(c.s)) return {path:c.path, explored:n};
+      var k=c.s.rob+c.s.box;
+      if(seen[k]) continue; seen[k]=1;
+      ops(c.s).forEach(function(o){
+        q.push({s:o.ap(c.s), path:c.path.concat([o])});
+      });
+    }
+    return {path:null, explored:n};
+  }
 
-function nextStep(){
-if(step >= steps.length){
-addLog('目標到達: (on-table A) (on C B) ✓', '#5B7C99');
-return false;
-}
-applyStep(step);
-addLog((step+1) + '. ' + steps[step].action, '#15803d');
-addLog('   ' + steps[step].desc, '#565248');
-step++;
-stepEl.textContent = step;
-return step < steps.length;
-}
+  var GOALS=[
+    {t:'箱を C へ', f:function(s){return s.box==='C';}},
+    {t:'箱を A へ', f:function(s){return s.box==='A';}},
+    {t:'ロボを C へ', f:function(s){return s.rob==='C';}}
+  ];
+  var gi=0, P=null, pi=0, lastOp=null;
 
-stepBtn.addEventListener('click', nextStep);
+  /* ===== 描画。世界（部屋・ロボ・箱）と事実の札 ===== */
+  function drawWorld(){
+    var svg=g('world'); svg.innerHTML='';
+    ROOMS.forEach(function(r,i){
+      var x=14+i*120;
+      svg.appendChild(el('rect',{x:x,y:16,width:112,height:96,rx:10,
+        fill:'#fff',stroke:'var(--border)','stroke-width':1.4}));
+      svg.appendChild(el('text',{x:x+56,y:34,'font-size':13,'text-anchor':'middle',
+        fill:MUTED,'font-weight':'700'},'部屋 '+r));
+      if(i<2){ /* 通路 */
+        svg.appendChild(el('rect',{x:x+108,y:52,width:16,height:26,fill:'#FAFAF7',
+          stroke:'var(--border)','stroke-width':1}));
+      }
+    });
+    var rx=14+ROOMS.indexOf(S.rob)*120, bx=14+ROOMS.indexOf(S.box)*120;
+    /* 箱 */
+    svg.appendChild(el('rect',{x:bx+64,y:62,width:34,height:34,rx:5,
+      fill:'#E9DFC8',stroke:'#B9A87E','stroke-width':1.6}));
+    svg.appendChild(el('text',{x:bx+81,y:83,'font-size':11,'text-anchor':'middle',fill:'#7a6a45','font-weight':'700'},'箱'));
+    /* ロボ */
+    svg.appendChild(el('circle',{cx:rx+34,cy:79,r:18,fill:'#EAEDF7',stroke:ARC,'stroke-width':2}));
+    svg.appendChild(el('text',{x:rx+34,y:84,'font-size':11,'text-anchor':'middle',fill:INK,'font-weight':'700'},'ロボ'));
+  }
+  function factChips(){
+    var cur=['ロボは'+S.rob,'箱は'+S.box];
+    var h=cur.map(function(f){
+      var cls=(lastOp&&lastOp.add.indexOf(f)>=0)?' class="add"':'';
+      return '<span'+cls+'>'+f+'</span>';
+    }).join('');
+    if(lastOp) lastOp.del.forEach(function(f){
+      if(cur.indexOf(f)<0) h+='<span class="del">'+f+'</span>';
+    });
+    g('facts').innerHTML=h;
+  }
+  function opCard(){
+    var o=g('op');
+    if(!lastOp){
+      var nx=P&&P.path&&pi<P.path.length?P.path[pi]:null;
+      o.innerHTML=nx
+        ? '<div class="nm">次の行動: '+nx.nm+' <span class="en">'+nx.en+'</span></div>'
+          +'<div class="row"><b>前提 <span class="en">precondition</span></b><span>'
+          +nx.pre.join('、')+'</span></div>'
+          +'<div class="row"><b>追加 <span class="en">add list</span></b><span class="plus">'
+          +nx.add.join('、')+'</span></div>'
+          +'<div class="row"><b>削除 <span class="en">delete list</span></b><span class="minus">'
+          +nx.del.join('、')+'</span></div>'
+        : '<div class="nm">目標を選ぶと、ここに次の行動が出る。</div>';
+      return;
+    }
+    o.innerHTML='<div class="nm">実行した: '+lastOp.nm+' <span class="en">'+lastOp.en+'</span></div>'
+      +'<div class="row"><b>前提</b><span class="ok">'+lastOp.pre.join('、')+'　✓ 揃っていた</span></div>'
+      +'<div class="row"><b>追加</b><span class="plus">'+lastOp.add.join('、')+'</span></div>'
+      +'<div class="row"><b>削除</b><span class="minus">'+lastOp.del.join('、')+'</span></div>';
+  }
+  function planStrip(){
+    if(!P||!P.path){ g('plan').innerHTML=''; return; }
+    g('plan').innerHTML=P.path.map(function(o,i){
+      var cls=i<pi?'did':(i===pi?'now':'');
+      return '<span class="'+cls+'">'+(i+1)+'. '+o.nm+'</span>';
+    }).join('')
+    +'<span style="border:0;background:none">（探索した状態 '+P.explored+' 個）</span>';
+  }
+  function goalChips(){
+    var box=g('goals'); box.innerHTML='';
+    GOALS.forEach(function(gl,i){
+      var b=document.createElement('button');
+      b.className='chip'+(i===gi?' on':''); b.textContent='目標: '+gl.t;
+      b.onclick=function(){ gi=i; replan(); };
+      box.appendChild(b);
+    });
+  }
+  function redraw(){
+    drawWorld(); factChips(); opCard(); planStrip(); goalChips();
+    var done=P&&P.path&&pi>=P.path.length;
+    g('r1').style.display=done?'':'none';
+    if(done) g('r1').innerHTML='目標「'+GOALS[gi].t+'」に到達。'
+      +'プランナがしたのは<b>事実の集合の探索</b>だけ——各行動は前提を確かめ、'
+      +'追加を足し、削除を消した。それ以外の事実には触れていない。';
+  }
+  function replan(){
+    /* いまの状態から計画を作り直す（目標変更にも途中からでも効く） */
+    P=plan(GOALS[gi].f); pi=0; lastOp=null; redraw();
+  }
+  g('go').onclick=function(){
+    if(!P||!P.path||pi>=P.path.length) return;
+    /* 実行時にも前提を確かめる（プランどおりでも必ず見る、が STRIPS の作法） */
+    var o=P.path[pi];
+    S=o.ap(S); lastOp=o; pi++;
+    redraw();
+  };
+  g('rs').onclick=function(){ S={rob:S0.rob,box:S0.box}; replan(); };
 
-playBtn.addEventListener('click', function(){
-playBtn.disabled = true;
-playBtn.style.opacity = '0.5';
-var iv = setInterval(function(){
-var cont = nextStep();
-if(!cont){
-clearInterval(iv);
-playBtn.disabled = false;
-playBtn.style.opacity = '1';
-}
-}, 1200);
-});
+  g('ops').innerHTML=
+    '<div style="line-height:2.0"><b>移動 x→y</b> <span style="color:var(--ink-muted);font-size:11px">GOTHRU</span><br>'
+    +'　前提: ロボは x、x と y は隣　／　追加: ロボは y　／　削除: ロボは x</div>'
+    +'<div style="line-height:2.0;margin-top:6px"><b>箱を押す x→y</b> <span style="color:var(--ink-muted);font-size:11px">PUSHTHRU</span><br>'
+    +'　前提: ロボは x、箱は x、x と y は隣　／　追加: 箱は y、ロボは y　／　削除: 箱は x、ロボは x</div>';
 
-resetBtn.addEventListener('click', function(){
-step = 0;
-stepEl.textContent = 0;
-moveBlock('A', initLayout.A);
-moveBlock('B', initLayout.B);
-moveBlock('C', initLayout.C);
-setHand('空');
-logEl.innerHTML = '<div>初期: (on A B) (on-table C) (clear A) (clear C) (hand-empty)</div><div>目標: (on-table A) (on C B)</div><div style="color:#5B7C99">→ Plan 実行ボタンを押してください</div>';
-playBtn.disabled = false;
-playBtn.style.opacity = '1';
-});
+  replan();
 })();
 </script>
-</div>
-
-<div class="section">
-<h3>試してみよう</h3>
-<div class="achieved">「Plan 実行」を押すと、STRIPS が <strong>4 ステップの plan</strong> を順次実行: ①A を B から取る → ②A を table に置く → ③C を table から取る → ④C を B の上に積む。各アクションには <strong>precondition / add / delete</strong> が定義されている。</div>
-<div class="achieved">「1 ステップ」ボタンで 1 アクションずつ進めると、各ステップで「なぜそれをしたか」が分かる。「A を直接 table に動かす」というショートカットはなく、必ず <strong>持つ→置く</strong> の 2 ステップに分解される ―― これが symbolic AI の「世界を象徴で記述する」発想。</div>
-<div class="challenge">考えてみよう: もし初期状態が <code>(on A B), (on B C), (on-table C)</code> (A は B の上、B は C の上) だったら、STRIPS は何ステップで <code>(on-table A) (on-table B) (on-table C)</code> に到達する? <strong>答え: 4 ステップ</strong> (unstack A, putdown A, unstack B, putdown B)。状態空間探索は組合せ爆発しやすいが、precondition を使って枝刈りすることで現実的な時間で解ける。</div>
-</div>
-
-<div class="section">
-<h3>現代への橋</h3>
-<div class="scene2-teaser">
-<strong>STRIPS が今も生きている →</strong><br>
-2022 年以降の <strong>LLM エージェント</strong> (ReAct, Plan-and-Execute, AutoGPT) は、LLM が plan を「生成」する点で違うが、根本構造は同じ。「現在の状態 → アクション → 新しい状態」の繰り返しで目標達成する設計図は、Shakey ロボットの 1971 年から変わっていない ―― これが Bitter Lesson が「単純な敗北ではない」と言う理由。Symbolic AI の遺産は形を変えて、今も AI の中で生きている。<br><br>
-→ <a href="commentary.html" style="color:#5B7C99">巻末解説で Bitter Lesson の完全な意味を読む</a>
-</div>
-</div>
-</div>
-</div></div>
-
-
-
-<div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene3" data-t="巻末解説に戻る（Scene 3「専門家の時代」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_cyc.html" data-t="一つ前の図解へ（Cyc 常識推論）" aria-label="一つ前の図解へ（Cyc 常識推論）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="#" data-t="次の図解はありません" aria-label="次の図解はありません" aria-disabled="true" tabindex="-1">&#9655;</a></nav></div>
-
 <script>
 (function(){
   var m = /[?&]from=(figlink\d+)/.exec(location.search);
