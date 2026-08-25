@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- epoch-meta:start 共有されたときのカード。単一出典 = outputs/publish/epoch/epoch_meta.py -->
-<meta name="description" content="ImageNet 誤り率の崖 EPOCH Arc 2 ・ Scene 3-4「データという大陸 / ビッグバン」 ImageNet 誤り率の崖 — 2012 年、世界が変わった日 Fei-Fei Li が率いた Imag…">
-<meta property="og:title" content="ImageNet 誤り率の崖 — EPOCH Arc 2 図解">
-<meta property="og:description" content="ImageNet 誤り率の崖 EPOCH Arc 2 ・ Scene 3-4「データという大陸 / ビッグバン」 ImageNet 誤り率の崖 — 2012 年、世界が変わった日 Fei-Fei Li が率いた Imag…">
+<meta name="description" content="ImageNet — 優勝 AI の中身が入れ替わった 8 年 EPOCH Arc 2 ・ Scene 3-4「データという大陸 / ビッグバン」 ImageNet — 優勝 AI の中身が入れ替わった 8 年 2010…">
+<meta property="og:title" content="ImageNet — 優勝 AI の中身が入れ替わった 8 年 — EPOCH Arc 2 図解">
+<meta property="og:description" content="ImageNet — 優勝 AI の中身が入れ替わった 8 年 EPOCH Arc 2 ・ Scene 3-4「データという大陸 / ビッグバン」 ImageNet — 優勝 AI の中身が入れ替わった 8 年 2010…">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="EPOCH — 時代の前夜">
 <meta property="og:locale" content="ja_JP">
@@ -14,7 +14,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://manga-epoch.github.io/viewer/og/arc2.jpg">
 <!-- epoch-meta:end -->
-<title>ImageNet 誤り率の崖 — EPOCH Arc 2 図解</title>
+<title>ImageNet — 優勝 AI の中身が入れ替わった 8 年 — EPOCH Arc 2 図解</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
@@ -109,6 +109,18 @@ svg text{font-family:"Inter","Noto Sans JP",sans-serif}
 .fig-card p{font-size:13px;line-height:1.7;color:var(--ink-sub);margin:0 0 8px}
 .fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
 @media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
+
+.mynet svg{width:100%;max-width:520px;height:auto;display:block;margin:0 auto}
+@media(max-width:520px){.mynet{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
+.win{max-width:560px;margin:12px auto 0;padding:14px 16px;background:#fff;
+ border:1px solid var(--border);border-radius:12px}
+.win .wh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.win .wh b{font-size:16px}
+.win .wh .err{font-size:14px;color:var(--link);font-weight:700}
+.win .wh .drop{font-size:12px;color:#15803d;font-weight:700}
+.win .wfacts{font-size:13.5px;line-height:1.9;margin-top:8px}
+.win .wlink{margin-top:8px;font-size:13px}
+.srcnote{max-width:640px;margin:12px auto 0;font-size:12.5px;color:var(--ink-muted);line-height:1.8}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -163,142 +175,332 @@ input[type=range]{accent-color:var(--arc)}
 code,a{overflow-wrap:anywhere}
 pre{max-width:100%;overflow-x:auto}
 table{display:block;overflow-x:auto;max-width:100%}
-</style><style class="epoch-theme-fold">
-.foldbox{margin:0 0 2px;border:0}
-.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
- font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
- padding:5px 2px;user-select:none}
-.foldbox>summary::-webkit-details-marker{display:none}
-.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
- border-top:4px solid transparent;border-bottom:4px solid transparent;
- transition:transform .15s ease;flex:none}
-.foldbox[open]>summary::before{transform:rotate(90deg)}
-.foldbox>summary:hover{color:var(--ink)}
-.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
-<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; ImageNet 誤り率の崖</div>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; ImageNet — 優勝 AI の中身が入れ替わった 8 年</div>
 <div class="fig-topnav"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene3" data-t="巻末解説に戻る（Scene 3「データという大陸」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_cnn.html" data-t="一つ前の図解へ（畳み込み・CNN）" aria-label="一つ前の図解へ（畳み込み・CNN）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_alexnet.html" data-t="一つ後の図解へ（2012 年の三つ）" aria-label="一つ後の図解へ（2012 年の三つ）">&#9655;</a></nav></div>
 <div class="intro">
 <div class="eyebrow">EPOCH Arc 2 ・ Scene 3-4「データという大陸 / ビッグバン」</div>
-<h1>ImageNet 誤り率の崖 — 2012 年、世界が変わった日</h1>
-<p>Fei-Fei Li が率いた <strong>ImageNet</strong> は、1400 万枚・2 万カテゴリの巨大な「地形図」だった。
-2010 年に始まった画像認識コンペ <strong>ILSVRC</strong> では、従来手法 (SIFT+SVM) の top-5 誤り率は 26-28% で頭打ち。
-2012 年、Hinton 研の <strong>AlexNet</strong> (GPU で学習した深い CNN) が <strong>15.3%</strong> を叩き出し、2 位を 10 ポイント以上引き離した ―― これがディープラーニング革命の号砲。
-スライダーで年を動かし、誤り率が「崖」のように落ちていく様子を辿ろう。</p>
+<h1>ImageNet — 優勝 AI の中身が入れ替わった 8 年</h1>
+<p><strong>2010〜2017 年、同じ問題（写真 1 枚に写る物の名前を当てる）を
+世界中のチームが競った。誤り率のグラフの裏で、優勝 AI の中身が
+「人が設計した特徴 ＋ SVM」から「深いニューラルネット」へ入れ替わっていく。</strong></p>
+<p>年をタップすると、その年の優勝 AI の中身が下に出る。
+層の帯はすべて同じ縮尺 ―― 8 層と 152 層を同じ物差しで見比べられる。</p>
 </div>
 
 <div class="fig-stage">
 <h2>ILSVRC top-5 誤り率の推移</h2>
+
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">スライダーで年を選ぶと、その年の優勝モデル・手法・深さがわかる。点線は人間の誤り率 (約 5.1%)。2012 年の AlexNet で<strong>崖</strong>が始まり、2015 年 ResNet が人間を初めて下回る。</div>
+<p>top-5 誤り率 = 5 つまで答えてよい条件で、正解を外した割合。
+赤の破線は訓練した人間の 5.1%（Karpathy の実測）。
+<b>棒をタップ</b>すると、その年の優勝 AI の中身が下に出る。</p>
 </details>
 
-<div class="ctrls">
-  <div class="ctrl" style="flex:1;min-width:240px">
-    <label>年 <span class="val" id="yrV">2012</span></label>
-    <input type="range" id="yr" min="0" max="7" step="1" value="2">
-  </div>
+<details class="foldbox figfold" open><summary>構成図（年をタップ）</summary>
+<div class="nnfig mynet"><svg id="cliff" viewBox="0 0 380 180"></svg></div>
+</details>
+
+<div class="win" id="win"></div>
+<div class="nnfig mynet"><svg id="strip" viewBox="0 0 380 84"></svg></div>
+<div class="nnfig mynet"><svg id="idea" viewBox="0 0 380 120"></svg></div>
+
+<div id="x2012" style="display:none">
+
+<h3>GPU は何が違うのか — 同じ計算を、同時に</h3>
+<div class="lead" style="margin-bottom:6px">畳み込みは「同じ掛け算と足し算を、全マスで独立に」やる計算。順番にやる必要がどこにも無い。CPU は少数の速い芯で 1 マスずつ、GPU は数千の小さな芯で全マス一斉に計算する。</div>
+<div class="nnfig mynet"><svg id="gpu" viewBox="0 0 380 178"></svg></div>
+<div class="ctrls"><button class="btn" id="gpuBtn">▶ 同じ畳み込みを両方で計算</button></div>
+<div class="readout" id="gpuOut">押すと、左右で同じ 144 マスの畳み込みが走る。</div>
+
+<h3>dropout は本当に効くのか — 小さなモデルで再現</h3>
+<div class="lead" style="margin-bottom:6px">これまでのページと同じ形のニューラルネット（入力 2 → 中間 16 → 出力 1）を、<b>わざと間違えたラベルを 6 点混ぜた</b> 36 点で学習させる。dropout は学習のたびに中間の計算点を半分眠らせる。なし/あり × 初期値 3 通り = 6 回学習して平均を出す。</div>
+<div class="nnfig mynet"><svg id="dnet" viewBox="0 0 380 236"></svg></div>
+<div class="ctrls"><button class="btn" id="dTrain">▶ 6 回学習して比べる</button></div>
+<div class="readout" id="dOut">学習中は、眠らされた計算点が薄くなる。</div>
+<div class="grid-wrap" style="margin-top:10px">
+  <div style="text-align:center"><svg id="dPlotA" width="170" height="170" viewBox="0 0 300 300"></svg>
+    <div class="gcap">dropout なし</div></div>
+  <div style="text-align:center"><svg id="dPlotB" width="170" height="170" viewBox="0 0 300 300"></svg>
+    <div class="gcap">dropout あり（0.5）</div></div>
 </div>
+<p class="fig-legend">●＝学習に使った点（青/白）　<span style="color:#b4493f">×</span>＝わざと間違えたラベル（ノイズ）。背景の色分けが、学習後のモデルの答え</p>
 
-<details class="foldbox"><summary>式と計算</summary>
-<div class="formula" style="margin:6px 0 14px">
-$\text{top-5 誤り率} = \dfrac{\text{正解が上位 5 候補に入らなかった画像の数}}{\text{全画像の数}}$
-<div class="note" style="margin-top:8px">1000 クラスもあると「1 位だけ当てろ」は厳しすぎる。
-上位 5 つに正解が入っていれば当たりと数える。だから<b>小さいほど良い</b>。
-点線の <b>人間 5.1%</b> は、訓練した評価者 1 名で測った推定値（Russakovsky et al. 2015）。</div>
 </div>
-</details>
-
-<details class="foldbox" open><summary>構成図</summary>
-<svg id="inSvg" width="100%" viewBox="0 0 820 320" style="max-width:820px;display:block;margin:6px auto"></svg>
-</details>
-<div class="readout" id="iout"></div>
 
 <h3>認識タスクの三段階 — 分類・検出・セグメンテーション</h3>
-<details class="foldbox" open><summary>補足</summary>
 <div class="lead" style="margin-bottom:8px">「猫がいる」(分類) から「どこに」(検出) へ、さらに「どの画素までが猫か」(セグメンテーション) へ。タスクが上がるほど密な予測が要る。</div>
-</details>
-<details class="foldbox" open><summary>構成図</summary>
 <div class="grid-wrap" id="taskRow"></div>
-</details>
-<details class="foldbox" open><summary>補足</summary>
 <p class="note">分類: AlexNet/VGG/ResNet ・ 物体検出: R-CNN→Fast/Faster R-CNN→YOLO ・ セグメンテーション: FCN→U-Net→Mask R-CNN。すべて CNN の特徴抽出を土台にする。</p>
-</details>
+</div>
+
+<div class="srcnote">
+出典: Russakovsky ほか (2015) IJCV（大会の記録）／各優勝手法の論文は巻末の参考文献に。
+人間の 5.1% は A. Karpathy による実測（2014）。層の帯は模式図
+（層の種類と本数は論文どおり、太さは見やすさ優先）。
 </div>
 
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene3" data-t="巻末解説に戻る（Scene 3「データという大陸」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_cnn.html" data-t="一つ前の図解へ（畳み込み・CNN）" aria-label="一つ前の図解へ（畳み込み・CNN）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_alexnet.html" data-t="一つ後の図解へ（2012 年の三つ）" aria-label="一つ後の図解へ（2012 年の三つ）">&#9655;</a></nav></div>
 
 <script>
 (function(){
-  var ARC="#6E7BA8";
+  var ARC="#6E7BA8", SVGNS="http://www.w3.org/2000/svg";
+  function el(t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);
+    if(txt!=null)e.textContent=txt;return e;}
+  function g(id){return document.getElementById(id);}
+  var MUTED="#9A9488", INK="#1A1A1A", BAD="#b4493f", AMB="#E8B44C";
+
+  /* ===== 年ごとの実データ =====
+     err: top-5 誤り率(%)。layers: 帯の並び c=畳み込み p=プーリング f=全結合
+     i=Inception r=残差ブロック s=SE つき残差 */
   var DATA=[
-    {y:2010,err:28.2,model:"NEC/UIUC",how:"SIFT + 線形SVM (浅い)",depth:"-"},
-    {y:2011,err:25.8,model:"XRCE",how:"Fisher Vector + SVM",depth:"-"},
-    {y:2012,err:15.3,model:"AlexNet",how:"深いCNN + GPU + ReLU + Dropout",depth:"8層",second:26.2,note:"2 位（非 DL）は 26.2%。10.9pt の差は、前年までの改善幅 2.4pt の 4 倍以上——連続改良ではなく断絶だった"},
-    {y:2013,err:11.7,model:"ZFNet",how:"AlexNet 改良 (可視化で調整)",depth:"8層",note:"分類トラックの優勝は Clarifai。ZFNet はその基になった手法の通称"},
-    {y:2014,err:6.7,model:"GoogLeNet",how:"Inception モジュール",depth:"22層"},
-    {y:2015,err:3.57,model:"ResNet",how:"残差接続 (skip connection)",depth:"152層",note:"人間の 5.1% を初めて下回った年"},
-    {y:2016,err:2.99,model:"Trimps-Soushen",how:"アンサンブル",depth:"-"},
-    {y:2017,err:2.25,model:"SENet",how:"Squeeze-and-Excitation",depth:"-"}
+    {y:2010,err:28.2,model:"NEC-UIUC",kind:"pipe",
+     head:"人が設計した特徴 ＋ SVM",
+     facts:"学習するのは最後の分類（SVM）だけ。画像から何を拾うか（SIFT などの特徴）は<b>人が設計</b>していた。"},
+    {y:2011,err:25.8,model:"XRCE",kind:"pipe",
+     head:"特徴の集計を改良（Fisher Vector）",
+     facts:"作りは前年と同じ「手作り特徴 ＋ SVM」。集計の工夫で <b>2.4 点</b>下げた ―― これが当時の 1 年ぶんの進歩。"},
+    {y:2012,err:15.3,model:"AlexNet",kind:"cnn",
+     layers:"cpcpcccpfff",
+     head:"深い CNN ＋ GPU ―― 断絶の年",
+     facts:"8 層の CNN。新装備は <b>ReLU</b>（勾配が消えにくい活性化）・<b>dropout</b>（学びすぎ防止）・"
+      +"<b>GPU 2 枚</b>・データ水増し。2 位（非 DL）は 26.2% ―― <b>10.9 点差</b>は前年までの 1 年ぶん（2.4 点）の 4 倍超で、連続改良ではなく断絶だった。",
+     link:"figures_cnn.html", ltxt:"畳み込みそのものを動かす →"},
+    {y:2013,err:11.7,model:"ZFNet",kind:"cnn",
+     layers:"cpcpcccpfff",
+     head:"AlexNet の中を見て、調整した",
+     facts:"構成は AlexNet と同じ 8 層。<b>中間層を可視化</b>して「何を見ているか」を確かめ、"
+      +"フィルタの大きさや刻みを直した。優勝は Clarifai（ZFNet はその基になった手法）。"},
+    {y:2014,err:6.7,model:"GoogLeNet",kind:"cnn",
+     layers:"cpcpiiipiiiiipiif",
+     head:"22 層 ―― 大きさ違いのフィルタを並列に（Inception）",
+     facts:"1 つの層の中で <b>1×1・3×3・5×5 のフィルタを並列に</b>掛けて束ねる Inception 構造。"
+      +"2 位の VGG（7.3%）は逆に<b>3×3 だけを 16〜19 層</b>積む愚直路線 ―― 答えが 2 つ出た年。",
+     link:"figures_depth.html", ltxt:"VGG と Inception の積み方を比べる →"},
+    {y:2015,err:3.57,model:"ResNet",kind:"cnn",
+     layers:"cp"+Array(51).join("r")+"f",
+     head:"152 層 ―― 入力をそのまま足す近道（残差接続）",
+     facts:"深くすると逆に悪化する壁を、<b>入力をそのまま出力に足す近道</b>（残差接続）で破った。"
+      +"152 層。人間の 5.1% を<b>初めて下回った</b>年。",
+     link:"figures_resnet.html", ltxt:"残差接続と勾配消失を動かす →"},
+    {y:2016,err:2.99,model:"Trimps-Soushen",kind:"ens",
+     head:"複数モデルの合議（アンサンブル）",
+     facts:"新しい構造ではなく、<b>複数の学習済みモデルの答えを平均</b>して精度を絞り出す段階に入った。"},
+    {y:2017,err:2.25,model:"SENet",kind:"cnn",
+     layers:"cp"+Array(51).join("s")+"f",
+     head:"チャンネルに重みを付ける（Squeeze-and-Excitation）",
+     facts:"残差ブロックに<b>「どの特徴チャンネルを強調するか」を自分で学ぶ小さな回路</b>を足した（SENet-154）。"
+      +"この年で大会は役目を終えて終了 ―― 誤り率は人間の半分以下になっていた。"}
   ];
   var HUMAN=5.1, sel=2;
-  function draw(){
-    var svg=document.getElementById('inSvg');svg.innerHTML='';
-    var W=820,H=320,padL=54,padR=24,padB=54,padT=24,n=DATA.length;
-    var x0=padL,x1=W-padR,y0=H-padB,y1=padT,maxErr=30;
-    var SVGNS="http://www.w3.org/2000/svg";
-    function el(t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
-    function X(i){return x0+(x1-x0)*i/(n-1);}
-    function Y(v){return y0+(y1-y0)*(v/maxErr);}
-    // axes
-    [0,10,20,30].forEach(function(g){var yy=Y(g);
+
+  /* ===== 誤り率の棒グラフ（タップで選択） ===== */
+  function drawCliff(){
+    var svg=g('cliff'); svg.innerHTML='';
+    var x0=34,x1=372,y0=150,y1=16,mx=30,n=DATA.length;
+    [0,10,20,30].forEach(function(v){
+      var yy=y0+(y1-y0)*v/mx;
       svg.appendChild(el('line',{x1:x0,y1:yy,x2:x1,y2:yy,stroke:'#EFEDE5','stroke-width':1}));
-      svg.appendChild(el('text',{x:x0-10,y:yy+4,'text-anchor':'end','font-size':11,fill:'#9A9488'},g+'%'));});
-    // human line
-    svg.appendChild(el('line',{x1:x0,y1:Y(HUMAN),x2:x1,y2:Y(HUMAN),stroke:'#b4493f','stroke-width':1.4,'stroke-dasharray':'5 4'}));
-    svg.appendChild(el('text',{x:x1,y:Y(HUMAN)-6,'text-anchor':'end','font-size':11,fill:'#b4493f'},'人間 ≈ 5.1%'));
-    // polyline
-    var pts=DATA.map(function(d,i){return X(i)+','+Y(d.err);}).join(' ');
-    svg.appendChild(el('polyline',{points:pts,fill:'none',stroke:ARC,'stroke-width':2.5}));
-    DATA.forEach(function(d,i){
-      svg.appendChild(el('circle',{cx:X(i),cy:Y(d.err),r:i===sel?7:4,fill:i===sel?ARC:'#fff',stroke:ARC,'stroke-width':2}));
-      svg.appendChild(el('text',{x:X(i),y:H-padB+20,'text-anchor':'middle','font-size':11,fill:i===sel?'#1A1A1A':'#9A9488','font-weight':i===sel?700:400},d.y));
-      if(i===sel){
-        // 上端に近い点はラベルを上に出すと Y 軸の目盛りと重なる（2010 の 28.2% で発生）
-        var above=Y(d.err)-padT>26;
-        svg.appendChild(el('text',{x:X(i),y:Y(d.err)+(above?-14:22),'text-anchor':'middle','font-size':13,fill:ARC,'font-weight':700},d.err+'%'));
-      }
+      svg.appendChild(el('text',{x:x0-5,y:yy+3.5,'text-anchor':'end','font-size':9,fill:MUTED},v+'%'));
     });
-    // 2012 cliff annotation
-    svg.appendChild(el('text',{x:X(2),y:padT+10,'text-anchor':'middle','font-size':11,fill:'#565248'},'← DL 革命の崖'));
-    var d=DATA[sel];
-    // 事実を並べるだけでは「その年が何だったのか」が伝わらない。
-    // 節目の年は意味づけ（2 位との差・人間超え）まで言う。
-    var msg='<b>'+d.y+' 年</b>　優勝 <b>'+d.model+'</b>（深さ '+d.depth+'）・'+
-      'top-5 誤り率 <b>'+d.err+'%</b>　手法: '+d.how;
-    if(d.second) msg+='<br>2 位は '+d.second+'%——<b>'+(d.second-d.err).toFixed(1)+'pt</b> の差。';
-    if(d.note) msg+='<br>'+d.note+'。';
-    document.getElementById('iout').innerHTML=msg;
+    var bw=(x1-x0)/n;
+    DATA.forEach(function(d,i){
+      var bx=x0+i*bw+5, bh=(y0-y1)*d.err/mx, on=(i===sel);
+      var r=el('rect',{x:bx,y:y0-bh,width:bw-10,height:bh,rx:4,
+        fill:on?ARC:'#c9cfdf',stroke:on?AMB:'none','stroke-width':on?2.5:0});
+      r.style.cursor='pointer';
+      r.addEventListener('click',function(){ sel=i; drawCliff(); drawWin(); });
+      svg.appendChild(r);
+      svg.appendChild(el('text',{x:bx+(bw-10)/2,y:y0-bh-5,'font-size':9,'text-anchor':'middle',
+        fill:on?INK:MUTED,'font-weight':on?'700':'400'},d.err));
+      var yt=el('text',{x:bx+(bw-10)/2,y:y0+13,'font-size':9,'text-anchor':'middle',
+        fill:on?INK:MUTED,'font-weight':on?'700':'400'},"'"+String(d.y).slice(2));
+      yt.style.cursor='pointer';
+      yt.addEventListener('click',function(){ sel=i; drawCliff(); drawWin(); });
+      svg.appendChild(yt);
+    });
+    var hy=y0+(y1-y0)*HUMAN/mx;
+    svg.appendChild(el('line',{x1:x0,y1:hy,x2:x1,y2:hy,stroke:BAD,'stroke-width':1.2,'stroke-dasharray':'5 4'}));
+    svg.appendChild(el('text',{x:x1,y:hy-4,'text-anchor':'end','font-size':9,fill:BAD},'人間 5.1%'));
+    svg.appendChild(el('text',{x:(x0+x1)/2,y:y0+26,'font-size':9.5,'text-anchor':'middle',fill:MUTED},
+      '年（タップでその年の優勝 AI を見る）'));
   }
-  document.getElementById('yr').addEventListener('input',function(e){sel=+e.target.value;document.getElementById('yrV').textContent=DATA[sel].y;draw();});
-  // task levels
+
+  /* ===== 層の帯（全年おなじ縮尺: 1 層 2.2px） ===== */
+  var LCOL={c:ARC,p:'#8d8880',f:'#c98a3d',i:'#7b5ea7',r:ARC,s:'#4e8f7a'};
+  var LNAME={c:'畳み込み',p:'プーリング',f:'全結合',i:'Inception',r:'残差ブロック',s:'SE つき残差'};
+  function drawStrip(){
+    var svg=g('strip'); svg.innerHTML='';
+    var d=DATA[sel];
+    if(d.kind!=='cnn'){
+      svg.setAttribute('viewBox','0 0 380 30');
+      return;
+    }
+    svg.setAttribute('viewBox','0 0 380 84');
+    var Ls=d.layers.split(''), pw=2.2, x=20, y=18, h=30;
+    var total=Ls.filter(function(t){return t!=='p';}).length;
+    /* r/s は 1 ブロック=3 層相当（ResNet-152 は 50 ブロック + 入口/出口） */
+    var deep=(Ls[2]==='r'||Ls[2]==='s');
+    Ls.forEach(function(t,i){
+      var w = (t==='i')?4.4 : (t==='r'||t==='s')?6.2 : 1.7;
+      svg.appendChild(el('rect',{x:x,y:y,width:w,height:h,fill:LCOL[t]}));
+      if((t==='r'||t==='s')){        /* 残差の近道の弧 */
+        svg.appendChild(el('path',{d:'M'+x+' '+y+' C '+(x+2)+' '+(y-9)+', '+(x+w-2)+' '+(y-9)+', '+(x+w)+' '+y,
+          fill:'none',stroke:t==='s'?'#4e8f7a':ARC,'stroke-width':0.8,opacity:0.8}));
+      }
+      x+=w+0.8;
+    });
+    var nlabel = deep ? (d.model==='SENet'?'154 層':'152 層')
+                      : (sel===4?'22 層':'8 層');
+    svg.appendChild(el('text',{x:x+6,y:y+h/2+4,'font-size':12,fill:INK,'font-weight':'700'},nlabel));
+    /* 凡例（使われている種類だけ） */
+    var used=[], seen={};
+    Ls.forEach(function(t){ if(!seen[t]){seen[t]=1; used.push(t);} });
+    var lx=20;
+    used.forEach(function(t){
+      svg.appendChild(el('rect',{x:lx,y:64,width:8,height:8,fill:LCOL[t]}));
+      svg.appendChild(el('text',{x:lx+12,y:71.5,'font-size':9,fill:MUTED},LNAME[t]));
+      lx+=12+LNAME[t].length*9+10;
+    });
+  }
+
+  /* ===== 核心技術の小図解 ===== */
+  function box(svg,x,y,w,h,t1,t2,fill,stroke){
+    svg.appendChild(el('rect',{x:x,y:y,width:w,height:h,rx:8,fill:fill||'#fff',
+      stroke:stroke||'var(--border)','stroke-width':1.2}));
+    svg.appendChild(el('text',{x:x+w/2,y:y+(t2?h/2-3:h/2+4),'font-size':11,'text-anchor':'middle',
+      fill:INK,'font-weight':'700'},t1));
+    if(t2) svg.appendChild(el('text',{x:x+w/2,y:y+h/2+12,'font-size':8.5,'text-anchor':'middle',fill:MUTED},t2));
+  }
+  function arrow(svg,x1,y1,x2,y2,col){
+    col=col||'#b9c0d8';
+    svg.appendChild(el('line',{x1:x1,y1:y1,x2:x2-6,y2:y2,stroke:col,'stroke-width':1.8}));
+    svg.appendChild(el('path',{d:'M'+(x2-6)+' '+(y2-4)+' L'+x2+' '+y2+' L'+(x2-6)+' '+(y2+4)+' Z',fill:col}));
+  }
+  function drawIdea(){
+    var svg=g('idea'); svg.innerHTML='';
+    var d=DATA[sel];
+    if(d.kind==='pipe'){
+      svg.setAttribute('viewBox','0 0 380 96');
+      box(svg,10,26,80,44,'画像','');
+      arrow(svg,90,48,128,48);
+      box(svg,128,26,120,44,'人が設計した特徴', sel===0?'SIFT など':'Fisher Vector');
+      arrow(svg,248,48,286,48);
+      box(svg,286,26,84,44,'SVM','ここだけ学習','#EAEDF7',ARC);
+      svg.appendChild(el('text',{x:190,y:88,'font-size':9.5,'text-anchor':'middle',fill:MUTED},
+        '特徴（何を見るか）は人間の仕事。機械が学ぶのは最後の仕分けだけ'));
+      return;
+    }
+    if(sel===2||sel===3){                       /* AlexNet / ZFNet */
+      svg.setAttribute('viewBox','0 0 380 96');
+      /* ReLU の折れ線 */
+      box(svg,10,14,110,66,'','');
+      svg.appendChild(el('text',{x:65,y:28,'font-size':10,'text-anchor':'middle',fill:INK,'font-weight':'700'},'ReLU'));
+      svg.appendChild(el('polyline',{points:'24,66 65,66 106,36',fill:'none',stroke:ARC,'stroke-width':2.2}));
+      svg.appendChild(el('text',{x:65,y:92,'font-size':8.5,'text-anchor':'middle',fill:MUTED},'負は 0・正はそのまま（勾配が消えにくい）'));
+      /* dropout */
+      box(svg,136,14,110,66,'','');
+      svg.appendChild(el('text',{x:191,y:28,'font-size':10,'text-anchor':'middle',fill:INK,'font-weight':'700'},'dropout'));
+      [[158,46],[181,46],[204,46],[227,46],[158,66],[181,66],[204,66],[227,66]].forEach(function(pxy,i){
+        svg.appendChild(el('circle',{cx:pxy[0],cy:pxy[1],r:6,fill:(i===1||i===6)?'#F4F2EC':'#EAEDF7',
+          stroke:(i===1||i===6)?'#c9c4ba':ARC,'stroke-width':1.2}));
+        if(i===1||i===6){
+          svg.appendChild(el('line',{x1:pxy[0]-4,y1:pxy[1]-4,x2:pxy[0]+4,y2:pxy[1]+4,stroke:BAD,'stroke-width':1.4}));
+        }
+      });
+      svg.appendChild(el('text',{x:191,y:92,'font-size':8.5,'text-anchor':'middle',fill:MUTED},'学習のたびに一部を眠らせ、頼りすぎを防ぐ'));
+      /* GPU */
+      box(svg,262,14,108,66,'','');
+      svg.appendChild(el('text',{x:316,y:28,'font-size':10,'text-anchor':'middle',fill:INK,'font-weight':'700'},'GPU × 2'));
+      box(svg,276,38,36,26,'GPU','', '#EAEDF7',ARC);
+      box(svg,318,38,36,26,'GPU','', '#EAEDF7',ARC);
+      svg.appendChild(el('text',{x:316,y:92,'font-size':8.5,'text-anchor':'middle',fill:MUTED},'ゲーム用の並列計算機で 6 日間学習'));
+      return;
+    }
+    if(sel===4){                                 /* Inception */
+      svg.setAttribute('viewBox','0 0 380 120');
+      box(svg,150,6,80,26,'入力','');
+      var xs=[38,124,210,296], nm=['1×1','3×3','5×5','プール'];
+      xs.forEach(function(x,i){
+        arrow(svg,190,32,x+23,50);
+        box(svg,x,50,46,26,nm[i],'');
+        arrow(svg,x+23,76,190,96);
+      });
+      box(svg,150,96,80,22,'束ねる','');
+      svg.appendChild(el('text',{x:190,y:118,'font-size':0,'text-anchor':'middle'},''));
+      return;
+    }
+    if(sel===5){                                 /* 残差ブロック */
+      svg.setAttribute('viewBox','0 0 380 96');
+      box(svg,14,32,58,30,'入力 x','');
+      arrow(svg,72,47,110,47);
+      box(svg,110,32,72,30,'畳み込み','');
+      arrow(svg,182,47,214,47);
+      box(svg,214,32,72,30,'畳み込み','');
+      arrow(svg,286,47,312,47);
+      svg.appendChild(el('circle',{cx:324,cy:47,r:12,fill:'#fff',stroke:ARC,'stroke-width':1.6}));
+      svg.appendChild(el('text',{x:324,y:51.5,'font-size':13,'text-anchor':'middle',fill:ARC,'font-weight':'700'},'+'));
+      arrow(svg,336,47,366,47);
+      /* 近道 */
+      svg.appendChild(el('path',{d:'M43 32 C 43 8, 324 8, 324 35',fill:'none',stroke:AMB,'stroke-width':2}));
+      svg.appendChild(el('text',{x:184,y:16,'font-size':9.5,'text-anchor':'middle',fill:'#8a6b12',
+        stroke:'#FAFAF7','stroke-width':3,'paint-order':'stroke'},'入力をそのまま足す近道（学ぶのは差分だけ）'));
+      svg.appendChild(el('text',{x:190,y:88,'font-size':8.5,'text-anchor':'middle',fill:MUTED},
+        'この形なら勾配が近道を通って入口まで届く ―― 152 層でも学習できる'));
+      return;
+    }
+    if(sel===6){                                 /* アンサンブル */
+      svg.setAttribute('viewBox','0 0 380 96');
+      [16,108,200].forEach(function(x,i){
+        box(svg,x,18,80,28,'モデル '+(i+1),'');
+        arrow(svg,x+40,46,190,70);
+      });
+      box(svg,292,18,78,28,'…','');
+      arrow(svg,331,46,196,70);
+      box(svg,150,66,80,24,'平均','');
+      return;
+    }
+    /* SENet */
+    svg.setAttribute('viewBox','0 0 380 110');
+    box(svg,10,30,86,34,'特徴マップ','たくさんのチャンネル');
+    arrow(svg,96,47,128,47);
+    box(svg,128,30,74,34,'要約','各チャンネル 1 数字');
+    arrow(svg,202,47,232,47);
+    box(svg,232,30,66,34,'小さな NN','重要度を出す');
+    arrow(svg,298,47,326,47);
+    box(svg,326,30,46,34,'掛ける','');
+    svg.appendChild(el('text',{x:190,y:88,'font-size':8.5,'text-anchor':'middle',fill:MUTED},
+      '「いまの画像では、どの特徴チャンネルを強調するか」を自分で学ぶ'));
+  }
+
+  function drawWin(){
+    var d=DATA[sel], prev=sel>0?DATA[sel-1]:null;
+    g('win').innerHTML='<div class="wh"><b>'+d.y+'年 '+d.model+'</b>'
+      +'<span class="err">top-5 誤り率 '+d.err+'%</span>'
+      +(prev?('<span class="drop">前年から −'+(prev.err-d.err).toFixed(1)+' 点</span>'):'')
+      +'</div><div class="wfacts"><b>'+d.head+'</b><br>'+d.facts+'</div>'
+      +(d.link?('<div class="wlink"><a href="'+d.link+'">'+d.ltxt+'</a></div>'):'');
+    drawStrip(); drawIdea();
+    var x=g('x2012'); if(x) x.style.display=(sel===2)?'':'none';
+  }
+
+  /* ===== 認識タスクの三段階（従来どおり） ===== */
   var TASKS=[
-    {t:"画像分類",d:"画像 1 枚に 1 ラベル",sub:"「猫」",boxes:0},
-    {t:"物体検出",d:"位置 (枠) + ラベル",sub:"猫□ 魚□",boxes:2},
+    {t:"分類",d:"1 枚に 1 ラベル",sub:"「猫がいる」",boxes:0},
+    {t:"物体検出",d:"どこに何があるか",sub:"枠で示す",boxes:2},
     {t:"セグメンテーション",d:"画素ごとにラベル",sub:"猫の輪郭まで",boxes:9}
   ];
-  var tr=document.getElementById('taskRow');var SVGNS="http://www.w3.org/2000/svg";
+  var tr=g('taskRow');
   TASKS.forEach(function(tk){
     var wrap=document.createElement('div');wrap.style.textAlign='center';
     var svg=document.createElementNS(SVGNS,'svg');svg.setAttribute('width',150);svg.setAttribute('height',120);svg.setAttribute('viewBox','0 0 150 120');
-    function el(t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
     svg.appendChild(el('rect',{x:8,y:8,width:134,height:90,rx:8,fill:'#fff',stroke:'#E4E1D8'}));
     if(tk.boxes===0){svg.appendChild(el('text',{x:75,y:58,'text-anchor':'middle','font-size':14,fill:'#565248'},tk.sub));}
     if(tk.boxes===2){svg.appendChild(el('rect',{x:28,y:30,width:44,height:44,rx:4,fill:'none',stroke:ARC,'stroke-width':2}));
-      svg.appendChild(el('rect',{x:84,y:46,width:38,height:32,rx:4,fill:'none',stroke:'#b4493f','stroke-width':2}));
+      svg.appendChild(el('rect',{x:84,y:46,width:38,height:32,rx:4,fill:'none',stroke:BAD,'stroke-width':2}));
       svg.appendChild(el('text',{x:50,y:26,'text-anchor':'middle','font-size':10,fill:ARC},'猫'));
-      svg.appendChild(el('text',{x:103,y:42,'text-anchor':'middle','font-size':10,fill:'#b4493f'},'魚'));}
+      svg.appendChild(el('text',{x:103,y:42,'text-anchor':'middle','font-size':10,fill:BAD},'魚'));}
     if(tk.boxes===9){for(var r=0;r<3;r++)for(var c=0;c<4;c++){var on=(r>0&&c<2);
       svg.appendChild(el('rect',{x:18+c*28,y:22+r*22,width:26,height:20,rx:2,fill:on?'rgba(110,123,168,.5)':'#F4F2EC',stroke:'#E4E1D8'}));}}
     wrap.appendChild(svg);
@@ -306,10 +508,213 @@ $\text{top-5 誤り率} = \dfrac{\text{正解が上位 5 候補に入らなか�
     var p=document.createElement('div');p.style.cssText='font-size:11px;color:#9A9488';p.textContent=tk.d;
     wrap.appendChild(h);wrap.appendChild(p);tr.appendChild(wrap);
   });
-  draw();
+
+
+  /* ===== 2012 専用: GPU の並列計算 ===== */
+  var GN=12;
+  function gpuGrid(svg,x0,y0,cell){
+    var rs=[];
+    for(var r=0;r<GN;r++)for(var c=0;c<GN;c++){
+      var rc=el('rect',{x:x0+c*cell,y:y0+r*cell,width:cell-1,height:cell-1,fill:'#F4F2EC'});
+      svg.appendChild(rc); rs.push(rc);
+    }
+    return rs;
+  }
+  var gpuCells=null, gpuAnim=false;
+  function drawGpu(){
+    var svg=g('gpu'); svg.innerHTML='';
+    svg.appendChild(el('text',{x:96,y:16,'font-size':11,'text-anchor':'middle',fill:INK,'font-weight':'700'},'CPU'));
+    svg.appendChild(el('text',{x:284,y:16,'font-size':11,'text-anchor':'middle',fill:INK,'font-weight':'700'},'GPU'));
+    svg.appendChild(el('text',{x:96,y:29,'font-size':8.5,'text-anchor':'middle',fill:MUTED},'速い芯が数個 ― 1 マスずつ'));
+    svg.appendChild(el('text',{x:284,y:29,'font-size':8.5,'text-anchor':'middle',fill:MUTED},'小さな芯が数千 ― 全マス一斉'));
+    for(var i=0;i<4;i++)
+      svg.appendChild(el('rect',{x:66+i*17,y:36,width:13,height:13,rx:2,fill:ARC}));
+    for(var r=0;r<3;r++)for(var c=0;c<24;c++)
+      svg.appendChild(el('rect',{x:214+c*6,y:36+r*6,width:4.5,height:4.5,fill:ARC,opacity:0.75}));
+    var cpu=gpuGrid(svg,36,62,10), gpu=gpuGrid(svg,224,62,10);
+    gpuCells={cpu:cpu,gpu:gpu};
+  }
+  g('gpuBtn').addEventListener('click',function(){
+    if(gpuAnim) return;
+    gpuAnim=true; drawGpu();
+    var t0=performance.now(), i=0, total=GN*GN;
+    var iv=setInterval(function(){
+      if(i>=total){
+        clearInterval(iv); gpuAnim=false;
+        g('gpuOut').textContent='CPU: 144 マスを順番に。GPU: 一斉に一瞬で終わった。'
+          +'畳み込みは全マスが独立した同じ計算だから、芯の数だけ同時に進む ―― '
+          +'AlexNet は GPU 2 枚（GTX 580）で約 5〜6 日かけて学習した。';
+        return;
+      }
+      gpuCells.cpu[i].setAttribute('fill',ARC);
+      if(i===18){ gpuCells.gpu.forEach(function(rc){ rc.setAttribute('fill',ARC); }); }
+      i++;
+      g('gpuOut').textContent='CPU: '+i+' / 144 マスめ…　GPU: '+(i>18?'144 / 144（完了）':'待機→一斉に計算');
+    },14);
+  });
+
+  /* ===== 2012 専用: dropout の実演（決定論・初期値 3 通りの平均） =====
+     数値は事前に Python で検証済み: なし train≈92/test≈91、あり train≈83/test≈97 */
+  function LCG(seed){ this.r=seed>>>0; }
+  LCG.prototype.next=function(){ this.r=(Math.imul(this.r,1664525)+1013904223)>>>0; return this.r/4294967296; };
+  function gauss(rng){
+    var u1=Math.max(rng.next(),1e-9), u2=rng.next();
+    return Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
+  }
+  function makeData(seed){
+    var rng=new LCG(seed), tr=[], te=[], NTR=36, FLIP=6;
+    function pt(lab){
+      var cx=lab===0?0.32:0.68, cy=lab===0?0.34:0.66;
+      return {x:cx+0.12*gauss(rng), y:cy+0.12*gauss(rng), l:lab};
+    }
+    for(var i=0;i<NTR;i++) tr.push(pt(i%2));
+    var used={}, nf=0, flipped=[];
+    while(nf<FLIP){
+      var k=Math.floor(rng.next()*NTR);
+      if(!used[k]){ used[k]=1; tr[k].l^=1; flipped.push(k); nf++; }
+    }
+    for(var j=0;j<400;j++) te.push(pt(j%2));
+    return {tr:tr, te:te, flipped:flipped};
+  }
+  var DDATA=makeData(7), DH=16;
+  function sig(z){ return 1/(1+Math.exp(-Math.max(-30,Math.min(30,z)))); }
+  function newNet(seed){
+    var rng=new LCG(seed), W1=[], b1=[], W2=[], j;
+    for(j=0;j<DH;j++){ W1.push([(rng.next()*2-1)*1.2,(rng.next()*2-1)*1.2]);
+      b1.push((rng.next()*2-1)*0.5); W2.push((rng.next()*2-1)*1.2); }
+    return {W1:W1,b1:b1,W2:W2,b2:0,rng:rng};
+  }
+  function trainEpochs(net, drop, epochs){
+    var lastMask=null;
+    for(var ep=0;ep<epochs;ep++){
+      for(var n=0;n<DDATA.tr.length;n++){
+        var q=DDATA.tr[n], x1=q.x, x2=q.y, y=q.l, h0=[], mask=[], j;
+        for(j=0;j<DH;j++) h0.push(sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]));
+        for(j=0;j<DH;j++) mask.push(drop>0?(net.rng.next()<drop?0:1/(1-drop)):1);
+        var o=net.b2;
+        for(j=0;j<DH;j++) o+=net.W2[j]*h0[j]*mask[j];
+        o=sig(o);
+        var d=o-y;
+        for(j=0;j<DH;j++){
+          var W2j=net.W2[j];
+          net.W2[j]-=1.6*d*h0[j]*mask[j];
+          var dh=d*W2j*mask[j]*h0[j]*(1-h0[j]);
+          net.W1[j][0]-=1.6*dh*x1; net.W1[j][1]-=1.6*dh*x2; net.b1[j]-=1.6*dh;
+        }
+        net.b2-=1.6*d;
+        lastMask=mask;
+      }
+    }
+    return lastMask;
+  }
+  function predict(net,x1,x2){
+    var o=net.b2;
+    for(var j=0;j<DH;j++) o+=net.W2[j]*sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]);
+    return sig(o);
+  }
+  function accOf(net,data){
+    var ok=0;
+    data.forEach(function(q){ if((predict(net,q.x,q.y)>=0.5)===(q.l===1)) ok++; });
+    return ok/data.length*100;
+  }
+  /* ネットの構成図（これまでのページと同じ様式）。mask で眠っている点を薄く */
+  function drawDnet(mask){
+    var svg=g('dnet'); svg.innerHTML='';
+    var xs=[60,190,320], hy=[], i, j;
+    for(j=0;j<DH;j++) hy.push(22+j*13);
+    var iy=[92,144], oy=[118];
+    for(i=0;i<2;i++)for(j=0;j<DH;j++)
+      svg.appendChild(el('line',{x1:xs[0]+11,y1:iy[i],x2:xs[1]-9,y2:hy[j],
+        stroke:'#b9c0d8','stroke-width':0.6,opacity:mask&&mask[j]===0?0.15:0.55}));
+    for(j=0;j<DH;j++)
+      svg.appendChild(el('line',{x1:xs[1]+9,y1:hy[j],x2:xs[2]-11,y2:oy[0],
+        stroke:'#b9c0d8','stroke-width':0.6,opacity:mask&&mask[j]===0?0.15:0.55}));
+    for(i=0;i<2;i++){
+      svg.appendChild(el('circle',{cx:xs[0],cy:iy[i],r:11,fill:'#fff',stroke:'var(--border)','stroke-width':1.2}));
+      svg.appendChild(el('text',{x:xs[0],y:iy[i]+4,'font-size':10,'text-anchor':'middle',fill:INK},'x'+(i+1)));
+    }
+    for(j=0;j<DH;j++){
+      var off=mask&&mask[j]===0;
+      svg.appendChild(el('circle',{cx:xs[1],cy:hy[j],r:6,fill:off?'#F4F2EC':'#fff',
+        stroke:off?'#d8d4cb':'var(--border)','stroke-width':1.1,opacity:off?0.55:1}));
+      if(off){
+        svg.appendChild(el('line',{x1:xs[1]-4,y1:hy[j]-4,x2:xs[1]+4,y2:hy[j]+4,stroke:BAD,'stroke-width':1.1}));
+      }
+    }
+    svg.appendChild(el('circle',{cx:xs[2],cy:oy[0],r:11,fill:'#fff',stroke:'var(--border)','stroke-width':1.2}));
+    svg.appendChild(el('text',{x:xs[2],y:oy[0]+4,'font-size':10,'text-anchor':'middle',fill:INK},'y'));
+    svg.appendChild(el('text',{x:xs[0],y:iy[1]+30,'font-size':9,'text-anchor':'middle',fill:MUTED},'入力 2'));
+    svg.appendChild(el('text',{x:xs[1],y:hy[DH-1]+18,'font-size':9,'text-anchor':'middle',fill:MUTED},'中間 16'));
+    svg.appendChild(el('text',{x:xs[2],y:oy[0]+30,'font-size':9,'text-anchor':'middle',fill:MUTED},'出力 1'));
+  }
+  /* 決定領域の絵（学習した実モデルの答え） */
+  function drawRegion(svgId, net){
+    var svg=g(svgId); svg.innerHTML='';
+    var S=300, pad=10, W=S-pad*2, N=40, cw=W/N;
+    for(var a=0;a<N;a++)for(var b=0;b<N;b++){
+      var xx=(a+0.5)/N, yy=(b+0.5)/N, v=net?predict(net,xx,yy):0.5;
+      svg.appendChild(el('rect',{x:pad+xx*W-cw/2,y:S-pad-yy*W-cw/2,width:cw+0.6,height:cw+0.6,
+        fill:v>=0.5?ARC:BAD,opacity:net?(0.08+0.16*Math.abs(v-0.5)*2):0.03}));
+    }
+    svg.appendChild(el('rect',{x:pad,y:pad,width:W,height:W,fill:'none',stroke:'#E4E1D8'}));
+    DDATA.tr.forEach(function(q,i){
+      svg.appendChild(el('circle',{cx:pad+q.x*W,cy:S-pad-q.y*W,r:5,
+        fill:q.l?ARC:'#fff',stroke:q.l?ARC:BAD,'stroke-width':1.6}));
+    });
+    DDATA.flipped.forEach(function(k){
+      var q=DDATA.tr[k];
+      svg.appendChild(el('text',{x:pad+q.x*W,y:S-pad-q.y*W+5,'font-size':15,'text-anchor':'middle',
+        fill:BAD,'font-weight':'700'},'×'));
+    });
+  }
+  var dBusy=false;
+  g('dTrain').addEventListener('click',function(){
+    if(dBusy) return;
+    dBusy=true;
+    var runs=[], SEEDS=[99,300,777];
+    SEEDS.forEach(function(sd){ runs.push({drop:0,seed:sd}); });
+    SEEDS.forEach(function(sd){ runs.push({drop:0.5,seed:sd}); });
+    var ri=0, res={0:[],0.5:[]}, keep={};
+    function step(){
+      if(ri>=runs.length){
+        var m=function(arr,k){ var s2=0; arr.forEach(function(r){s2+=r[k];}); return (s2/arr.length).toFixed(1); };
+        g('dOut').innerHTML='<b>初期値 3 通りの平均</b> ―― '
+          +'なし: 訓練 '+m(res[0],'tr')+'%・初見 '+m(res[0],'te')+'%　／　'
+          +'あり: 訓練 '+m(res[0.5],'tr')+'%・初見 <b>'+m(res[0.5],'te')+'%</b>。<br>'
+          +'なしは<b>ノイズごと覚えて</b>訓練の点数が高いが、初見は伸びない。'
+          +'ありは覚え込みをやめたぶん訓練は下がり、<b>初見に強くなる</b>。'
+          +'下の絵でも、なし側は × に引っぱられて境界が入り組み、あり側は × を無視して滑らかになっている。';
+        drawRegion('dPlotA', keep[0]); drawRegion('dPlotB', keep[0.5]);
+        drawDnet(null); dBusy=false;
+        return;
+      }
+      var r=runs[ri];
+      g('dOut').textContent='学習中… '+(ri+1)+' / 6（dropout '+(r.drop?'あり':'なし')+'・初期値 '+r.seed+'）';
+      setTimeout(function(){
+        var net=newNet(r.seed);
+        var CH=90, done=0;
+        (function chunk(){
+          var lm=trainEpochs(net, r.drop, CH);
+          done+=CH;
+          if(r.drop>0) drawDnet(lm);
+          if(done<900){ setTimeout(chunk, 0); return; }
+          res[r.drop].push({tr:accOf(net,DDATA.tr), te:accOf(net,DDATA.te)});
+          if(r.seed===99) keep[r.drop]=net;
+          ri++; step();
+        })();
+      }, 30);
+    }
+    step();
+  });
+
+  function draw2012(){
+    g('x2012').style.display = (sel===2) ? '' : 'none';
+  }
+  drawGpu(); drawDnet(null); drawRegion('dPlotA', null); drawRegion('dPlotB', null);
+
+  drawCliff(); drawWin();
 })();
 </script>
-
 <script>
 (function(){
   var m = /[?&]from=(figlink\d+)/.exec(location.search);
