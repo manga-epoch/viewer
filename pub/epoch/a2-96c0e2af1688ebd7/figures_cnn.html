@@ -240,7 +240,7 @@ CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (�
 <div class="grid-wrap">
   <div>
     <svg id="inGrid" width="314" height="314" viewBox="0 0 314 314"></svg>
-    <div class="gcap">入力 24×24（タップで濃さが一段変わる）</div>
+    <div class="gcap">入力 24×24（数字＝濃さ 0〜9・タップで一段変わる）</div>
   </div>
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:84px">
     <svg id="kerGrid" width="120" height="120" viewBox="0 0 120 120"></svg>
@@ -442,6 +442,10 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
       (function(rr,cc){rect.addEventListener("click",function(){
         img[rr][cc]=(img[rr][cc]+3)%12; drawAll();});})(r,c);
       s.appendChild(rect);
+      var t=el("text",{x:c*cell+cell/2+0.5,y:r*cell+cell/2+3,"text-anchor":"middle",
+        "font-size":6.5,fill:v>=6?"#fff":"#8a857b"});
+      t.textContent=v; t.style.pointerEvents="none";
+      s.appendChild(t);
     }
     if(hi){ /* 受容野。パディング付きでは絵の外（0 の縁）へはみ出して描く */
       s.appendChild(el("rect",{x:(hi[1]-PAD)*cell+1,y:(hi[0]-PAD)*cell+1,
@@ -477,6 +481,11 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
         fill:outColor(v,c.amax),stroke:"#EDEAE2","stroke-width":0.5});
       rect.style.cursor="pointer";
       s.appendChild(rect);
+      var t2=Math.min(1,Math.abs(v)/(c.amax||1));
+      var tx=el("text",{x:j*cell+cell/2+0.5,y:i*cell+cell/2+2.6,"text-anchor":"middle",
+        "font-size":6,fill:t2>0.55?"#fff":(v<0?"#8a3a33":"#8a857b")});
+      tx.textContent=fmt(v); tx.style.pointerEvents="none";
+      s.appendChild(tx);
       (function(ii,jj){rect.addEventListener("click",function(){
         drawAll([ii,jj]); calcText(ii,jj);});})(i,j);
     }
