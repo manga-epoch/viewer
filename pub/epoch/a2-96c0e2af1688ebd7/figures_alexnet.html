@@ -132,6 +132,8 @@ svg .lb{font:600 12.5px var(--font-sans);fill:#565248}
 .readout b{color:var(--ink)}
 .tag{display:inline-block;background:var(--surface);border:1px solid var(--border);
  border-radius:14px;padding:3px 11px;font-size:12.5px;color:var(--ink-sub);margin-right:6px}
+.mynet svg{width:100%;max-width:480px;height:auto;display:block;margin:0 auto}
+@media(max-width:520px){.mynet{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -269,24 +271,32 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="fig-stage" id="sec3">
 <h2>ドロップアウト — 学習中にノードを一定割合で無効化する正則化</h2>
 <details class="foldbox" open><summary>説明</summary>
-<p>訓練のたびに、ノードの一部をランダムに無効にする。
-特定の経路に頼れなくなるので、いくつもの経路が同じ仕事を覚える。</p>
+<p>訓練のたびに、中間の計算点を半分眠らせる。特定の経路に頼れなくなるので、
+いくつもの経路が同じ仕事を覚える。<b>本当に効くのかを、実際のモデルで確かめる</b>——
+入力 2 → 中間 16 → 出力 1 のニューラルネットに、わざと間違えたラベルを 6 点混ぜた
+36 点を学習させ、なし／あり × 初期値 3 通り = 6 回の平均で比べる。</p>
 </details>
-<div class="ctrls">
-  <label>落とす割合 <input type="range" id="drop" min="0" max="80" value="50" step="5"></label>
-  <span class="tag" id="drop-v">0.50</span>
-  <button class="btn" id="resample">別の回を見る</button>
-  <button class="chip on" id="mode-btn" aria-pressed="true">訓練時</button>
-</div>
 <details class="foldbox" open><summary>構成図</summary>
-<div id="s3"></div>
+<div class="nnfig mynet"><svg id="dnet" viewBox="0 0 380 236"></svg></div>
 </details>
-<div class="readout" id="r3"></div>
+<div class="ctrls"><button class="btn" id="dTrain">▶ 6 回学習して比べる</button></div>
+<div class="readout" id="dOut">学習中は、眠らされた計算点が薄くなる（訓練のたびに違う組み合わせ）。</div>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="grid-wrap" style="margin-top:10px">
+  <div style="text-align:center"><svg id="dPlotA" width="170" height="170" viewBox="0 0 300 300"></svg>
+    <div class="gcap">dropout なし</div></div>
+  <div style="text-align:center"><svg id="dPlotB" width="170" height="170" viewBox="0 0 300 300"></svg>
+    <div class="gcap">dropout あり（0.5）</div></div>
+</div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
+<p class="fig-legend">●＝学習に使った点（青/白）　<span style="color:#b4493f">×</span>＝わざと間違えたラベル（ノイズ）。背景の色分けが、学習後のモデルの答え</p>
+</details>
 <details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$m \sim \mathrm{Bernoulli}(1-p)$
 <div class="note" style="margin-top:8px">各ノードに独立なマスク $m$ を掛ける（$m=0$ になる確率が、落とす割合 $p$）。
-推論時はマスクを掛けず、代わりに出力を <b>$\times(1-p)$</b> して大きさを揃える。
-AlexNet は全結合層に <b>$p=0.5$</b> を使った。</div>
+AlexNet は全結合層に <b>$p=0.5$</b> を使い、推論時はマスク無しで出力を $\times(1-p)$ した。
+この実演は同値な「訓練時に $\times\frac{1}{1-p}$」方式（数値は事前に検証済み）。</div>
 </div>
 </details>
 </div>
@@ -373,41 +383,162 @@ AlexNet は全結合層に <b>$p=0.5$</b> を使った。</div>
     var e=E[b.dataset.era]; $('#s2').innerHTML=e.g(); $('#r2').innerHTML=e.r; }});
   $('#s2').innerHTML=E.before.g(); $('#r2').innerHTML=E.before.r;
 
-  // ③ Dropout
-  var LAYERS=[4,6,6,3], seed=1;
-  function net(){
-    var p=+$('#drop').value/100, train=$('#mode-btn').getAttribute('aria-pressed')==='true';
-    $('#drop-v').textContent=p.toFixed(2);
-    var xs=[70,230,390,540], pos=[], g='';
-    LAYERS.forEach(function(n,li){
-      var col=[]; for(var i=0;i<n;i++){
-        var y=30+(150-(n-1)*26)/2+i*26+ (n<5?12:0);
-        var dead = train && li>0 && li<3 && ((Math.sin((i+1)*(li+2)*seed*2.7)+1)/2) < p;
-        col.push({x:xs[li],y:y,dead:dead});
-      } pos.push(col);
-    });
-    for(var l=0;l<pos.length-1;l++) pos[l].forEach(function(a){ pos[l+1].forEach(function(b){
-      g+='<line class="ed'+((a.dead||b.dead)?' dead':'')+'" x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'"/>'; }); });
-    pos.forEach(function(col){ col.forEach(function(n){
-      g+='<circle class="nd'+(n.dead?' dead':'')+'" cx="'+n.x+'" cy="'+n.y+'" r="11"/>'; }); });
-    ['入力','隠れ層','隠れ層','出力'].forEach(function(t,i){
-      g+='<text class="lb" x="'+xs[i]+'" y="206" text-anchor="middle">'+t+'</text>'; });
-    $('#s3').innerHTML=svg(600,220,g);
-    var dead=pos.reduce(function(a,c){return a+c.filter(function(n){return n.dead}).length},0);
-    $('#r3').innerHTML = train
-      ? '訓練中：隠れ層 12 個中 <b>'+dead+' 個</b>が休み。毎回ちがう組み合わせで学ぶので、'+
-        '「この 1 本が無いと答えられない」経路ができにくい。<b>過学習が減る</b>。'
-      : '推論時：<b>全部のノードを使う</b>。代わりに出力を <b>(1-p) 倍</b>して、'+
-        '訓練で落としていた割合のぶんを調整し、多数の経路が学んだことを平均して効かせる。';
+  // ③ Dropout — 実際のモデルで効果を測る（決定論・初期値 3 通りの平均）
+  //    数値は Python で事前検証済み: なし train≈92/test≈91、あり train≈83/test≈97
+  var SVGNS='http://www.w3.org/2000/svg';
+  function elA(tg,a,txt){var e=document.createElementNS(SVGNS,tg);for(var k in a)e.setAttribute(k,a[k]);
+    if(txt!=null)e.textContent=txt;return e;}
+  var D_ARC='#6E7BA8', D_BAD='#b4493f', D_MUT='#9A9488', D_INK='#1A1A1A';
+  function LCG(seed){ this.r=seed>>>0; }
+  LCG.prototype.next=function(){ this.r=(Math.imul(this.r,1664525)+1013904223)>>>0; return this.r/4294967296; };
+  function gauss(rng){
+    var u1=Math.max(rng.next(),1e-9), u2=rng.next();
+    return Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
   }
-  $('#drop').oninput=net;
-  $('#resample').onclick=function(){ seed=1+Math.random()*9; net(); };
-  $('#mode-btn').onclick=function(){ var on=this.getAttribute('aria-pressed')==='true';
-    this.setAttribute('aria-pressed',!on); this.classList.toggle('on',!on);
-    this.textContent=!on?'訓練時':'推論時'; net(); };
-
-
-  net();
+  function makeData(seed){
+    var rng=new LCG(seed), tr=[], te=[], NTR=36, FLIP=6;
+    function pt(lab){
+      var cx=lab===0?0.32:0.68, cy=lab===0?0.34:0.66;
+      return {x:cx+0.12*gauss(rng), y:cy+0.12*gauss(rng), l:lab};
+    }
+    for(var i=0;i<NTR;i++) tr.push(pt(i%2));
+    var used={}, nf=0, flipped=[];
+    while(nf<FLIP){
+      var k=Math.floor(rng.next()*NTR);
+      if(!used[k]){ used[k]=1; tr[k].l^=1; flipped.push(k); nf++; }
+    }
+    for(var m2=0;m2<400;m2++) te.push(pt(m2%2));
+    return {tr:tr, te:te, flipped:flipped};
+  }
+  var DDATA=makeData(7), DH=16;
+  function sig(z){ return 1/(1+Math.exp(-Math.max(-30,Math.min(30,z)))); }
+  function newNet(seed){
+    var rng=new LCG(seed), W1=[], b1=[], W2=[], j;
+    for(j=0;j<DH;j++){ W1.push([(rng.next()*2-1)*1.2,(rng.next()*2-1)*1.2]);
+      b1.push((rng.next()*2-1)*0.5); W2.push((rng.next()*2-1)*1.2); }
+    return {W1:W1,b1:b1,W2:W2,b2:0,rng:rng};
+  }
+  function trainEpochs(net, drop, epochs){
+    var lastMask=null;
+    for(var ep=0;ep<epochs;ep++){
+      for(var n=0;n<DDATA.tr.length;n++){
+        var q=DDATA.tr[n], x1=q.x, x2=q.y, y=q.l, h0=[], mask=[], j;
+        for(j=0;j<DH;j++) h0.push(sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]));
+        for(j=0;j<DH;j++) mask.push(drop>0?(net.rng.next()<drop?0:1/(1-drop)):1);
+        var o=net.b2;
+        for(j=0;j<DH;j++) o+=net.W2[j]*h0[j]*mask[j];
+        o=sig(o);
+        var d=o-y;
+        for(j=0;j<DH;j++){
+          var W2j=net.W2[j];
+          net.W2[j]-=1.6*d*h0[j]*mask[j];
+          var dh=d*W2j*mask[j]*h0[j]*(1-h0[j]);
+          net.W1[j][0]-=1.6*dh*x1; net.W1[j][1]-=1.6*dh*x2; net.b1[j]-=1.6*dh;
+        }
+        net.b2-=1.6*d;
+        lastMask=mask;
+      }
+    }
+    return lastMask;
+  }
+  function predict(net,x1,x2){
+    var o=net.b2;
+    for(var j=0;j<DH;j++) o+=net.W2[j]*sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]);
+    return sig(o);
+  }
+  function accOf(net,data){
+    var ok=0;
+    data.forEach(function(q){ if((predict(net,q.x,q.y)>=0.5)===(q.l===1)) ok++; });
+    return ok/data.length*100;
+  }
+  function drawDnet(mask){
+    var sv=document.getElementById('dnet'); sv.innerHTML='';
+    var xs=[60,190,320], hy=[], i, j;
+    for(j=0;j<DH;j++) hy.push(22+j*13);
+    var iy=[92,144], oy=[118];
+    for(i=0;i<2;i++)for(j=0;j<DH;j++)
+      sv.appendChild(elA('line',{x1:xs[0]+11,y1:iy[i],x2:xs[1]-9,y2:hy[j],
+        stroke:'#b9c0d8','stroke-width':0.6,opacity:mask&&mask[j]===0?0.15:0.55}));
+    for(j=0;j<DH;j++)
+      sv.appendChild(elA('line',{x1:xs[1]+9,y1:hy[j],x2:xs[2]-11,y2:oy[0],
+        stroke:'#b9c0d8','stroke-width':0.6,opacity:mask&&mask[j]===0?0.15:0.55}));
+    for(i=0;i<2;i++){
+      sv.appendChild(elA('circle',{cx:xs[0],cy:iy[i],r:11,fill:'#fff',stroke:'var(--border)','stroke-width':1.2}));
+      sv.appendChild(elA('text',{x:xs[0],y:iy[i]+4,'font-size':10,'text-anchor':'middle',fill:D_INK},'x'+(i+1)));
+    }
+    for(j=0;j<DH;j++){
+      var off=mask&&mask[j]===0;
+      sv.appendChild(elA('circle',{cx:xs[1],cy:hy[j],r:6,fill:off?'#F4F2EC':'#fff',
+        stroke:off?'#d8d4cb':'var(--border)','stroke-width':1.1,opacity:off?0.55:1}));
+      if(off){
+        sv.appendChild(elA('line',{x1:xs[1]-4,y1:hy[j]-4,x2:xs[1]+4,y2:hy[j]+4,stroke:D_BAD,'stroke-width':1.1}));
+      }
+    }
+    sv.appendChild(elA('circle',{cx:xs[2],cy:oy[0],r:11,fill:'#fff',stroke:'var(--border)','stroke-width':1.2}));
+    sv.appendChild(elA('text',{x:xs[2],y:oy[0]+4,'font-size':10,'text-anchor':'middle',fill:D_INK},'y'));
+    sv.appendChild(elA('text',{x:xs[0],y:iy[1]+30,'font-size':9,'text-anchor':'middle',fill:D_MUT},'入力 2'));
+    sv.appendChild(elA('text',{x:xs[1],y:hy[DH-1]+18,'font-size':9,'text-anchor':'middle',fill:D_MUT},'中間 16'));
+    sv.appendChild(elA('text',{x:xs[2],y:oy[0]+30,'font-size':9,'text-anchor':'middle',fill:D_MUT},'出力 1'));
+  }
+  function drawRegion(svgId, net){
+    var sv=document.getElementById(svgId); sv.innerHTML='';
+    var S=300, pad=10, W=S-pad*2, N=40, cw=W/N;
+    for(var a=0;a<N;a++)for(var b=0;b<N;b++){
+      var xx=(a+0.5)/N, yy=(b+0.5)/N, v=net?predict(net,xx,yy):0.5;
+      sv.appendChild(elA('rect',{x:pad+xx*W-cw/2,y:S-pad-yy*W-cw/2,width:cw+0.6,height:cw+0.6,
+        fill:v>=0.5?D_ARC:D_BAD,opacity:net?(0.08+0.16*Math.abs(v-0.5)*2):0.03}));
+    }
+    sv.appendChild(elA('rect',{x:pad,y:pad,width:W,height:W,fill:'none',stroke:'#E4E1D8'}));
+    DDATA.tr.forEach(function(q){
+      sv.appendChild(elA('circle',{cx:pad+q.x*W,cy:S-pad-q.y*W,r:5,
+        fill:q.l?D_ARC:'#fff',stroke:q.l?D_ARC:D_BAD,'stroke-width':1.6}));
+    });
+    DDATA.flipped.forEach(function(k){
+      var q=DDATA.tr[k];
+      sv.appendChild(elA('text',{x:pad+q.x*W,y:S-pad-q.y*W+5,'font-size':15,'text-anchor':'middle',
+        fill:D_BAD,'font-weight':'700'},'×'));
+    });
+  }
+  var dBusy=false;
+  document.getElementById('dTrain').addEventListener('click',function(){
+    if(dBusy) return;
+    dBusy=true;
+    var runs=[], SEEDS=[99,300,777];
+    SEEDS.forEach(function(sd){ runs.push({drop:0,seed:sd}); });
+    SEEDS.forEach(function(sd){ runs.push({drop:0.5,seed:sd}); });
+    var ri=0, res={0:[],0.5:[]}, keep={};
+    function stepRun(){
+      if(ri>=runs.length){
+        var mfn=function(arr,k){ var s2=0; arr.forEach(function(r){s2+=r[k];}); return (s2/arr.length).toFixed(1); };
+        document.getElementById('dOut').innerHTML='<b>初期値 3 通りの平均</b> ―― '
+          +'なし: 訓練 '+mfn(res[0],'tr')+'%・初見 '+mfn(res[0],'te')+'%　／　'
+          +'あり: 訓練 '+mfn(res[0.5],'tr')+'%・初見 <b>'+mfn(res[0.5],'te')+'%</b>。<br>'
+          +'なしは<b>ノイズごと覚えて</b>訓練の点数が高いが、初見は伸びない。'
+          +'ありは覚え込みをやめたぶん訓練は下がり、<b>初見に強くなる</b>。'
+          +'下の絵でも、なし側は × に引っぱられて境界が入り組み、あり側は × を無視して滑らかになっている。';
+        drawRegion('dPlotA', keep[0]); drawRegion('dPlotB', keep[0.5]);
+        drawDnet(null); dBusy=false;
+        return;
+      }
+      var r=runs[ri];
+      document.getElementById('dOut').textContent='学習中… '+(ri+1)+' / 6（dropout '+(r.drop?'あり':'なし')+'・初期値 '+r.seed+'）';
+      setTimeout(function(){
+        var net=newNet(r.seed);
+        var CH=90, done=0;
+        (function chunk(){
+          var lm=trainEpochs(net, r.drop, CH);
+          done+=CH;
+          if(r.drop>0) drawDnet(lm);
+          if(done<900){ setTimeout(chunk, 0); return; }
+          res[r.drop].push({tr:accOf(net,DDATA.tr), te:accOf(net,DDATA.te)});
+          if(r.seed===99) keep[r.drop]=net;
+          ri++; stepRun();
+        })();
+      }, 30);
+    }
+    stepRun();
+  });
+  drawDnet(null); drawRegion('dPlotA', null); drawRegion('dPlotB', null);
 })();
 </script>
 <script>

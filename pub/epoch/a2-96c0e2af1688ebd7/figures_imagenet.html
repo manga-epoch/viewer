@@ -206,29 +206,6 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="nnfig mynet"><svg id="strip" viewBox="0 0 380 84"></svg></div>
 <div class="nnfig mynet"><svg id="idea" viewBox="0 0 380 120"></svg></div>
 
-<div id="x2012" style="display:none">
-
-<h3>GPU は何が違うのか — 同じ計算を、同時に</h3>
-<div class="lead" style="margin-bottom:6px">畳み込みは「同じ掛け算と足し算を、全マスで独立に」やる計算。順番にやる必要がどこにも無い。CPU は少数の速い芯で 1 マスずつ、GPU は数千の小さな芯で全マス一斉に計算する。</div>
-<div class="nnfig mynet"><svg id="gpu" viewBox="0 0 380 178"></svg></div>
-<div class="ctrls"><button class="btn" id="gpuBtn">▶ 同じ畳み込みを両方で計算</button></div>
-<div class="readout" id="gpuOut">押すと、左右で同じ 144 マスの畳み込みが走る。</div>
-
-<h3>dropout は本当に効くのか — 小さなモデルで再現</h3>
-<div class="lead" style="margin-bottom:6px">これまでのページと同じ形のニューラルネット（入力 2 → 中間 16 → 出力 1）を、<b>わざと間違えたラベルを 6 点混ぜた</b> 36 点で学習させる。dropout は学習のたびに中間の計算点を半分眠らせる。なし/あり × 初期値 3 通り = 6 回学習して平均を出す。</div>
-<div class="nnfig mynet"><svg id="dnet" viewBox="0 0 380 236"></svg></div>
-<div class="ctrls"><button class="btn" id="dTrain">▶ 6 回学習して比べる</button></div>
-<div class="readout" id="dOut">学習中は、眠らされた計算点が薄くなる。</div>
-<div class="grid-wrap" style="margin-top:10px">
-  <div style="text-align:center"><svg id="dPlotA" width="170" height="170" viewBox="0 0 300 300"></svg>
-    <div class="gcap">dropout なし</div></div>
-  <div style="text-align:center"><svg id="dPlotB" width="170" height="170" viewBox="0 0 300 300"></svg>
-    <div class="gcap">dropout あり（0.5）</div></div>
-</div>
-<p class="fig-legend">●＝学習に使った点（青/白）　<span style="color:#b4493f">×</span>＝わざと間違えたラベル（ノイズ）。背景の色分けが、学習後のモデルの答え</p>
-
-</div>
-
 <h3>認識タスクの三段階 — 分類・検出・セグメンテーション</h3>
 <div class="lead" style="margin-bottom:8px">「猫がいる」(分類) から「どこに」(検出) へ、さらに「どの画素までが猫か」(セグメンテーション) へ。タスクが上がるほど密な予測が要る。</div>
 <div class="grid-wrap" id="taskRow"></div>
@@ -266,7 +243,7 @@ table{display:block;overflow-x:auto;max-width:100%}
      head:"深い CNN ＋ GPU ―― 断絶の年",
      facts:"8 層の CNN。新装備は <b>ReLU</b>（勾配が消えにくい活性化）・<b>dropout</b>（学びすぎ防止）・"
       +"<b>GPU 2 枚</b>・データ水増し。2 位（非 DL）は 26.2% ―― <b>10.9 点差</b>は前年までの 1 年ぶん（2.4 点）の 4 倍超で、連続改良ではなく断絶だった。",
-     link:"figures_cnn.html", ltxt:"畳み込みそのものを動かす →"},
+     link:"figures_alexnet.html", ltxt:"GPU・CUDA・dropout を実演で動かす →"},
     {y:2013,err:11.7,model:"ZFNet",kind:"cnn",
      layers:"cpcpcccpfff",
      head:"AlexNet の中を見て、調整した",
@@ -482,7 +459,6 @@ table{display:block;overflow-x:auto;max-width:100%}
       +'</div><div class="wfacts"><b>'+d.head+'</b><br>'+d.facts+'</div>'
       +(d.link?('<div class="wlink"><a href="'+d.link+'">'+d.ltxt+'</a></div>'):'');
     drawStrip(); drawIdea();
-    var x=g('x2012'); if(x) x.style.display=(sel===2)?'':'none';
   }
 
   /* ===== 認識タスクの三段階（従来どおり） ===== */
@@ -509,208 +485,6 @@ table{display:block;overflow-x:auto;max-width:100%}
     wrap.appendChild(h);wrap.appendChild(p);tr.appendChild(wrap);
   });
 
-
-  /* ===== 2012 専用: GPU の並列計算 ===== */
-  var GN=12;
-  function gpuGrid(svg,x0,y0,cell){
-    var rs=[];
-    for(var r=0;r<GN;r++)for(var c=0;c<GN;c++){
-      var rc=el('rect',{x:x0+c*cell,y:y0+r*cell,width:cell-1,height:cell-1,fill:'#F4F2EC'});
-      svg.appendChild(rc); rs.push(rc);
-    }
-    return rs;
-  }
-  var gpuCells=null, gpuAnim=false;
-  function drawGpu(){
-    var svg=g('gpu'); svg.innerHTML='';
-    svg.appendChild(el('text',{x:96,y:16,'font-size':11,'text-anchor':'middle',fill:INK,'font-weight':'700'},'CPU'));
-    svg.appendChild(el('text',{x:284,y:16,'font-size':11,'text-anchor':'middle',fill:INK,'font-weight':'700'},'GPU'));
-    svg.appendChild(el('text',{x:96,y:29,'font-size':8.5,'text-anchor':'middle',fill:MUTED},'速い芯が数個 ― 1 マスずつ'));
-    svg.appendChild(el('text',{x:284,y:29,'font-size':8.5,'text-anchor':'middle',fill:MUTED},'小さな芯が数千 ― 全マス一斉'));
-    for(var i=0;i<4;i++)
-      svg.appendChild(el('rect',{x:66+i*17,y:36,width:13,height:13,rx:2,fill:ARC}));
-    for(var r=0;r<3;r++)for(var c=0;c<24;c++)
-      svg.appendChild(el('rect',{x:214+c*6,y:36+r*6,width:4.5,height:4.5,fill:ARC,opacity:0.75}));
-    var cpu=gpuGrid(svg,36,62,10), gpu=gpuGrid(svg,224,62,10);
-    gpuCells={cpu:cpu,gpu:gpu};
-  }
-  g('gpuBtn').addEventListener('click',function(){
-    if(gpuAnim) return;
-    gpuAnim=true; drawGpu();
-    var t0=performance.now(), i=0, total=GN*GN;
-    var iv=setInterval(function(){
-      if(i>=total){
-        clearInterval(iv); gpuAnim=false;
-        g('gpuOut').textContent='CPU: 144 マスを順番に。GPU: 一斉に一瞬で終わった。'
-          +'畳み込みは全マスが独立した同じ計算だから、芯の数だけ同時に進む ―― '
-          +'AlexNet は GPU 2 枚（GTX 580）で約 5〜6 日かけて学習した。';
-        return;
-      }
-      gpuCells.cpu[i].setAttribute('fill',ARC);
-      if(i===18){ gpuCells.gpu.forEach(function(rc){ rc.setAttribute('fill',ARC); }); }
-      i++;
-      g('gpuOut').textContent='CPU: '+i+' / 144 マスめ…　GPU: '+(i>18?'144 / 144（完了）':'待機→一斉に計算');
-    },14);
-  });
-
-  /* ===== 2012 専用: dropout の実演（決定論・初期値 3 通りの平均） =====
-     数値は事前に Python で検証済み: なし train≈92/test≈91、あり train≈83/test≈97 */
-  function LCG(seed){ this.r=seed>>>0; }
-  LCG.prototype.next=function(){ this.r=(Math.imul(this.r,1664525)+1013904223)>>>0; return this.r/4294967296; };
-  function gauss(rng){
-    var u1=Math.max(rng.next(),1e-9), u2=rng.next();
-    return Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
-  }
-  function makeData(seed){
-    var rng=new LCG(seed), tr=[], te=[], NTR=36, FLIP=6;
-    function pt(lab){
-      var cx=lab===0?0.32:0.68, cy=lab===0?0.34:0.66;
-      return {x:cx+0.12*gauss(rng), y:cy+0.12*gauss(rng), l:lab};
-    }
-    for(var i=0;i<NTR;i++) tr.push(pt(i%2));
-    var used={}, nf=0, flipped=[];
-    while(nf<FLIP){
-      var k=Math.floor(rng.next()*NTR);
-      if(!used[k]){ used[k]=1; tr[k].l^=1; flipped.push(k); nf++; }
-    }
-    for(var j=0;j<400;j++) te.push(pt(j%2));
-    return {tr:tr, te:te, flipped:flipped};
-  }
-  var DDATA=makeData(7), DH=16;
-  function sig(z){ return 1/(1+Math.exp(-Math.max(-30,Math.min(30,z)))); }
-  function newNet(seed){
-    var rng=new LCG(seed), W1=[], b1=[], W2=[], j;
-    for(j=0;j<DH;j++){ W1.push([(rng.next()*2-1)*1.2,(rng.next()*2-1)*1.2]);
-      b1.push((rng.next()*2-1)*0.5); W2.push((rng.next()*2-1)*1.2); }
-    return {W1:W1,b1:b1,W2:W2,b2:0,rng:rng};
-  }
-  function trainEpochs(net, drop, epochs){
-    var lastMask=null;
-    for(var ep=0;ep<epochs;ep++){
-      for(var n=0;n<DDATA.tr.length;n++){
-        var q=DDATA.tr[n], x1=q.x, x2=q.y, y=q.l, h0=[], mask=[], j;
-        for(j=0;j<DH;j++) h0.push(sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]));
-        for(j=0;j<DH;j++) mask.push(drop>0?(net.rng.next()<drop?0:1/(1-drop)):1);
-        var o=net.b2;
-        for(j=0;j<DH;j++) o+=net.W2[j]*h0[j]*mask[j];
-        o=sig(o);
-        var d=o-y;
-        for(j=0;j<DH;j++){
-          var W2j=net.W2[j];
-          net.W2[j]-=1.6*d*h0[j]*mask[j];
-          var dh=d*W2j*mask[j]*h0[j]*(1-h0[j]);
-          net.W1[j][0]-=1.6*dh*x1; net.W1[j][1]-=1.6*dh*x2; net.b1[j]-=1.6*dh;
-        }
-        net.b2-=1.6*d;
-        lastMask=mask;
-      }
-    }
-    return lastMask;
-  }
-  function predict(net,x1,x2){
-    var o=net.b2;
-    for(var j=0;j<DH;j++) o+=net.W2[j]*sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]);
-    return sig(o);
-  }
-  function accOf(net,data){
-    var ok=0;
-    data.forEach(function(q){ if((predict(net,q.x,q.y)>=0.5)===(q.l===1)) ok++; });
-    return ok/data.length*100;
-  }
-  /* ネットの構成図（これまでのページと同じ様式）。mask で眠っている点を薄く */
-  function drawDnet(mask){
-    var svg=g('dnet'); svg.innerHTML='';
-    var xs=[60,190,320], hy=[], i, j;
-    for(j=0;j<DH;j++) hy.push(22+j*13);
-    var iy=[92,144], oy=[118];
-    for(i=0;i<2;i++)for(j=0;j<DH;j++)
-      svg.appendChild(el('line',{x1:xs[0]+11,y1:iy[i],x2:xs[1]-9,y2:hy[j],
-        stroke:'#b9c0d8','stroke-width':0.6,opacity:mask&&mask[j]===0?0.15:0.55}));
-    for(j=0;j<DH;j++)
-      svg.appendChild(el('line',{x1:xs[1]+9,y1:hy[j],x2:xs[2]-11,y2:oy[0],
-        stroke:'#b9c0d8','stroke-width':0.6,opacity:mask&&mask[j]===0?0.15:0.55}));
-    for(i=0;i<2;i++){
-      svg.appendChild(el('circle',{cx:xs[0],cy:iy[i],r:11,fill:'#fff',stroke:'var(--border)','stroke-width':1.2}));
-      svg.appendChild(el('text',{x:xs[0],y:iy[i]+4,'font-size':10,'text-anchor':'middle',fill:INK},'x'+(i+1)));
-    }
-    for(j=0;j<DH;j++){
-      var off=mask&&mask[j]===0;
-      svg.appendChild(el('circle',{cx:xs[1],cy:hy[j],r:6,fill:off?'#F4F2EC':'#fff',
-        stroke:off?'#d8d4cb':'var(--border)','stroke-width':1.1,opacity:off?0.55:1}));
-      if(off){
-        svg.appendChild(el('line',{x1:xs[1]-4,y1:hy[j]-4,x2:xs[1]+4,y2:hy[j]+4,stroke:BAD,'stroke-width':1.1}));
-      }
-    }
-    svg.appendChild(el('circle',{cx:xs[2],cy:oy[0],r:11,fill:'#fff',stroke:'var(--border)','stroke-width':1.2}));
-    svg.appendChild(el('text',{x:xs[2],y:oy[0]+4,'font-size':10,'text-anchor':'middle',fill:INK},'y'));
-    svg.appendChild(el('text',{x:xs[0],y:iy[1]+30,'font-size':9,'text-anchor':'middle',fill:MUTED},'入力 2'));
-    svg.appendChild(el('text',{x:xs[1],y:hy[DH-1]+18,'font-size':9,'text-anchor':'middle',fill:MUTED},'中間 16'));
-    svg.appendChild(el('text',{x:xs[2],y:oy[0]+30,'font-size':9,'text-anchor':'middle',fill:MUTED},'出力 1'));
-  }
-  /* 決定領域の絵（学習した実モデルの答え） */
-  function drawRegion(svgId, net){
-    var svg=g(svgId); svg.innerHTML='';
-    var S=300, pad=10, W=S-pad*2, N=40, cw=W/N;
-    for(var a=0;a<N;a++)for(var b=0;b<N;b++){
-      var xx=(a+0.5)/N, yy=(b+0.5)/N, v=net?predict(net,xx,yy):0.5;
-      svg.appendChild(el('rect',{x:pad+xx*W-cw/2,y:S-pad-yy*W-cw/2,width:cw+0.6,height:cw+0.6,
-        fill:v>=0.5?ARC:BAD,opacity:net?(0.08+0.16*Math.abs(v-0.5)*2):0.03}));
-    }
-    svg.appendChild(el('rect',{x:pad,y:pad,width:W,height:W,fill:'none',stroke:'#E4E1D8'}));
-    DDATA.tr.forEach(function(q,i){
-      svg.appendChild(el('circle',{cx:pad+q.x*W,cy:S-pad-q.y*W,r:5,
-        fill:q.l?ARC:'#fff',stroke:q.l?ARC:BAD,'stroke-width':1.6}));
-    });
-    DDATA.flipped.forEach(function(k){
-      var q=DDATA.tr[k];
-      svg.appendChild(el('text',{x:pad+q.x*W,y:S-pad-q.y*W+5,'font-size':15,'text-anchor':'middle',
-        fill:BAD,'font-weight':'700'},'×'));
-    });
-  }
-  var dBusy=false;
-  g('dTrain').addEventListener('click',function(){
-    if(dBusy) return;
-    dBusy=true;
-    var runs=[], SEEDS=[99,300,777];
-    SEEDS.forEach(function(sd){ runs.push({drop:0,seed:sd}); });
-    SEEDS.forEach(function(sd){ runs.push({drop:0.5,seed:sd}); });
-    var ri=0, res={0:[],0.5:[]}, keep={};
-    function step(){
-      if(ri>=runs.length){
-        var m=function(arr,k){ var s2=0; arr.forEach(function(r){s2+=r[k];}); return (s2/arr.length).toFixed(1); };
-        g('dOut').innerHTML='<b>初期値 3 通りの平均</b> ―― '
-          +'なし: 訓練 '+m(res[0],'tr')+'%・初見 '+m(res[0],'te')+'%　／　'
-          +'あり: 訓練 '+m(res[0.5],'tr')+'%・初見 <b>'+m(res[0.5],'te')+'%</b>。<br>'
-          +'なしは<b>ノイズごと覚えて</b>訓練の点数が高いが、初見は伸びない。'
-          +'ありは覚え込みをやめたぶん訓練は下がり、<b>初見に強くなる</b>。'
-          +'下の絵でも、なし側は × に引っぱられて境界が入り組み、あり側は × を無視して滑らかになっている。';
-        drawRegion('dPlotA', keep[0]); drawRegion('dPlotB', keep[0.5]);
-        drawDnet(null); dBusy=false;
-        return;
-      }
-      var r=runs[ri];
-      g('dOut').textContent='学習中… '+(ri+1)+' / 6（dropout '+(r.drop?'あり':'なし')+'・初期値 '+r.seed+'）';
-      setTimeout(function(){
-        var net=newNet(r.seed);
-        var CH=90, done=0;
-        (function chunk(){
-          var lm=trainEpochs(net, r.drop, CH);
-          done+=CH;
-          if(r.drop>0) drawDnet(lm);
-          if(done<900){ setTimeout(chunk, 0); return; }
-          res[r.drop].push({tr:accOf(net,DDATA.tr), te:accOf(net,DDATA.te)});
-          if(r.seed===99) keep[r.drop]=net;
-          ri++; step();
-        })();
-      }, 30);
-    }
-    step();
-  });
-
-  function draw2012(){
-    g('x2012').style.display = (sel===2) ? '' : 'none';
-  }
-  drawGpu(); drawDnet(null); drawRegion('dPlotA', null); drawRegion('dPlotB', null);
 
   drawCliff(); drawWin();
 })();
