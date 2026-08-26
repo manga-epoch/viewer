@@ -207,8 +207,11 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="nnfig mynet"><svg id="idea" viewBox="0 0 380 120"></svg></div>
 
 <h3>認識タスクの三段階 — 分類・検出・セグメンテーション</h3>
-<div class="lead" style="margin-bottom:8px">「猫がいる」(分類) から「どこに」(検出) へ、さらに「どの画素までが猫か」(セグメンテーション) へ。タスクが上がるほど密な予測が要る。</div>
-<div class="grid-wrap" id="taskRow"></div>
+<div class="lead" style="margin-bottom:8px">同じ 1 枚の写真に対して、「答えの細かさ」が三段階ある。
+①<b>分類</b> = 何がいるか（写真全体に 1 行）→ ②<b>物体検出</b> = どこにいるか（枠と名前）→
+③<b>セグメンテーション</b> = どの画素までがそれか（画素ごとの塗り分け）。
+下は<b>同じ絵</b>への 3 通りの答え。右へ行くほど、答えは細かく・手間は重くなる。</div>
+<div class="nnfig mynet"><svg id="tasks" viewBox="0 0 380 206"></svg></div>
 <p class="note">分類: AlexNet/VGG/ResNet ・ 物体検出: R-CNN→Fast/Faster R-CNN→YOLO ・ セグメンテーション: FCN→U-Net→Mask R-CNN。すべて CNN の特徴抽出を土台にする。</p>
 </div>
 
@@ -240,9 +243,9 @@ table{display:block;overflow-x:auto;max-width:100%}
      facts:"作りは前年と同じ「手作り特徴 ＋ SVM」。集計の工夫で <b>2.4 点</b>下げた ―― これが当時の 1 年ぶんの進歩。"},
     {y:2012,err:15.3,model:"AlexNet",kind:"cnn",
      layers:"cpcpcccpfff",
-     head:"深い CNN ＋ GPU ―― 断絶の年",
+     head:"深い CNN ＋ GPU ―― 1 年で 4 年分以上の差",
      facts:"8 層の CNN。新装備は <b>ReLU</b>（勾配が消えにくい活性化）・<b>dropout</b>（学びすぎ防止）・"
-      +"<b>GPU 2 枚</b>・データ水増し。2 位（非 DL）は 26.2% ―― <b>10.9 点差</b>は前年までの 1 年ぶん（2.4 点）の 4 倍超で、連続改良ではなく断絶だった。",
+      +"<b>GPU 2 枚</b>・データ水増し。前年までの改善は 1 年に 2.4 点。この年は 2 位（非 DL の 26.2%）に<b>一度に 10.9 点差</b> ―― それまでのやり方の延長では追いつけない差がついた。",
      link:"figures_alexnet.html", ltxt:"GPU・CUDA・dropout を実演で動かす →"},
     {y:2013,err:11.7,model:"ZFNet",kind:"cnn",
      layers:"cpcpcccpfff",
@@ -257,8 +260,8 @@ table{display:block;overflow-x:auto;max-width:100%}
      link:"figures_depth.html", ltxt:"VGG と Inception の積み方を比べる →"},
     {y:2015,err:3.57,model:"ResNet",kind:"cnn",
      layers:"cp"+Array(51).join("r")+"f",
-     head:"152 層 ―― 入力をそのまま足す近道（残差接続）",
-     facts:"深くすると逆に悪化する壁を、<b>入力をそのまま出力に足す近道</b>（残差接続）で破った。"
+     head:"152 層 ―― 残差接続",
+     facts:"深くすると逆に悪化する壁を、<b>残差接続</b>（入力をそのまま出力に足す）で破った。"
       +"152 層。人間の 5.1% を<b>初めて下回った</b>年。",
      link:"figures_resnet.html", ltxt:"残差接続と勾配消失を動かす →"},
     {y:2016,err:2.99,model:"Trimps-Soushen",kind:"ens",
@@ -422,9 +425,9 @@ table{display:block;overflow-x:auto;max-width:100%}
       /* 近道 */
       svg.appendChild(el('path',{d:'M43 32 C 43 8, 324 8, 324 35',fill:'none',stroke:AMB,'stroke-width':2}));
       svg.appendChild(el('text',{x:184,y:16,'font-size':9.5,'text-anchor':'middle',fill:'#8a6b12',
-        stroke:'#FAFAF7','stroke-width':3,'paint-order':'stroke'},'入力をそのまま足す近道（学ぶのは差分だけ）'));
+        stroke:'#FAFAF7','stroke-width':3,'paint-order':'stroke'},'残差接続 ―― 入力をそのまま足す（学ぶのは差分だけ）'));
       svg.appendChild(el('text',{x:190,y:88,'font-size':8.5,'text-anchor':'middle',fill:MUTED},
-        'この形なら勾配が近道を通って入口まで届く ―― 152 層でも学習できる'));
+        '足し算の枝を通って勾配が入口まで届く ―― 152 層でも学習できる'));
       return;
     }
     if(sel===6){                                 /* アンサンブル */
@@ -440,14 +443,14 @@ table{display:block;overflow-x:auto;max-width:100%}
     }
     /* SENet */
     svg.setAttribute('viewBox','0 0 380 110');
-    box(svg,10,30,86,34,'特徴マップ','たくさんのチャンネル');
-    arrow(svg,96,47,128,47);
-    box(svg,128,30,74,34,'要約','各チャンネル 1 数字');
-    arrow(svg,202,47,232,47);
-    box(svg,232,30,66,34,'小さな NN','重要度を出す');
-    arrow(svg,298,47,326,47);
-    box(svg,326,30,46,34,'掛ける','');
-    svg.appendChild(el('text',{x:190,y:88,'font-size':8.5,'text-anchor':'middle',fill:MUTED},
+    box(svg,8,30,94,38,'特徴マップ','チャンネルの束');
+    arrow(svg,102,49,126,49);
+    box(svg,126,30,72,38,'要約','1 個の数へ');
+    arrow(svg,198,49,222,49);
+    box(svg,222,30,88,38,'小さな NN','重要度を学ぶ');
+    arrow(svg,310,49,330,49);
+    box(svg,330,30,44,38,'掛ける','');
+    svg.appendChild(el('text',{x:190,y:92,'font-size':8.5,'text-anchor':'middle',fill:MUTED},
       '「いまの画像では、どの特徴チャンネルを強調するか」を自分で学ぶ'));
   }
 
@@ -461,30 +464,84 @@ table{display:block;overflow-x:auto;max-width:100%}
     drawStrip(); drawIdea();
   }
 
-  /* ===== 認識タスクの三段階（従来どおり） ===== */
-  var TASKS=[
-    {t:"分類",d:"1 枚に 1 ラベル",sub:"「猫がいる」",boxes:0},
-    {t:"物体検出",d:"どこに何があるか",sub:"枠で示す",boxes:2},
-    {t:"セグメンテーション",d:"画素ごとにラベル",sub:"猫の輪郭まで",boxes:9}
-  ];
-  var tr=g('taskRow');
-  TASKS.forEach(function(tk){
-    var wrap=document.createElement('div');wrap.style.textAlign='center';
-    var svg=document.createElementNS(SVGNS,'svg');svg.setAttribute('width',150);svg.setAttribute('height',120);svg.setAttribute('viewBox','0 0 150 120');
-    svg.appendChild(el('rect',{x:8,y:8,width:134,height:90,rx:8,fill:'#fff',stroke:'#E4E1D8'}));
-    if(tk.boxes===0){svg.appendChild(el('text',{x:75,y:58,'text-anchor':'middle','font-size':14,fill:'#565248'},tk.sub));}
-    if(tk.boxes===2){svg.appendChild(el('rect',{x:28,y:30,width:44,height:44,rx:4,fill:'none',stroke:ARC,'stroke-width':2}));
-      svg.appendChild(el('rect',{x:84,y:46,width:38,height:32,rx:4,fill:'none',stroke:BAD,'stroke-width':2}));
-      svg.appendChild(el('text',{x:50,y:26,'text-anchor':'middle','font-size':10,fill:ARC},'猫'));
-      svg.appendChild(el('text',{x:103,y:42,'text-anchor':'middle','font-size':10,fill:BAD},'魚'));}
-    if(tk.boxes===9){for(var r=0;r<3;r++)for(var c=0;c<4;c++){var on=(r>0&&c<2);
-      svg.appendChild(el('rect',{x:18+c*28,y:22+r*22,width:26,height:20,rx:2,fill:on?'rgba(110,123,168,.5)':'#F4F2EC',stroke:'#E4E1D8'}));}}
-    wrap.appendChild(svg);
-    var h=document.createElement('div');h.style.cssText='font-weight:700;font-size:13px;margin-top:6px';h.textContent=tk.t;
-    var p=document.createElement('div');p.style.cssText='font-size:11px;color:#9A9488';p.textContent=tk.d;
-    wrap.appendChild(h);wrap.appendChild(p);tr.appendChild(wrap);
-  });
-
+  /* ===== 認識タスクの三段階: 同じ絵への 3 通りの答え ===== */
+  function inCat(px,py){                       /* ねこ = 頭の円 + 耳 + 胴の楕円（パネル内座標） */
+    var dx=px-34, dy=py-30;
+    if(dx*dx+dy*dy < 13*13) return true;                      /* 頭 */
+    if(py<22 && py>10 && Math.abs(px-25)<5 && py > 10+(25-px)) return true;
+    if(py<22 && py>10 && Math.abs(px-43)<5 && py > 10+(px-43)) return true;
+    var ex=(px-34)/17, ey=(py-52)/12;                         /* 胴 */
+    return ex*ex+ey*ey < 1;
+  }
+  function inFish(px,py){                      /* さかな = 楕円 + 尾の三角 */
+    var ex=(px-82)/12, ey=(py-56)/7;
+    if(ex*ex+ey*ey < 1) return true;
+    return px>92 && px<102 && Math.abs(py-56) < (px-92);
+  }
+  function drawScene(svg,x0,y0){
+    /* ねこ（左）とさかな（右）。シルエットで十分 */
+    svg.appendChild(el('path',{d:'M'+(x0+20)+' '+(y0+22)+' L'+(x0+25)+' '+(y0+8)+' L'+(x0+30)+' '+(y0+22)+' Z',fill:'#57534a'}));
+    svg.appendChild(el('path',{d:'M'+(x0+38)+' '+(y0+22)+' L'+(x0+43)+' '+(y0+8)+' L'+(x0+48)+' '+(y0+22)+' Z',fill:'#57534a'}));
+    svg.appendChild(el('circle',{cx:x0+34,cy:y0+30,r:13,fill:'#57534a'}));
+    svg.appendChild(el('ellipse',{cx:x0+34,cy:y0+52,rx:17,ry:12,fill:'#57534a'}));
+    svg.appendChild(el('ellipse',{cx:x0+82,cy:y0+56,rx:12,ry:7,fill:'#8d8880'}));
+    svg.appendChild(el('path',{d:'M'+(x0+92)+' '+(y0+56)+' L'+(x0+102)+' '+(y0+48)+' L'+(x0+102)+' '+(y0+64)+' Z',fill:'#8d8880'}));
+    svg.appendChild(el('circle',{cx:x0+30,cy:y0+28,r:1.8,fill:'#fff'}));
+    svg.appendChild(el('circle',{cx:x0+38,cy:y0+28,r:1.8,fill:'#fff'}));
+    svg.appendChild(el('circle',{cx:x0+78,cy:y0+54,r:1.4,fill:'#fff'}));
+  }
+  function drawTasks(){
+    var svg=g('tasks'); svg.innerHTML='';
+    var X=[6,134,262], TT=['① 分類','② 物体検出','③ セグメンテーション'];
+    X.forEach(function(x0,pi){
+      svg.appendChild(el('text',{x:x0+56,y:14,'font-size':10.5,'text-anchor':'middle',
+        fill:INK,'font-weight':'700'},TT[pi]));
+      svg.appendChild(el('rect',{x:x0,y:20,width:112,height:82,rx:6,fill:'#fff',
+        stroke:'var(--border)','stroke-width':1.2}));
+      drawScene(svg,x0,24);
+      if(pi===0){                                /* 分類: 写真全体に 1 行 */
+        svg.appendChild(el('rect',{x:x0+2,y:22,width:108,height:78,rx:5,fill:'none',
+          stroke:AMB,'stroke-width':2.2}));
+      }
+      if(pi===1){                                /* 検出: 枠と名前 */
+        svg.appendChild(el('rect',{x:x0+13,y:26,width:42,height:64,rx:3,fill:'none',
+          stroke:ARC,'stroke-width':2}));
+        svg.appendChild(el('text',{x:x0+16,y:36,'font-size':9,fill:ARC,'font-weight':'700',
+          stroke:'#fff','stroke-width':3,'paint-order':'stroke'},'ねこ'));
+        svg.appendChild(el('rect',{x:x0+64,y:66,width:42,height:26,rx:3,fill:'none',
+          stroke:BAD,'stroke-width':2}));
+        svg.appendChild(el('text',{x:x0+67,y:76,'font-size':9,fill:BAD,'font-weight':'700',
+          stroke:'#fff','stroke-width':3,'paint-order':'stroke'},'さかな'));
+      }
+      if(pi===2){                                /* セグメンテーション: 画素ごとの塗り分け */
+        var cell=6;
+        for(var r=0;r<13;r++)for(var c=0;c<18;c++){
+          var cx=c*cell+cell/2+2, cy=r*cell+cell/2+4;   /* パネル内座標（drawScene は +24 オフセット） */
+          var cat=inCat(cx,cy-0), fish=inFish(cx,cy-0);
+          if(cat||fish)
+            svg.appendChild(el('rect',{x:x0+2+c*cell,y:24+r*cell,width:cell-0.6,height:cell-0.6,
+              fill:cat?'rgba(110,123,168,.75)':'rgba(180,73,63,.7)'}));
+        }
+        svg.appendChild(el('text',{x:x0+34,y:34,'font-size':9,fill:'#3d4a75','font-weight':'700',
+          stroke:'#fff','stroke-width':3,'paint-order':'stroke'},'ねこ'));
+        svg.appendChild(el('text',{x:x0+82,y:52,'font-size':9,fill:'#8a3a33','font-weight':'700',
+          stroke:'#fff','stroke-width':3,'paint-order':'stroke'},'さかな'));
+      }
+      /* 答え（出力）の行 */
+      var OUT1=['答え:「ねこ と さかな」','答え: 枠の位置と名前','答え: 画素ごとの塗り分け'];
+      var OUT2=['写真 1 枚 → 1 行','もの 1 つ → 枠 1 つ','画素 1 つ → ラベル 1 つ'];
+      svg.appendChild(el('text',{x:x0+56,y:120,'font-size':9,'text-anchor':'middle',fill:INK},OUT1[pi]));
+      svg.appendChild(el('text',{x:x0+56,y:134,'font-size':8.5,'text-anchor':'middle',fill:MUTED},OUT2[pi]));
+    });
+    /* 下段: 細かさと手間の向き */
+    svg.appendChild(el('line',{x1:20,y1:158,x2:352,y2:158,stroke:'#b9c0d8','stroke-width':1.6}));
+    svg.appendChild(el('path',{d:'M352 154 L360 158 L352 162 Z',fill:'#b9c0d8'}));
+    svg.appendChild(el('text',{x:190,y:150,'font-size':9,'text-anchor':'middle',fill:MUTED},
+      '右へ行くほど、答えが細かい（そのぶん、正解データを作るのも大変）'));
+    svg.appendChild(el('text',{x:190,y:176,'font-size':9,'text-anchor':'middle',fill:MUTED},
+      'ILSVRC の本戦は ①分類。②③は同じ CNN の特徴を土台に発展した'));
+  }
+  drawTasks();
 
   drawCliff(); drawWin();
 })();
