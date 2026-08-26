@@ -134,6 +134,10 @@ svg .lb{font:600 12.5px var(--font-sans);fill:#565248}
  border-radius:14px;padding:3px 11px;font-size:12.5px;color:var(--ink-sub);margin-right:6px}
 .mynet svg{width:100%;max-width:480px;height:auto;display:block;margin:0 auto}
 @media(max-width:520px){.mynet{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
+.cucode{background:var(--surface);border-radius:8px;padding:10px 12px;overflow-x:auto;
+ font:10.5px/1.7 ui-monospace,Consolas,monospace;color:var(--ink);margin:10px 0}
+.cucode i{font-style:normal;color:#9A9488}
+.cucode b{color:#6E7BA8}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -267,20 +271,52 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div id="s2"></div>
 </details>
 <div class="readout" id="r2"></div>
+
+<details class="foldbox" open><summary>補足</summary>
+<p style="margin-top:20px"><b>役割そのものを動かす。</b>研究者が書くのは下の数行だけ——
+「自分の通し番号を計算し、自分の 1 個だけ処理する」関数（<b>カーネル</b>）と、その起動行だ。
+データを何個に増やしても、どの実機で走らせても、<b>このコードは 1 文字も変わらない</b>。
+束ねて配るのは CUDA の仕事だから。下で N と実機を変えて確かめる。</p>
+</details>
+<pre class="cucode">__global__ void add(float *a, float *b, float *c){
+  <i>// 自分の通し番号を計算し、</i>
+  int i = blockIdx.x*blockDim.x + threadIdx.x;
+  <i>// 自分の 1 個だけ処理する</i>
+  c[i] = a[i] + b[i];
+}
+<i>// 起動——いま N=<b id="cuNn">96</b> → ブロック <b id="cuBn">12</b> 個 × 8 スレッド</i>
+add&lt;&lt;&lt;(N + 7)/8, 8&gt;&gt;&gt;(a, b, c);</pre>
+<div class="ctrls">
+  <label>データ数 N <input type="range" id="cuN" min="16" max="96" step="8" value="96"></label>
+  <span class="tag" id="cuNv">96</span>
+  <button class="chip" data-sm="2">SM 2 基（旧型）</button>
+  <button class="chip on" data-sm="4">SM 4 基</button>
+  <button class="chip" data-sm="8">SM 8 基（新型）</button>
+</div>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="nnfig mynet"><svg id="cu" viewBox="0 0 380 270"></svg></div>
+</details>
+<div class="readout" id="cuR"></div>
+<details class="foldbox" open><summary>補足</summary>
+<p class="note">図は模式——実物のブロックは 128〜1024 スレッド、割り付けの順序はハードが決める。
+SM（Streaming Multiprocessor）は GPU の実行ユニットで、AlexNet の GTX 580 は SM 16 基 × 32 コア = 512 コア。</p>
+</details>
 </div>
 <div class="fig-stage" id="sec3">
 <h2>ドロップアウト — 学習中にノードを一定割合で無効化する正則化</h2>
 <details class="foldbox" open><summary>説明</summary>
 <p>訓練のたびに、中間の計算点を半分眠らせる。特定の経路に頼れなくなるので、
 いくつもの経路が同じ仕事を覚える。<b>本当に効くのかを、実際のモデルで確かめる</b>——
-入力 2 → 中間 16 → 出力 1 のニューラルネットに、わざと間違えたラベルを 6 点混ぜた
-36 点を学習させ、なし／あり × 初期値 3 通り = 6 回の平均で比べる。</p>
+使うのは<a href="figures_nn.html">ニューラルネットの図解</a>と同じ形の多層ネット
+（入力 2 → 中間 8 → 中間 8 → 出力 1）。AlexNet が dropout を入れたのも
+全結合の 2 層で、落とす場所も同じにしてある。
+わざと間違えたラベルを 8 点混ぜた 36 点を学習させ、なし／あり × 初期値 3 通り = 6 回の平均で比べる。</p>
 </details>
 <details class="foldbox" open><summary>構成図</summary>
-<div class="nnfig mynet"><svg id="dnet" viewBox="0 0 380 236"></svg></div>
+<div class="nnfig mynet"><svg id="dnet" viewBox="0 0 380 252"></svg></div>
 </details>
 <div class="ctrls"><button class="btn" id="dTrain">▶ 6 回学習して比べる</button></div>
-<div class="readout" id="dOut">学習中は、眠らされた計算点が薄くなる（訓練のたびに違う組み合わせ）。</div>
+<div class="readout" id="dOut">学習中は、眠らされた計算点が × で薄くなる（2 つの中間層の両方・訓練のたびに違う組み合わせ）。</div>
 <details class="foldbox" open><summary>構成図</summary>
 <div class="grid-wrap" style="margin-top:10px">
   <div style="text-align:center"><svg id="dPlotA" width="170" height="170" viewBox="0 0 300 300"></svg>
@@ -295,8 +331,8 @@ table{display:block;overflow-x:auto;max-width:100%}
 <details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$m \sim \mathrm{Bernoulli}(1-p)$
 <div class="note" style="margin-top:8px">各ノードに独立なマスク $m$ を掛ける（$m=0$ になる確率が、落とす割合 $p$）。
-AlexNet は全結合層に <b>$p=0.5$</b> を使い、推論時はマスク無しで出力を $\times(1-p)$ した。
-この実演は同値な「訓練時に $\times\frac{1}{1-p}$」方式（数値は事前に検証済み）。</div>
+AlexNet は全結合の 2 層に <b>$p=0.5$</b> を使い、推論時はマスク無しで出力を $\times(1-p)$ した。
+この実演も同じく中間 2 層に入れ、同値な「訓練時に $\times\frac{1}{1-p}$」方式を使う（数値は事前に検証済み）。</div>
 </div>
 </details>
 </div>
@@ -383,12 +419,66 @@ AlexNet は全結合層に <b>$p=0.5$</b> を使い、推論時はマスク無�
     var e=E[b.dataset.era]; $('#s2').innerHTML=e.g(); $('#r2').innerHTML=e.r; }});
   $('#s2').innerHTML=E.before.g(); $('#r2').innerHTML=E.before.r;
 
-  // ③ Dropout — 実際のモデルで効果を測る（決定論・初期値 3 通りの平均）
-  //    数値は Python で事前検証済み: なし train≈92/test≈91、あり train≈83/test≈97
   var SVGNS='http://www.w3.org/2000/svg';
   function elA(tg,a,txt){var e=document.createElementNS(SVGNS,tg);for(var k in a)e.setAttribute(k,a[k]);
     if(txt!=null)e.textContent=txt;return e;}
   var D_ARC='#6E7BA8', D_BAD='#b4493f', D_MUT='#9A9488', D_INK='#1A1A1A';
+
+  // ②b CUDA の役割 — 束ね方（ブロック）と割り付け（SM）を実際に計算して描く。
+  //    モデル: i = blockIdx*blockDim + threadIdx / B = ceil(N/8) / 巡 = ceil(B/SM)。
+  var cuN=96, cuSM=4, cuSel=1, TPB=8;
+  function drawCU(){
+    var sv=document.getElementById('cu'); sv.innerHTML='';
+    var B=Math.ceil(cuN/TPB), COLS=24, cw=13, x0=12, y0=22, i;
+    if(cuSel>=B) cuSel=B-1;
+    sv.appendChild(elA('text',{x:x0,y:13,'font-size':10,fill:D_MUT},
+      'データ '+cuN+' 個（1 マス = 1 個、色の濃淡 = 属するブロック）'));
+    for(i=0;i<cuN;i++){
+      var r=Math.floor(i/COLS), c=i%COLS, b=Math.floor(i/TPB), selb=(b===cuSel);
+      sv.appendChild(elA('rect',{x:x0+c*cw,y:y0+r*cw,width:cw-1.5,height:cw-1.5,rx:1.5,
+        fill:selb?D_ARC:(b%2?'#cbd2e6':'#e4e7f1'),'data-b':b,style:'cursor:pointer'}));
+    }
+    var rows=Math.ceil(cuN/COLS), ly=y0+rows*cw+16;
+    sv.appendChild(elA('text',{x:x0,y:ly,'font-size':10,fill:D_MUT},
+      '↓ CUDA が '+B+' 個のブロックに束ね、空いた SM へ順に割り付ける'));
+    var laneY=ly+20, chW=27, chH=15, waves=Math.ceil(B/cuSM), w, s;
+    for(w=0;w<waves;w++)
+      sv.appendChild(elA('text',{x:x0+34+w*(chW+5)+chW/2,y:laneY-4,'font-size':9,
+        'text-anchor':'middle',fill:D_MUT},(w+1)+'巡'));
+    for(s=0;s<cuSM;s++){
+      var yy=laneY+s*(chH+4);
+      sv.appendChild(elA('text',{x:x0,y:yy+11.5,'font-size':9.5,fill:D_INK},'SM'+s));
+      for(w=0;w<waves;w++){
+        var bk=w*cuSM+s; if(bk>=B) continue;
+        var selk=(bk===cuSel), xx=x0+34+w*(chW+5);
+        sv.appendChild(elA('rect',{x:xx,y:yy,width:chW,height:chH,rx:3,
+          fill:selk?D_ARC:'#fff',stroke:selk?D_ARC:'#c8c8c2','stroke-width':1.1,
+          'data-b':bk,style:'cursor:pointer'}));
+        sv.appendChild(elA('text',{x:xx+chW/2,y:yy+11,'font-size':9,'text-anchor':'middle',
+          fill:selk?'#fff':'#565248','pointer-events':'none'},'B'+bk));
+      }
+    }
+    sv.setAttribute('viewBox','0 0 380 '+(laneY+cuSM*(chH+4)+6));
+    $('#cuNn').textContent=cuN; $('#cuBn').textContent=B;
+    $('#cuR').innerHTML='計算 '+cuN+' 個 → ブロック <b>'+B+' 個</b>。SM '+cuSM+' 基が <b>'+waves+' 巡</b>で消化。<br>'
+      +'選んだブロック B'+cuSel+' のスレッド 0〜7 の担当は i = '+(cuSel*TPB)+' 〜 '+(cuSel*TPB+TPB-1)
+      +'——カーネル 1 行目の式そのまま。<br>'
+      +'<b>N を変えても SM を替えてもコードは不変</b>。割り付けは CUDA が実行時に決めるので、'
+      +'同じプログラムが SM を倍積んだ新型でそのまま速く走る。';
+  }
+  $('#cuN').oninput=function(){ cuN=+this.value; $('#cuNv').textContent=cuN; drawCU(); };
+  $$('[data-sm]').forEach(function(b){ b.onclick=function(){
+    $$('[data-sm]').forEach(function(x){x.classList.remove('on')}); b.classList.add('on');
+    cuSM=+b.dataset.sm; drawCU(); }; });
+  document.getElementById('cu').addEventListener('click',function(e){
+    var b=e.target.getAttribute&&e.target.getAttribute('data-b');
+    if(b!=null){ cuSel=+b; drawCU(); }
+  });
+  drawCU();
+
+  // ③ Dropout — 実際のモデルで効果を測る（決定論・初期値 3 通りの平均）
+  //    2-8-8-1 sigmoid・lr0.8・1800ep・p0.5×中間2層。数値は node/Python で事前検証済み:
+  //    なし train≈93.5/test≈78.8（覚え込みで初見が崩れる）、あり ≈86.1/88.7
   function LCG(seed){ this.r=seed>>>0; }
   LCG.prototype.next=function(){ this.r=(Math.imul(this.r,1664525)+1013904223)>>>0; return this.r/4294967296; };
   function gauss(rng){
@@ -396,7 +486,7 @@ AlexNet は全結合層に <b>$p=0.5$</b> を使い、推論時はマスク無�
     return Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
   }
   function makeData(seed){
-    var rng=new LCG(seed), tr=[], te=[], NTR=36, FLIP=6;
+    var rng=new LCG(seed), tr=[], te=[], NTR=36, FLIP=8;
     function pt(lab){
       var cx=lab===0?0.32:0.68, cy=lab===0?0.34:0.66;
       return {x:cx+0.12*gauss(rng), y:cy+0.12*gauss(rng), l:lab};
@@ -410,40 +500,62 @@ AlexNet は全結合層に <b>$p=0.5$</b> を使い、推論時はマスク無�
     for(var m2=0;m2<400;m2++) te.push(pt(m2%2));
     return {tr:tr, te:te, flipped:flipped};
   }
-  var DDATA=makeData(7), DH=16;
+  var DDATA=makeData(7), DH=8, DLR=0.8;
   function sig(z){ return 1/(1+Math.exp(-Math.max(-30,Math.min(30,z)))); }
   function newNet(seed){
-    var rng=new LCG(seed), W1=[], b1=[], W2=[], j;
-    for(j=0;j<DH;j++){ W1.push([(rng.next()*2-1)*1.2,(rng.next()*2-1)*1.2]);
-      b1.push((rng.next()*2-1)*0.5); W2.push((rng.next()*2-1)*1.2); }
-    return {W1:W1,b1:b1,W2:W2,b2:0,rng:rng};
+    var rng=new LCG(seed), W1=[], b1=[], W2=[], b2=[], W3=[], j, k;
+    for(j=0;j<DH;j++){ W1.push([(rng.next()*2-1)*1.8,(rng.next()*2-1)*1.8]);
+      b1.push((rng.next()*2-1)*0.5); }
+    for(k=0;k<DH;k++){ var row=[];
+      for(j=0;j<DH;j++) row.push((rng.next()*2-1)*1.8);
+      W2.push(row); b2.push((rng.next()*2-1)*0.5); }
+    for(k=0;k<DH;k++) W3.push((rng.next()*2-1)*1.8);
+    return {W1:W1,b1:b1,W2:W2,b2:b2,W3:W3,b3:0,rng:rng};
   }
   function trainEpochs(net, drop, epochs){
-    var lastMask=null;
+    var lastM1=null, lastM2=null;
     for(var ep=0;ep<epochs;ep++){
       for(var n=0;n<DDATA.tr.length;n++){
-        var q=DDATA.tr[n], x1=q.x, x2=q.y, y=q.l, h0=[], mask=[], j;
-        for(j=0;j<DH;j++) h0.push(sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]));
-        for(j=0;j<DH;j++) mask.push(drop>0?(net.rng.next()<drop?0:1/(1-drop)):1);
-        var o=net.b2;
-        for(j=0;j<DH;j++) o+=net.W2[j]*h0[j]*mask[j];
+        var q=DDATA.tr[n], x1=q.x, x2=q.y, y=q.l, j, k;
+        var a1=[], m1=[], a1d=[], a2=[], m2=[], a2d=[];
+        for(j=0;j<DH;j++) a1.push(sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]));
+        for(j=0;j<DH;j++) m1.push(drop>0?(net.rng.next()<drop?0:1/(1-drop)):1);
+        for(j=0;j<DH;j++) a1d.push(a1[j]*m1[j]);
+        for(k=0;k<DH;k++){ var z=net.b2[k];
+          for(j=0;j<DH;j++) z+=net.W2[k][j]*a1d[j];
+          a2.push(sig(z)); }
+        for(k=0;k<DH;k++) m2.push(drop>0?(net.rng.next()<drop?0:1/(1-drop)):1);
+        for(k=0;k<DH;k++) a2d.push(a2[k]*m2[k]);
+        var o=net.b3;
+        for(k=0;k<DH;k++) o+=net.W3[k]*a2d[k];
         o=sig(o);
         var d=o-y;
+        var dh2=[];
+        for(k=0;k<DH;k++) dh2.push(d*net.W3[k]*m2[k]*a2[k]*(1-a2[k]));
+        for(k=0;k<DH;k++) net.W3[k]-=DLR*d*a2d[k];
+        net.b3-=DLR*d;
+        var dh1=[];
+        for(j=0;j<DH;j++){ var s=0;
+          for(k=0;k<DH;k++) s+=dh2[k]*net.W2[k][j];
+          dh1.push(s*m1[j]*a1[j]*(1-a1[j])); }
+        for(k=0;k<DH;k++){
+          for(j=0;j<DH;j++) net.W2[k][j]-=DLR*dh2[k]*a1d[j];
+          net.b2[k]-=DLR*dh2[k]; }
         for(j=0;j<DH;j++){
-          var W2j=net.W2[j];
-          net.W2[j]-=1.6*d*h0[j]*mask[j];
-          var dh=d*W2j*mask[j]*h0[j]*(1-h0[j]);
-          net.W1[j][0]-=1.6*dh*x1; net.W1[j][1]-=1.6*dh*x2; net.b1[j]-=1.6*dh;
-        }
-        net.b2-=1.6*d;
-        lastMask=mask;
+          net.W1[j][0]-=DLR*dh1[j]*x1; net.W1[j][1]-=DLR*dh1[j]*x2; net.b1[j]-=DLR*dh1[j]; }
+        lastM1=m1; lastM2=m2;
       }
     }
-    return lastMask;
+    return {m1:lastM1, m2:lastM2};
   }
   function predict(net,x1,x2){
-    var o=net.b2;
-    for(var j=0;j<DH;j++) o+=net.W2[j]*sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]);
+    var j, k, a1=[], a2=[];
+    for(j=0;j<DH;j++) a1.push(sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]));
+    for(k=0;k<DH;k++){ var z=net.b2[k];
+      for(j=0;j<DH;j++) z+=net.W2[k][j]*a1[j];
+      a2.push(sig(z)); }
+    var o=net.b3;
+    for(k=0;k<DH;k++) o+=net.W3[k]*a2[k];
     return sig(o);
   }
   function accOf(net,data){
@@ -451,34 +563,42 @@ AlexNet は全結合層に <b>$p=0.5$</b> を使い、推論時はマスク無�
     data.forEach(function(q){ if((predict(net,q.x,q.y)>=0.5)===(q.l===1)) ok++; });
     return ok/data.length*100;
   }
-  function drawDnet(mask){
+  function drawDnet(masks){
+    // 図解ページの構成図と同じ体裁: 円ノードの列 × 全結合の線。落ちた点は × で塗りが抜ける
     var sv=document.getElementById('dnet'); sv.innerHTML='';
-    var xs=[60,190,320], hy=[], i, j;
-    for(j=0;j<DH;j++) hy.push(22+j*13);
-    var iy=[92,144], oy=[118];
-    for(i=0;i<2;i++)for(j=0;j<DH;j++)
-      sv.appendChild(elA('line',{x1:xs[0]+11,y1:iy[i],x2:xs[1]-9,y2:hy[j],
-        stroke:'#b9c0d8','stroke-width':0.6,opacity:mask&&mask[j]===0?0.15:0.55}));
-    for(j=0;j<DH;j++)
-      sv.appendChild(elA('line',{x1:xs[1]+9,y1:hy[j],x2:xs[2]-11,y2:oy[0],
-        stroke:'#b9c0d8','stroke-width':0.6,opacity:mask&&mask[j]===0?0.15:0.55}));
-    for(i=0;i<2;i++){
-      sv.appendChild(elA('circle',{cx:xs[0],cy:iy[i],r:11,fill:'#fff',stroke:'var(--border)','stroke-width':1.2}));
-      sv.appendChild(elA('text',{x:xs[0],y:iy[i]+4,'font-size':10,'text-anchor':'middle',fill:D_INK},'x'+(i+1)));
+    var m1=masks&&masks.m1, m2=masks&&masks.m2;
+    var xs=[46,150,254,342], cy=124, gap=25, i, j, k;
+    var hy=[]; for(j=0;j<DH;j++) hy.push(cy+gap*(j-(DH-1)/2));
+    var iy=[cy-26,cy+26], oy=[cy];
+    function edge(x1,y1,x2,y2,offA,offB){
+      sv.appendChild(elA('line',{x1:x1,y1:y1,x2:x2,y2:y2,stroke:'#b9c0d8','stroke-width':0.7,
+        opacity:(offA||offB)?0.12:0.5}));
     }
-    for(j=0;j<DH;j++){
-      var off=mask&&mask[j]===0;
-      sv.appendChild(elA('circle',{cx:xs[1],cy:hy[j],r:6,fill:off?'#F4F2EC':'#fff',
-        stroke:off?'#d8d4cb':'var(--border)','stroke-width':1.1,opacity:off?0.55:1}));
+    for(i=0;i<2;i++)for(j=0;j<DH;j++) edge(xs[0]+12,iy[i],xs[1]-10,hy[j],false,m1&&m1[j]===0);
+    for(j=0;j<DH;j++)for(k=0;k<DH;k++) edge(xs[1]+10,hy[j],xs[2]-10,hy[k],m1&&m1[j]===0,m2&&m2[k]===0);
+    for(k=0;k<DH;k++) edge(xs[2]+10,hy[k],xs[3]-12,oy[0],m2&&m2[k]===0,false);
+    function node(cx2,cy2,r,txt){
+      sv.appendChild(elA('circle',{cx:cx2,cy:cy2,r:r,fill:'#fff',stroke:'#1a1a1a','stroke-width':1.6}));
+      if(txt) sv.appendChild(elA('text',{x:cx2,y:cy2+4,'font-size':10.5,'text-anchor':'middle',fill:D_INK},txt));
+    }
+    function hnode(cx2,cy2,off){
+      sv.appendChild(elA('circle',{cx:cx2,cy:cy2,r:10,fill:off?'#F4F2EC':'#fff',
+        stroke:off?'#d8d4cb':'#1a1a1a','stroke-width':off?1.1:1.6,opacity:off?0.6:1}));
       if(off){
-        sv.appendChild(elA('line',{x1:xs[1]-4,y1:hy[j]-4,x2:xs[1]+4,y2:hy[j]+4,stroke:D_BAD,'stroke-width':1.1}));
+        sv.appendChild(elA('line',{x1:cx2-5,y1:cy2-5,x2:cx2+5,y2:cy2+5,stroke:D_BAD,'stroke-width':1.4}));
+        sv.appendChild(elA('line',{x1:cx2-5,y1:cy2+5,x2:cx2+5,y2:cy2-5,stroke:D_BAD,'stroke-width':1.4}));
       }
     }
-    sv.appendChild(elA('circle',{cx:xs[2],cy:oy[0],r:11,fill:'#fff',stroke:'var(--border)','stroke-width':1.2}));
-    sv.appendChild(elA('text',{x:xs[2],y:oy[0]+4,'font-size':10,'text-anchor':'middle',fill:D_INK},'y'));
-    sv.appendChild(elA('text',{x:xs[0],y:iy[1]+30,'font-size':9,'text-anchor':'middle',fill:D_MUT},'入力 2'));
-    sv.appendChild(elA('text',{x:xs[1],y:hy[DH-1]+18,'font-size':9,'text-anchor':'middle',fill:D_MUT},'中間 16'));
-    sv.appendChild(elA('text',{x:xs[2],y:oy[0]+30,'font-size':9,'text-anchor':'middle',fill:D_MUT},'出力 1'));
+    node(xs[0],iy[0],12,'x₁'); node(xs[0],iy[1],12,'x₂');
+    for(j=0;j<DH;j++) hnode(xs[1],hy[j],m1&&m1[j]===0);
+    for(k=0;k<DH;k++) hnode(xs[2],hy[k],m2&&m2[k]===0);
+    node(xs[3],oy[0],12,'y');
+    sv.appendChild(elA('text',{x:(xs[1]+xs[2])/2,y:12,'font-size':10,'text-anchor':'middle',fill:D_MUT},
+      '中間 2 層に dropout 0.5（AlexNet と同じ場所）'));
+    sv.appendChild(elA('text',{x:xs[0],y:cy+50,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'入力 2'));
+    sv.appendChild(elA('text',{x:xs[1],y:hy[DH-1]+22,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'中間 8'));
+    sv.appendChild(elA('text',{x:xs[2],y:hy[DH-1]+22,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'中間 8'));
+    sv.appendChild(elA('text',{x:xs[3],y:cy+50,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'出力 1'));
   }
   function drawRegion(svgId, net){
     var sv=document.getElementById(svgId); sv.innerHTML='';
@@ -513,9 +633,9 @@ AlexNet は全結合層に <b>$p=0.5$</b> を使い、推論時はマスク無�
         document.getElementById('dOut').innerHTML='<b>初期値 3 通りの平均</b> ―― '
           +'なし: 訓練 '+mfn(res[0],'tr')+'%・初見 '+mfn(res[0],'te')+'%　／　'
           +'あり: 訓練 '+mfn(res[0.5],'tr')+'%・初見 <b>'+mfn(res[0.5],'te')+'%</b>。<br>'
-          +'なしは<b>ノイズごと覚えて</b>訓練の点数が高いが、初見は伸びない。'
+          +'なしは<b>ノイズごと覚え込む</b>——訓練の点数だけが高く、初見との差が大きく開く。'
           +'ありは覚え込みをやめたぶん訓練は下がり、<b>初見に強くなる</b>。'
-          +'下の絵でも、なし側は × に引っぱられて境界が入り組み、あり側は × を無視して滑らかになっている。';
+          +'下の絵でも、なし側は × を取りに行って境界がゆがみ、あり側は × を無視してなだらかになる。';
         drawRegion('dPlotA', keep[0]); drawRegion('dPlotB', keep[0.5]);
         drawDnet(null); dBusy=false;
         return;
@@ -529,7 +649,7 @@ AlexNet は全結合層に <b>$p=0.5$</b> を使い、推論時はマスク無�
           var lm=trainEpochs(net, r.drop, CH);
           done+=CH;
           if(r.drop>0) drawDnet(lm);
-          if(done<900){ setTimeout(chunk, 0); return; }
+          if(done<1800){ setTimeout(chunk, 0); return; }
           res[r.drop].push({tr:accOf(net,DDATA.tr), te:accOf(net,DDATA.te)});
           if(r.seed===99) keep[r.drop]=net;
           ri++; stepRun();
