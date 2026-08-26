@@ -129,6 +129,8 @@ svg .lb.c{text-anchor:middle}
 .readout b{color:var(--ink)}
 .tag{display:inline-block;background:var(--surface);border:1px solid var(--border);
  border-radius:14px;padding:3px 11px;font-size:12.5px;color:var(--ink-sub);margin-right:6px}
+.mynet svg{width:100%;max-width:480px;height:auto;display:block;margin:0 auto}
+@media(max-width:520px){.mynet{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
 </style>
 <style>
 .epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
@@ -213,70 +215,104 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="eyebrow">ARC 2 ／ SCENE 5 — より深く</div>
 <h1>深さの積み方</h1>
 <p>層を増やせば表現力は上がる。だが素直に増やすとパラメータが爆発し、学習も進まない。
-2014 年、二つの答えが出た——<b>小さく揃えて縦に積む</b>か、<b>いろんな大きさを横に並べる</b>か。</p>
+2014 年、二つの答えが出た——<b>小さく揃えて縦に積む</b>か、<b>いろんな大きさを横に並べる</b>か。
+どちらも話の中心は<b>フィルタ（カーネル）</b>——画像を撫でていく小さな重みの行列だ。</p>
 </div>
 
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">VGG</a></li><li><a href="#sec2">Inception</a></li><li><a href="#sec3">Batch Normalization</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>VGG — 大きな畳み込み 1 枚と、小さな畳み込みの積み重ね</h2>
+<h2>VGG — 3×3 のフィルタを重ねる</h2>
 <details class="foldbox" open><summary>説明</summary>
-<p>同じ広さを見るのに、7×7 を 1 枚使うか、3×3 を 3 枚重ねるか。見える範囲は同じでも中身が違う。</p>
+<p>フィルタが大きいほど、一度に広い範囲を見られる。ただし重みの数はその面積ぶん要る。
+<b>7×7 を 1 枚</b>と<b>3×3 を 3 枚</b>は、最後に見えている範囲が同じになる——
+なのに重みの数が違う。下で <b>画像側で見えている範囲</b>と<b>フィルタの中身</b>を並べて確かめる。</p>
 </details>
 <div class="ctrls">
   <label>3×3 を何枚重ねるか <input type="range" id="vgg" min="1" max="5" value="3"></label>
   <span class="tag" id="vgg-v">3 枚</span>
 </div>
+<details class="foldbox" open><summary>説明</summary>
+<p class="note" style="margin:14px 0 2px">画像側 ―― 出力 1 マスが見ている範囲</p>
+</details>
 <details class="foldbox" open><summary>構成図</summary>
-<div id="v1"></div>
+<div class="nnfig mynet"><svg id="vRecep" viewBox="0 0 380 222"></svg></div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
+<p class="note" style="margin:14px 0 2px">フィルタ側 ―― 用意する重みのマス目</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="nnfig mynet"><svg id="vW" viewBox="0 0 380 190"></svg></div>
 </details>
 <div class="readout" id="rv"></div>
 <details class="foldbox"><summary>式と計算</summary>
-<div class="formula">受容野 $2k+1$ ／ 重みの数 $9k$（3×3 を $k$ 枚重ねる）対 $(2k+1)^2$（同じ広さを 1 枚で）
-<div class="note" style="margin-top:8px">$k=1$ のときは $9k=(2k+1)^2=9$ で<b>同じ枚数では差が出ない</b>。2 枚以上にすると効いてくる。</div>
+<div class="formula">受容野 $(2k+1)\times(2k+1)$ ／ 重み $9k$（3×3 を $k$ 枚）対 $(2k+1)^2$（1 枚で）
+<div class="note" style="margin-top:8px">$k=1$ では $9k=(2k+1)^2=9$ で<b>差が出ない</b>。2 枚以上で効いてくる。
+入出力のチャンネル数 $C_{\text{in}}, C_{\text{out}}$ は両方に等しく掛かるので、比はこのまま。
+上の図は 1 チャンネルぶんを描いている。</div>
 </div>
 </details>
 </div>
 
 <div class="fig-stage" id="sec2">
-<h2>Inception — 複数のカーネルサイズを並列に使う</h2>
+<h2>Inception — 1×1 が削るのは「厚み」</h2>
 <details class="foldbox" open><summary>説明</summary>
-<p>どの大きさのフィルタが効くかは、場所によって違う。なら並べて全部かけ、出てきたものを繋げばいい。
-ただしそのままでは計算量が爆発するので、1×1 で厚みを削ってから通す。</p>
+<p>いろんな大きさのフィルタを並べて全部かけ、結果を繋ぐ。ただし素直にやると計算量が爆発する。
+GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、1×1 が何をしているのかを見る。</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="nnfig mynet"><svg id="oneone" viewBox="0 0 380 250"></svg></div>
+</details>
+<div class="readout">1×1 のフィルタは<b>縦横に動かない</b>——同じ 1 画素の上で、
+<b>チャンネル方向（厚み）だけ</b>を掛け合わせて足す。だから画像の縦横は変わらず、
+<b>特徴マップの枚数だけが変わる</b>。192 種類の特徴を、混ぜて 16 種類に要約する、という操作。</div>
+
+<details class="foldbox" open><summary>補足</summary>
+<p style="margin-top:20px"><b>なぜ軽くなるのか。</b>畳み込み 1 回の掛け算回数は
+<b>（フィルタの面積）×（入力の厚み）×（出力の厚み）</b>。
+5×5 のような大きいフィルタは面積が大きいので、<b>入力の厚みを先に削っておく</b>と効く。
+1×1 自体は面積 1 なので安い。下は GoogLeNet の実際の層（inception 3a）の 5×5 の枝。</p>
 </details>
 <div class="ctrls">
+  <label>1×1 で削る先の厚み <input type="range" id="ired" min="8" max="192" step="8" value="16"></label>
+  <span class="tag" id="ired-v">16 ch</span>
   <button class="chip on" id="bott-btn" aria-pressed="true">1×1 で削る</button>
-  <label>入力の厚み <input type="range" id="ch" min="64" max="512" step="32" value="256"></label>
-  <span class="tag" id="ch-v">256</span>
 </div>
 <details class="foldbox" open><summary>構成図</summary>
-<div id="v2"></div>
+<div class="nnfig mynet"><svg id="icost" viewBox="0 0 380 216"></svg></div>
 </details>
 <div class="readout" id="ri"></div>
 <details class="foldbox"><summary>式と計算</summary>
-<div class="formula">$\mathrm{cost} = \sum k^2 C_{\text{in}} C_{\text{out}}$
-<div class="note" style="margin-top:8px">出力 64 ch・削減後 64 ch、1 画素位置あたりの掛け算回数として概算した<b>模式値であり、実測ではない</b>。</div>
+<div class="formula">$\mathrm{cost} = k^2 \, C_{\text{in}} \, C_{\text{out}}$（1 画素位置あたりの掛け算回数）
+<div class="note" style="margin-top:8px">数値は GoogLeNet の inception (3a)：入力 192 ch、5×5 の出力 32 ch、
+論文の削減先は 16 ch（Szegedy ほか 2015, Table 1）。特徴マップは 28×28 なので、
+1 画素あたりの回数を 784 倍すると層全体の回数になる。
+削りすぎれば当然情報は落ちる——16 という数は実験で選ばれた値であって、小さいほど良いわけではない。</div>
 </div>
 </details>
 </div>
 <div class="fig-stage" id="sec3">
-<h2>Batch Normalization — 層ごとに目盛りを揃える</h2>
+<h2>Batch Normalization — 基準化の前と後</h2>
 <details class="foldbox" open><summary>説明</summary>
-<p>層を通るたびに値の散らばりがずれていくと、学習率を上げた途端に壊れる。
-各層で平均 0・分散 1 に直してから次へ渡すと、大きい歩幅でも安定する。</p>
+<p>層を通るたびに、値の散らばりは勝手にずれていく。広がりすぎれば活性化関数が振り切れ、
+縮みすぎれば信号が消える。どちらも学習が止まる。
+そこで各層で<b>ミニバッチの平均 0・標準偏差 1 に直してから</b>次へ渡す。
+下は<b>実際に 64 点のミニバッチを 5 層に通した値そのもの</b>——上段が基準化する前、下段が次の層へ渡す値。</p>
 </details>
 <div class="ctrls">
-  <label>学習率 <input type="range" id="bnlr" min="1" max="100" value="55"></label>
-  <span class="tag" id="bnlr-v">0.55</span>
+  <label>重みの初期値の大きさ <input type="range" id="bnsc" min="2" max="20" value="10"></label>
+  <span class="tag" id="bnsc-v">1.0</span>
   <button class="chip on" id="bn-btn" aria-pressed="true">BatchNorm あり</button>
 </div>
 <details class="foldbox" open><summary>構成図</summary>
-<div id="s4"></div>
+<div class="nnfig mynet"><svg id="bnFig" viewBox="0 0 380 238"></svg></div>
 </details>
 <div class="readout" id="r4"></div>
 <details class="foldbox"><summary>式と計算</summary>
-<div class="formula">$\hat{x} = (x-\mu_B)/\sigma_B$
-<div class="note" style="margin-top:8px">ミニバッチ内の平均 $\mu_B$・分散 $\sigma_B^2$ で正規化してから次の層へ渡す。
-グラフの実線＝BatchNorm あり、<b>破線（アーク色）＝BatchNorm なし</b>。</div>
+<div class="formula">$\hat{x} = (x-\mu_B)\,/\,\sqrt{\sigma_B^2+\varepsilon}$
+<div class="note" style="margin-top:8px">$\mu_B, \sigma_B^2$ はミニバッチ内・チャンネルごとの平均と分散。
+図は 64 点 × 8 ユニット × 5 層のネットに実際に通した値の分布で、
+横軸は全段で $-6 \ldots 6$ に固定してある（幅の変化を見るため）。
+本来はこの後さらに学習可能な $\gamma, \beta$ で伸縮・移動させるが、ここでは基準化の効果だけを見せている。</div>
 </div>
 </details>
 <details class="foldbox" open><summary>補足</summary>
@@ -288,94 +324,288 @@ table{display:block;overflow-x:auto;max-width:100%}
 (function(){
   var $=function(s){return document.querySelector(s)};
   var NS='http://www.w3.org/2000/svg';
-  function svg(w,h,i){return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="max-width:'+w+'px;display:block;margin:0 auto" xmlns="'+NS+'">'+i+'</svg>';}
-  // 移設してきた BatchNorm の描画が使う（元のページにあったヘルパー）
-  function path(pts,cls){return '<path class="'+cls+'" d="M'+pts.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1)}).join(' L')+'"/>';}
+  var ARC='#6E7BA8', BAD='#b4493f', MUT='#9A9488', INK='#1A1A1A', LINE='#d8d4cb';
+  function el(tg,a,txt){ var e=document.createElementNS(NS,tg);
+    for(var k in a) e.setAttribute(k,a[k]); if(txt!=null) e.textContent=txt; return e; }
+  function clear(id){ var s=document.getElementById(id); s.innerHTML=''; return s; }
+  function tx(sv,x,y,s,o){ var a={x:x,y:y,'font-size':(o&&o.fs)||9.5,fill:(o&&o.fill)||MUT};
+    if(o&&o.anchor) a['text-anchor']=o.anchor;
+    if(o&&o.weight) a['font-weight']=o.weight;
+    sv.appendChild(el('text',a,s)); }
 
+  // ── ① VGG: フィルタ（カーネル）の話。画像側の受容野と、重みのマス目を並べて見せる ──
+  //    ※ 以前は抽象的な四角が k 個並ぶだけで「フィルタの中身」も「見えている範囲」も
+  //       描いていなかった（読者の指摘）。両方を実際の格子で描く。
+  function grid(sv,x0,y0,n,cell,hit){
+    // n×n の格子を描き、hit(r,c) が返す色で塗る
+    for(var r=0;r<n;r++) for(var c=0;c<n;c++){
+      var f=hit(r,c);
+      sv.appendChild(el('rect',{x:x0+c*cell,y:y0+r*cell,width:cell-1,height:cell-1,
+        fill:f||'#fff',stroke:'#e4e1d8','stroke-width':0.6}));
+    }
+  }
   function vgg(){
     var k=+$('#vgg').value; $('#vgg-v').textContent=k+' 枚';
-    var recep=1+2*k, p3=9*k, p1=recep*recep;
-    var g='<text class="lb" x="70" y="30">3×3 を '+k+' 枚</text>';
-    for(var i=0;i<k;i++){ g+='<rect class="box on" x="'+(70+i*54)+'" y="46" width="44" height="44"/>'; }
-    g+='<text class="lb" x="70" y="118">受容野 '+recep+'×'+recep+'／重み '+p3+' 個／非線形 '+k+' 回</text>';
-    g+='<text class="lb" x="330" y="30">同じ広さを 1 枚で</text>';
-    var sz=Math.min(96, 18+recep*7);
-    g+='<rect class="box" x="330" y="46" width="'+sz+'" height="'+sz+'"/>';
-    g+='<text class="lb" x="330" y="'+(58+sz+10)+'">受容野 '+recep+'×'+recep+'／重み '+p1+' 個／非線形 1 回</text>';
-    $('#v1').innerHTML=svg(560, 190, g);
+    var recep=1+2*k, W3=9*k, W1=recep*recep;
+    var N=11, cell=13, cen=(N-1)/2;                 // 画像 11×11・中心が出力 1 マス
+    var sv=clear('vRecep');
+    // 左: 3×3 を k 枚重ねた広がり（1 枚目 3×3 → 2 枚目 5×5 …と濃さを変える）
+    var xL=14, xR=212, yG=30;
+    grid(sv,xL,yG,N,cell,function(r,c){
+      var d=Math.max(Math.abs(r-cen),Math.abs(c-cen));
+      if(d>k) return '#fff';
+      var step=(k-d);                                // 中心ほど何枚も重なる
+      return 'rgba(110,123,168,'+(0.16+0.16*step).toFixed(3)+')';
+    });
+    grid(sv,xR,yG,N,cell,function(r,c){
+      var d=Math.max(Math.abs(r-cen),Math.abs(c-cen));
+      return d<=k ? 'rgba(110,123,168,0.30)' : '#fff';
+    });
+    [[xL,'3×3 を '+k+' 枚'],[xR,recep+'×'+recep+' を 1 枚']].forEach(function(p){
+      tx(sv,p[0]+N*cell/2,20,p[1],{anchor:'middle',fs:10.5,fill:'#565248',weight:600}); });
+    var yb=yG+N*cell+16;
+    [xL,xR].forEach(function(x){
+      tx(sv,x+N*cell/2,yb,'見えている範囲 '+recep+'×'+recep,{anchor:'middle',fs:10,fill:INK}); });
+    tx(sv,190,yb+20,'―― どちらも同じ広さ。中心の濃い所は、重ねた枚数ぶん通っている',
+       {anchor:'middle',fs:9.5});
+
+    // フィルタ側: 実際に用意する重みのマス目
+    var sw=clear('vW');
+    var cs=Math.min(12, Math.floor(160/(k*3+(k-1))));   // k 枚が左半分に収まる大きさ
+    var gx=14, gy=34;
+    for(var i=0;i<k;i++){
+      var x=gx+i*(3*cs+cs);
+      grid(sw,x,gy,3,cs,function(){ return 'rgba(110,123,168,0.30)'; });
+      if(i<k-1) tx(sw,x+3*cs+cs/2-1,gy+1.5*cs+4,'+',{anchor:'middle',fs:11,fill:MUT});
+    }
+    var cs1=Math.min(12, Math.floor(150/recep));
+    var bx=212, by=gy;
+    grid(sw,bx,by,recep,cs1,function(){ return 'rgba(110,123,168,0.30)'; });
+    tx(sw,14+80,20,'3×3 の重み × '+k+' 枚',{anchor:'middle',fs:10.5,fill:'#565248',weight:600});
+    tx(sw,bx+recep*cs1/2,20,recep+'×'+recep+' の重み × 1 枚',{anchor:'middle',fs:10.5,fill:'#565248',weight:600});
+    var ly=Math.max(gy+3*cs, by+recep*cs1)+20;
+    tx(sw,14+80,ly,'重み 9 × '+k+' = '+W3+' 個',{anchor:'middle',fs:11,fill:INK,weight:600});
+    tx(sw,bx+recep*cs1/2,ly,'重み '+recep+'² = '+W1+' 個',{anchor:'middle',fs:11,fill:INK,weight:600});
+    tx(sw,14+80,ly+17,'間に活性化関数が '+k+' 回',{anchor:'middle',fs:9.5});
+    tx(sw,bx+recep*cs1/2,ly+17,'活性化関数は 1 回',{anchor:'middle',fs:9.5});
+    sw.setAttribute('viewBox','0 0 380 '+(ly+30));
+
     $('#rv').innerHTML = k<=1
-      ? '3×3 を 1 枚のときは重みが <b>'+p3+' 対 '+p1+'</b>で同じ。<b>同じ枚数では差が出ない</b>。2 枚以上にすると効いてくる。'
-      : '同じ範囲を見るのに、重みは <b>'+p3+' 対 '+p1+'</b>。'+
-        '小さいのを重ねるほうが<b>軽く、しかも間に非線形が '+k+' 回</b>入る（表現力が上がる）。'+
-        'VGG が 3×3 だけで深くしたのはこのため。';
+      ? '3×3 が 1 枚だけなら、見える範囲も重みの数も <b>9 対 9</b> で同じ。'+
+        '<b>重ねて初めて差がつく</b>——スライダを 2 枚以上にしてほしい。'
+      : '同じ '+recep+'×'+recep+' の範囲を見るのに、用意する重みは <b>'+W3+' 個 対 '+W1+' 個</b>'+
+        '（'+(W1/W3).toFixed(2)+' 分の 1）。しかも 3×3 側は間に活性化関数が <b>'+k+' 回</b>入るので、'+
+        '同じ広さを見ながら<b>曲げられる回数が増える</b>。'+
+        'VGG が 3×3 だけを積んで 16〜19 層まで深くしたのは、この 2 つの得があるため。';
   }
   $('#vgg').oninput=vgg;
 
-  function incep(){
-    var c=+$('#ch').value, bott=$('#bott-btn').getAttribute('aria-pressed')==='true';
-    $('#ch-v').textContent=c;
-    var out=64, red=64;
-    var naive = (1*1*c*out) + (3*3*c*out) + (5*5*c*out);
-    var withB = (1*1*c*out) + (1*1*c*red + 3*3*red*out) + (1*1*c*red + 5*5*red*out);
-    var cost = bott? withB : naive;
-    var g='<rect class="box" x="230" y="16" width="110" height="30"/><text class="lb c" x="285" y="36">入力 '+c+' ch</text>';
-    var xs=[60,190,320,450], names=['1×1','3×3','5×5','MaxPool'];
-    xs.forEach(function(x,i){
-      if(bott && i>0 && i<3){
-        g+='<rect class="box pre" x="'+x+'" y="66" width="92" height="26"/><text class="lb c" x="'+(x+46)+'" y="84">1×1 で削る</text>';
-        g+='<rect class="box on" x="'+x+'" y="102" width="92" height="30"/><text class="lb c" x="'+(x+46)+'" y="122">'+names[i]+'</text>';
-      } else {
-        g+='<rect class="box on" x="'+x+'" y="82" width="92" height="34"/><text class="lb c" x="'+(x+46)+'" y="104">'+names[i]+'</text>';
-      }
-      g+='<line class="ed" x1="285" y1="46" x2="'+(x+46)+'" y2="66"/>';
-      g+='<line class="ed" x1="'+(x+46)+'" y1="132" x2="285" y2="156"/>';
-    });
-    g+='<rect class="box" x="200" y="156" width="170" height="30"/><text class="lb c" x="285" y="176">結合して次の層へ</text>';
-    $('#v2').innerHTML=svg(580,200,g);
-    $('#ri').innerHTML='掛け算の回数はおよそ <b>'+(cost/1e6).toFixed(1)+' M</b>。'+
-      (bott ? ' 1×1 で厚みを '+red+' ch まで削ってから通すので、<b>'+(naive/withB).toFixed(1)+' 分の 1</b> に収まる。'
-            : ' 削らずに全部かけると <b>'+(naive/withB).toFixed(1)+' 倍</b>に膨らむ。これでは深くできない。');
+  // ── ② Inception: 1×1 が削るのは「厚み」。まず何をしているかを実数で見せる ──
+  //    値と重みは決定論（読者が見るたび同じ）。C=6 に縮めた例で内積を最後まで書く。
+  function oneone(){
+    var sv=clear('oneone');
+    // ※ 重みは、内積の答えが表の中のどの数とも一致しない組にする
+    //    （0.4 だと答えが -0.24 になり、2 行目の -1.2×0.2 と同じ数字で紛らわしかった）
+    var C=6, V=[0.8,-1.2,0.3,2.1,-0.5,1.4], Wt=[0.5,0.2,-0.9,0.7,1.1,-0.3];
+    // 左: 特徴マップの束（6 枚）を少しずらして重ね、1 画素位置に印を打つ
+    var bx=16, by=44, sz=52, dx=7, dy=6;
+    for(var i=C-1;i>=0;i--){
+      sv.appendChild(el('rect',{x:bx+i*dx,y:by+i*dy,width:sz,height:sz,rx:2,
+        fill:'#fff',stroke:'#c8c8c2','stroke-width':1}));
+      sv.appendChild(el('rect',{x:bx+i*dx+18,y:by+i*dy+18,width:8,height:8,
+        fill:'rgba(110,123,168,0.75)'}));
+    }
+    tx(sv,bx+30,26,'特徴マップ 6 枚',{anchor:'middle',fs:10.5,fill:'#565248',weight:600});
+    tx(sv,bx+30,38,'（実物は 192 枚）',{anchor:'middle',fs:8.5});
+    tx(sv,bx+34,by+sz+(C-1)*dy+16,'同じ 1 画素の位置',{anchor:'middle',fs:9.5});
+    tx(sv,bx+34,by+sz+(C-1)*dy+30,'（28×28 の 1 マス）',{anchor:'middle',fs:9});
+    // 中: その位置の 6 個の値 / 右: 重み
+    var cx=150, wx=214, ry=56, rh=19;
+    tx(sv,cx+22,44,'その値',{anchor:'middle',fs:10,fill:'#565248',weight:600});
+    tx(sv,wx+22,44,'1×1 の重み',{anchor:'middle',fs:10,fill:'#565248',weight:600});
+    var sum=0;
+    for(var j=0;j<C;j++){
+      sum+=V[j]*Wt[j];
+      [[cx,V[j]],[wx,Wt[j]]].forEach(function(p){
+        sv.appendChild(el('rect',{x:p[0],y:ry+j*rh,width:44,height:rh-3,rx:2,
+          fill:'#fff',stroke:'#e4e1d8'}));
+        tx(sv,p[0]+22,ry+j*rh+12,p[1].toFixed(1),{anchor:'middle',fs:10,fill:INK});
+      });
+      tx(sv,cx+50,ry+j*rh+12,'×',{anchor:'middle',fs:9.5});
+    }
+    var yEnd=ry+C*rh;
+    sv.appendChild(el('line',{x1:cx,y1:yEnd+2,x2:wx+44,y2:yEnd+2,stroke:LINE,'stroke-width':1}));
+    tx(sv,cx,yEnd+18,'ぜんぶ足す →',{fs:10});
+    sv.appendChild(el('rect',{x:wx-4,y:yEnd+6,width:52,height:20,rx:3,fill:ARC}));
+    tx(sv,wx+22,yEnd+20,sum.toFixed(2),{anchor:'middle',fs:11,fill:'#fff',weight:600});
+    tx(sv,14,yEnd+40,'これで出力 1 枚ぶんの 1 画素。別の重みで 16 回くり返せば、出力は 16 枚',{fs:9.5});
+    // 右端: 結果の厚みが 6 → 16 に置き換わる図
+    var ox=300;
+    tx(sv,ox+34,32,'出力',{anchor:'middle',fs:10.5,fill:'#565248',weight:600});
+    for(var m=3;m>=0;m--){
+      sv.appendChild(el('rect',{x:ox+m*5,y:60+m*5,width:44,height:44,rx:2,
+        fill:'#fff',stroke:ARC,'stroke-width':1}));
+    }
+    tx(sv,ox+30,130,'枚数だけ変わる',{anchor:'middle',fs:9.5});
+    tx(sv,ox+30,144,'28×28 のまま',{anchor:'middle',fs:9.5,fill:INK});
+    sv.setAttribute('viewBox','0 0 380 '+(yEnd+52));
   }
-  $('#ch').oninput=incep;
+
+  function incep(){
+    // GoogLeNet inception(3a) の 5×5 の枝: 入力 192ch → 出力 32ch。論文の削減先は 16ch
+    var CIN=192, COUT=32, R=+$('#ired').value;
+    var use=$('#bott-btn').getAttribute('aria-pressed')==='true';
+    $('#ired-v').textContent=R+' ch';
+    var naive = 25*CIN*COUT;
+    var c1 = 1*CIN*R, c5 = 25*R*COUT, red = c1+c5;
+    var sv=clear('icost');
+    // 右端のラベル（x0+wmax+7+幅）が 380 に収まる値。目盛りは長い方に合わせる
+    // ―― 削り先を入力と同じ 192 ch にすると 1×1 を挟むだけ損になり、削る側が長くなる
+    var x0=90, wmax=192, top=Math.max(naive, red);
+    function bar(y,val,label,parts){
+      var w=Math.max(2, val/top*wmax);
+      if(parts){
+        var w1=parts[0]/top*wmax;
+        sv.appendChild(el('rect',{x:x0,y:y,width:Math.max(1.5,w1),height:22,fill:'rgba(110,123,168,0.45)'}));
+        sv.appendChild(el('rect',{x:x0+w1,y:y,width:Math.max(1.5,w-w1),height:22,fill:ARC}));
+      } else {
+        sv.appendChild(el('rect',{x:x0,y:y,width:w,height:22,fill:BAD,opacity:0.75}));
+      }
+      tx(sv,x0-8,y+15,label,{anchor:'end',fs:10,fill:INK});
+      tx(sv,x0+w+7,y+15,(val/1000).toFixed(1)+' 千回',{fs:10,fill:INK,weight:600});
+    }
+    tx(sv,10,16,'1 画素あたりの掛け算回数（5×5 の枝・入力 192 ch → 出力 32 ch）',{fs:10,fill:'#565248',weight:600});
+    bar(30, naive, '削らない');
+    tx(sv,x0,68,'25 × 192 × 32',{fs:9});
+    bar(86, red, '1×1 で削る', [c1]);
+    tx(sv,x0,124,'1×192×'+R+' = '+(c1/1000).toFixed(1)+' 千回（薄い方）＋ 25×'+R+'×32 = '+(c5/1000).toFixed(1)+' 千回',{fs:9});
+    var hl=use?86:30;
+    sv.appendChild(el('rect',{x:x0-70,y:hl-5,width:wmax+118,height:32,rx:4,fill:'none',
+      stroke:'#c8a86b','stroke-width':1.6}));
+    tx(sv,10,152,'層全体（28×28 画素ぶん）',{fs:10,fill:'#565248',weight:600});
+    tx(sv,10,170,'削らない: '+(naive*784/1e6).toFixed(1)+' M 回　／　削る: '+(red*784/1e6).toFixed(1)+' M 回',
+       {fs:11,fill:INK});
+    tx(sv,10,192,'※ 薄い方が 1×1 自身の費用。面積 1 なので安く、その先の 5×5 が軽くなる',{fs:9});
+    $('#ri').innerHTML = use
+      ? (red<naive
+          ? '入力の厚みを 192 → <b>'+R+' ch</b> に削ってから 5×5 を通すと、'+
+            '<b>'+(naive/red).toFixed(1)+' 分の 1</b>（'+(naive/1000).toFixed(1)+' 千回 → '+(red/1000).toFixed(1)+' 千回）。'+
+            '削るのに要る 1×1 自身は '+(c1/red*100).toFixed(0)+'% ぶんしかない——'+
+            '<b>面積 1 のフィルタは安く、面積 25 のフィルタは入力の厚みに正比例して高い</b>から、先に削ると効く。'
+          : '削り先を <b>'+R+' ch</b> まで上げると、削っていないのと変わらない。'+
+            '1×1 を通す費用（'+(c1/1000).toFixed(1)+' 千回）だけが乗って、'+
+            '<b>かえって '+(red/naive).toFixed(2)+' 倍</b>に増える。'+
+            '効くのは「削る」ときだけで、挟むこと自体に意味があるわけではない。')
+      : '削らずに 5×5 を 192 ch にそのまま掛けると <b>'+(naive/1000).toFixed(1)+' 千回</b>。'+
+        '層全体では '+(naive*784/1e6).toFixed(1)+' M 回で、'+
+        'これを枝の数だけ並べるのが Inception なので、素直にやると積み重ねられない。'+
+        '「1×1 で削る」を押すと '+(naive/red).toFixed(1)+' 分の 1 になる。';
+  }
+  $('#ired').oninput=incep;
   $('#bott-btn').onclick=function(){ var on=this.getAttribute('aria-pressed')==='true';
     this.setAttribute('aria-pressed',!on); this.classList.toggle('on',!on);
     this.textContent=(!on?'1×1 で削る':'削らない'); incep(); };
 
-  // ③ BatchNorm（S4 から移設）
-  function bn(){
-    var lr=+$('#bnlr').value/100, on=$('#bn-btn').getAttribute('aria-pressed')==='true';
-    $('#bnlr-v').textContent=lr.toFixed(2);
-    var pts=[], v=0.9, x0=50,x1=540,y0=30,y1=180;
-    for(var i=0;i<=60;i++){
-      var t=i/60;
-      if(on){ v=Math.max(0.06, 0.9*Math.exp(-t*(1.4+lr*2.6))); }
-      else{
-        var k=1.4+lr*1.0;
-        v=0.9*Math.exp(-t*k);
-        if(lr>0.55) v += (lr-0.55)*2.2*Math.abs(Math.sin(t*26))*t;   // 大きい歩幅で暴れる
-        v=Math.max(0.04,Math.min(1.2,v));
+  // ── ③ BatchNorm: 実際にミニバッチを 5 層に通し、基準化の前と後の分布そのものを描く ──
+  //    数値は Python で事前検証済み（scale=1.0・BN なしで σ 3.11→2.04・飽和 46%、
+  //    BN ありは全段 σ=1.00・飽和 12%。scale=0.3 まで下げると σ 0.93→0.16 で信号が消える）
+  var NB=64, NU=8, NL=5;
+  function LCG(seed){ this.r=seed>>>0; }
+  LCG.prototype.next=function(){ this.r=(Math.imul(this.r,1664525)+1013904223)>>>0; return this.r/4294967296; };
+  function gauss(rng){ var u1=Math.max(rng.next(),1e-9), u2=rng.next();
+    return Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2); }
+  function forward(scale, bn){
+    var rng=new LCG(7), b, j, k, l;
+    var H=[]; for(b=0;b<NB;b++){ var row=[]; for(j=0;j<NU;j++) row.push(gauss(rng)); H.push(row); }
+    var Ws=[]; for(l=0;l<NL;l++){ var M=[];
+      for(k=0;k<NU;k++){ var r2=[]; for(j=0;j<NU;j++) r2.push(gauss(rng)*scale); M.push(r2); } Ws.push(M); }
+    var pre=[], post=[];
+    for(l=0;l<NL;l++){
+      var Z=[]; for(b=0;b<NB;b++){ var zr=[];
+        for(k=0;k<NU;k++){ var s=0; for(j=0;j<NU;j++) s+=H[b][j]*Ws[l][k][j]; zr.push(s); } Z.push(zr); }
+      var fp=[]; for(b=0;b<NB;b++) for(k=0;k<NU;k++) fp.push(Z[b][k]);
+      pre.push(fp);
+      if(bn){
+        for(k=0;k<NU;k++){
+          var col=[], m=0, v=0;
+          for(b=0;b<NB;b++){ col.push(Z[b][k]); m+=Z[b][k]; }
+          m/=NB;
+          for(b=0;b<NB;b++) v+=(col[b]-m)*(col[b]-m);
+          var sd=Math.sqrt(v/NB+1e-8);
+          for(b=0;b<NB;b++) Z[b][k]=(Z[b][k]-m)/sd;
+        }
       }
-      pts.push([x0+t*(x1-x0), y1-Math.min(1.2,v)/1.2*(y1-y0)]);
+      var fq=[]; for(b=0;b<NB;b++) for(k=0;k<NU;k++) fq.push(Z[b][k]);
+      post.push(fq);
+      for(b=0;b<NB;b++) for(k=0;k<NU;k++) H[b][k]=Math.tanh(Z[b][k]);
     }
-    var g='<line class="ax" x1="'+x0+'" y1="'+y1+'" x2="'+x1+'" y2="'+y1+'"/>'+
-          '<line class="ax" x1="'+x0+'" y1="'+y1+'" x2="'+x0+'" y2="'+y0+'"/>'+
-          path(pts, on?'cv':'cv2')+
-          '<text class="lb" x="'+(x1-4)+'" y="'+(y1+20)+'" text-anchor="end">学習の進み →</text>'+
-          '<text class="lb" x="'+(x0-8)+'" y="'+(y0+6)+'" text-anchor="end">誤差</text>';
-    $('#s4').innerHTML=svg(580,200,g);
-    $('#r4').innerHTML = on
-      ? '各層で目盛りを揃えるので、学習率 '+lr.toFixed(2)+' でも<b>まっすぐ下がる</b>。'+
-        '大きい歩幅が使える＝速く学べる。'
-      : (lr>0.55 ? '目盛りがずれたまま大きい歩幅を使うと、<b>誤差が暴れて下がらない</b>。'+
-                   '層を通るたび分布がずれていくのが原因（内部共変量シフト）。'
-                 : '歩幅が小さいうちは正規化なしでも下がる。ただし遅い。');
+    var sat=0, tot=0;
+    for(b=0;b<NB;b++) for(k=0;k<NU;k++){ tot++; if(Math.abs(H[b][k])>0.9) sat++; }
+    return {pre:pre, post:post, sat:sat/tot*100};
   }
-  $('#bnlr').oninput=bn;
+  function sdOf(a){ var m=0,v=0,i;
+    for(i=0;i<a.length;i++) m+=a[i]; m/=a.length;
+    for(i=0;i<a.length;i++) v+=(a[i]-m)*(a[i]-m);
+    return Math.sqrt(v/a.length); }
+  function hist(sv,x,y,w,h,vals,color){
+    // 横軸は -6..6 に固定。固定しないと自動目盛りが幅の変化を隠してしまう
+    var NBIN=17, LO=-6, HI=6, cnt=new Array(NBIN).fill(0), i, mx=1;
+    for(i=0;i<vals.length;i++){
+      var t=(vals[i]-LO)/(HI-LO), b=Math.floor(t*NBIN);
+      cnt[Math.max(0,Math.min(NBIN-1,b))]++;
+    }
+    for(i=0;i<NBIN;i++) mx=Math.max(mx,cnt[i]);
+    var bw=w/NBIN;
+    for(i=0;i<NBIN;i++){
+      var bh=cnt[i]/mx*h;
+      if(bh<0.6) continue;
+      sv.appendChild(el('rect',{x:(x+i*bw).toFixed(1),y:(y+h-bh).toFixed(1),
+        width:(bw-0.6).toFixed(1),height:bh.toFixed(1),fill:color}));
+    }
+    sv.appendChild(el('line',{x1:x,y1:y+h,x2:x+w,y2:y+h,stroke:LINE,'stroke-width':0.8}));
+    sv.appendChild(el('line',{x1:x+w/2,y1:y+h,x2:x+w/2,y2:y+h+3,stroke:LINE,'stroke-width':0.8}));
+  }
+  function bn(){
+    var sc=+$('#bnsc').value/10, on=$('#bn-btn').getAttribute('aria-pressed')==='true';
+    $('#bnsc-v').textContent=sc.toFixed(1);
+    var R=forward(sc,on), sv=clear('bnFig');
+    var pw=64, gap=8, x0=14, hA=52, hB=52, yA=32, yB=136;
+    tx(sv,x0,18,'基準化する前 ―― その層が出した値',{fs:10.5,fill:'#565248',weight:600});
+    tx(sv,x0,yB-14, on?'基準化した後 ―― 次の層へ渡す値':'基準化しないので、そのまま次の層へ',
+       {fs:10.5,fill:'#565248',weight:600});
+    for(var l=0;l<NL;l++){
+      var x=x0+l*(pw+gap);
+      hist(sv,x,yA,pw,hA,R.pre[l],'rgba(180,73,63,0.55)');
+      tx(sv,x+pw/2,yA+hA+13,'σ '+sdOf(R.pre[l]).toFixed(2),{anchor:'middle',fs:9.5,fill:INK});
+      tx(sv,x+pw/2,yA-4,(l+1)+' 層目',{anchor:'middle',fs:9});
+      hist(sv,x,yB,pw,hB,R.post[l], on?'rgba(110,123,168,0.6)':'rgba(180,73,63,0.35)');
+      tx(sv,x+pw/2,yB+hB+13,'σ '+sdOf(R.post[l]).toFixed(2),{anchor:'middle',fs:9.5,
+        fill:on?INK:MUT});
+    }
+    tx(sv,x0,yB+hB+30,'横軸はどの段も −6 … 6 に固定。tanh は ±1.5 を超えると寝てしまう',{fs:9});
+    var s1=sdOf(R.pre[0]), s5=sdOf(R.pre[NL-1]);
+    $('#r4').innerHTML = on
+      ? '基準化の後は、どの層も <b>σ = 1.00</b> に揃う（上段を見ると、前は '+s1.toFixed(2)+' → '+s5.toFixed(2)+' と'+
+        'ばらついている）。tanh が振り切れている割合は <b>'+R.sat.toFixed(0)+'%</b> で、'+
+        '重みの初期値を変えても<b>ここは動かない</b>——初期値の当たり外れに学習が左右されなくなる。'+
+        'だから大きい学習率を使え、深く積める。'
+      : (R.sat>25          // 幅そのものより「tanh が寝ている割合」で判定する（σ 2 台でも 46% 飽和する）
+          ? '基準化しないと、散らばりが <b>σ '+s1.toFixed(2)+' → '+s5.toFixed(2)+'</b> のまま次の層へ渡り、'+
+            'tanh が振り切れた値の割合は <b>'+R.sat.toFixed(0)+'%</b>。'+
+            '振り切れた所は入力を変えても出力がほとんど動かない＝<b>勾配がほぼ 0</b> で学習が止まる。'
+          : s5<0.5
+          ? '今度は逆に、層を通るごとに <b>σ '+s1.toFixed(2)+' → '+s5.toFixed(2)+'</b> と縮んでいく。'+
+            '奥へ行くほど値が 0 に潰れ、<b>信号そのものが消える</b>。'
+          : '重みの初期値がちょうど良いと、基準化なしでも σ は '+s1.toFixed(2)+' → '+s5.toFixed(2)+' で保たれる。'+
+            'ただし<b>この「ちょうど良さ」を手で当てにいく必要がある</b>——'+
+            'スライダを左右に振ると、すぐ潰れるか振り切れるかに転ぶ。');
+  }
+  $('#bnsc').oninput=bn;
   $('#bn-btn').onclick=function(){ var on=this.getAttribute('aria-pressed')==='true';
     this.setAttribute('aria-pressed',!on); this.classList.toggle('on',!on);
     this.textContent='BatchNorm '+(!on?'あり':'なし'); bn(); };
 
-  vgg(); incep(); bn();
+  vgg(); oneone(); incep(); bn();
 })();
 </script>
 <script>
