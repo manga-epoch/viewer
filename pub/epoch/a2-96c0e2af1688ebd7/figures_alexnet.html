@@ -313,10 +313,12 @@ SM（Streaming Multiprocessor）は GPU の実行ユニットで、AlexNet の G
 わざと間違えたラベルを 8 点混ぜた 36 点を学習させ、なし／あり × 初期値 3 通り = 6 回の平均で比べる。</p>
 </details>
 <details class="foldbox" open><summary>構成図</summary>
-<div class="nnfig mynet"><svg id="dnet" viewBox="0 0 380 252"></svg></div>
+<div class="nnfig mynet"><svg id="dnetA" viewBox="0 0 380 184"></svg></div>
+<div class="nnfig mynet" style="margin-top:2px"><svg id="dnetB" viewBox="0 0 380 202"></svg></div>
 </details>
-<div class="ctrls"><button class="btn" id="dTrain">▶ 6 回学習して比べる</button></div>
-<div class="readout" id="dOut">学習中は、眠らされた計算点が × で薄くなる（2 つの中間層の両方・訓練のたびに違う組み合わせ）。</div>
+<div class="ctrls"><button class="btn" id="dTrain">▶ スロー再生 → 6 回測って比べる</button></div>
+<div class="readout" id="dOut">▶ を押すと、まず<b>スロー再生</b>（1 コマ = 訓練 1 点）で「どのノードが眠るか」を
+上下の構成図で見比べ、そのあと なし／あり × 初期値 3 通りの測定に入る。</div>
 <details class="foldbox" open><summary>構成図</summary>
 <div class="grid-wrap" style="margin-top:10px">
   <div style="text-align:center"><svg id="dPlotA" width="170" height="170" viewBox="0 0 300 300"></svg>
@@ -512,41 +514,42 @@ AlexNet は全結合の 2 層に <b>$p=0.5$</b> を使い、推論時はマス�
     for(k=0;k<DH;k++) W3.push((rng.next()*2-1)*1.8);
     return {W1:W1,b1:b1,W2:W2,b2:b2,W3:W3,b3:0,rng:rng};
   }
+  function trainSample(net, drop, n){
+    // 訓練 1 点ぶんの前進＋逆伝播。スロー再生も測定も、この同じ 1 歩を使う
+    var q=DDATA.tr[n], x1=q.x, x2=q.y, y=q.l, j, k;
+    var a1=[], m1=[], a1d=[], a2=[], m2=[], a2d=[];
+    for(j=0;j<DH;j++) a1.push(sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]));
+    for(j=0;j<DH;j++) m1.push(drop>0?(net.rng.next()<drop?0:1/(1-drop)):1);
+    for(j=0;j<DH;j++) a1d.push(a1[j]*m1[j]);
+    for(k=0;k<DH;k++){ var z=net.b2[k];
+      for(j=0;j<DH;j++) z+=net.W2[k][j]*a1d[j];
+      a2.push(sig(z)); }
+    for(k=0;k<DH;k++) m2.push(drop>0?(net.rng.next()<drop?0:1/(1-drop)):1);
+    for(k=0;k<DH;k++) a2d.push(a2[k]*m2[k]);
+    var o=net.b3;
+    for(k=0;k<DH;k++) o+=net.W3[k]*a2d[k];
+    o=sig(o);
+    var d=o-y;
+    var dh2=[];
+    for(k=0;k<DH;k++) dh2.push(d*net.W3[k]*m2[k]*a2[k]*(1-a2[k]));
+    for(k=0;k<DH;k++) net.W3[k]-=DLR*d*a2d[k];
+    net.b3-=DLR*d;
+    var dh1=[];
+    for(j=0;j<DH;j++){ var s=0;
+      for(k=0;k<DH;k++) s+=dh2[k]*net.W2[k][j];
+      dh1.push(s*m1[j]*a1[j]*(1-a1[j])); }
+    for(k=0;k<DH;k++){
+      for(j=0;j<DH;j++) net.W2[k][j]-=DLR*dh2[k]*a1d[j];
+      net.b2[k]-=DLR*dh2[k]; }
+    for(j=0;j<DH;j++){
+      net.W1[j][0]-=DLR*dh1[j]*x1; net.W1[j][1]-=DLR*dh1[j]*x2; net.b1[j]-=DLR*dh1[j]; }
+    return {m1:m1, m2:m2};
+  }
   function trainEpochs(net, drop, epochs){
-    var lastM1=null, lastM2=null;
-    for(var ep=0;ep<epochs;ep++){
-      for(var n=0;n<DDATA.tr.length;n++){
-        var q=DDATA.tr[n], x1=q.x, x2=q.y, y=q.l, j, k;
-        var a1=[], m1=[], a1d=[], a2=[], m2=[], a2d=[];
-        for(j=0;j<DH;j++) a1.push(sig(net.W1[j][0]*x1+net.W1[j][1]*x2+net.b1[j]));
-        for(j=0;j<DH;j++) m1.push(drop>0?(net.rng.next()<drop?0:1/(1-drop)):1);
-        for(j=0;j<DH;j++) a1d.push(a1[j]*m1[j]);
-        for(k=0;k<DH;k++){ var z=net.b2[k];
-          for(j=0;j<DH;j++) z+=net.W2[k][j]*a1d[j];
-          a2.push(sig(z)); }
-        for(k=0;k<DH;k++) m2.push(drop>0?(net.rng.next()<drop?0:1/(1-drop)):1);
-        for(k=0;k<DH;k++) a2d.push(a2[k]*m2[k]);
-        var o=net.b3;
-        for(k=0;k<DH;k++) o+=net.W3[k]*a2d[k];
-        o=sig(o);
-        var d=o-y;
-        var dh2=[];
-        for(k=0;k<DH;k++) dh2.push(d*net.W3[k]*m2[k]*a2[k]*(1-a2[k]));
-        for(k=0;k<DH;k++) net.W3[k]-=DLR*d*a2d[k];
-        net.b3-=DLR*d;
-        var dh1=[];
-        for(j=0;j<DH;j++){ var s=0;
-          for(k=0;k<DH;k++) s+=dh2[k]*net.W2[k][j];
-          dh1.push(s*m1[j]*a1[j]*(1-a1[j])); }
-        for(k=0;k<DH;k++){
-          for(j=0;j<DH;j++) net.W2[k][j]-=DLR*dh2[k]*a1d[j];
-          net.b2[k]-=DLR*dh2[k]; }
-        for(j=0;j<DH;j++){
-          net.W1[j][0]-=DLR*dh1[j]*x1; net.W1[j][1]-=DLR*dh1[j]*x2; net.b1[j]-=DLR*dh1[j]; }
-        lastM1=m1; lastM2=m2;
-      }
-    }
-    return {m1:lastM1, m2:lastM2};
+    var lm=null;
+    for(var ep=0;ep<epochs;ep++)
+      for(var n=0;n<DDATA.tr.length;n++) lm=trainSample(net, drop, n);
+    return lm;
   }
   function predict(net,x1,x2){
     var j, k, a1=[], a2=[];
@@ -563,43 +566,48 @@ AlexNet は全結合の 2 層に <b>$p=0.5$</b> を使い、推論時はマス�
     data.forEach(function(q){ if((predict(net,q.x,q.y)>=0.5)===(q.l===1)) ok++; });
     return ok/data.length*100;
   }
-  function drawDnet(masks){
-    // 図解ページの構成図と同じ体裁: 円ノードの列 × 全結合の線。落ちた点は × で塗りが抜ける
-    var sv=document.getElementById('dnet'); sv.innerHTML='';
+  function drawDnet(id, masks, title, caps){
+    // 図解ページの構成図と同じ体裁: 円ノードの列 × 全結合の線。落ちた点は × で塗りが抜ける。
+    // なし用（dnetA）とあり用（dnetB）の 2 段を、この 1 つの描き手で描く
+    var sv=document.getElementById(id); sv.innerHTML='';
     var m1=masks&&masks.m1, m2=masks&&masks.m2;
-    var xs=[46,150,254,342], cy=124, gap=25, i, j, k;
+    var xs=[46,150,254,342], cy=94, gap=20, i, j, k;
     var hy=[]; for(j=0;j<DH;j++) hy.push(cy+gap*(j-(DH-1)/2));
-    var iy=[cy-26,cy+26], oy=[cy];
+    var iy=[cy-22,cy+22], oy=[cy];
     function edge(x1,y1,x2,y2,offA,offB){
       sv.appendChild(elA('line',{x1:x1,y1:y1,x2:x2,y2:y2,stroke:'#b9c0d8','stroke-width':0.7,
-        opacity:(offA||offB)?0.12:0.5}));
+        opacity:(offA||offB)?0.1:0.5}));
     }
-    for(i=0;i<2;i++)for(j=0;j<DH;j++) edge(xs[0]+12,iy[i],xs[1]-10,hy[j],false,m1&&m1[j]===0);
-    for(j=0;j<DH;j++)for(k=0;k<DH;k++) edge(xs[1]+10,hy[j],xs[2]-10,hy[k],m1&&m1[j]===0,m2&&m2[k]===0);
-    for(k=0;k<DH;k++) edge(xs[2]+10,hy[k],xs[3]-12,oy[0],m2&&m2[k]===0,false);
+    for(i=0;i<2;i++)for(j=0;j<DH;j++) edge(xs[0]+11,iy[i],xs[1]-8,hy[j],false,m1&&m1[j]===0);
+    for(j=0;j<DH;j++)for(k=0;k<DH;k++) edge(xs[1]+8,hy[j],xs[2]-8,hy[k],m1&&m1[j]===0,m2&&m2[k]===0);
+    for(k=0;k<DH;k++) edge(xs[2]+8,hy[k],xs[3]-11,oy[0],m2&&m2[k]===0,false);
     function node(cx2,cy2,r,txt){
       sv.appendChild(elA('circle',{cx:cx2,cy:cy2,r:r,fill:'#fff',stroke:'#1a1a1a','stroke-width':1.6}));
-      if(txt) sv.appendChild(elA('text',{x:cx2,y:cy2+4,'font-size':10.5,'text-anchor':'middle',fill:D_INK},txt));
+      if(txt) sv.appendChild(elA('text',{x:cx2,y:cy2+3.5,'font-size':10,'text-anchor':'middle',fill:D_INK},txt));
     }
     function hnode(cx2,cy2,off){
-      sv.appendChild(elA('circle',{cx:cx2,cy:cy2,r:10,fill:off?'#F4F2EC':'#fff',
-        stroke:off?'#d8d4cb':'#1a1a1a','stroke-width':off?1.1:1.6,opacity:off?0.6:1}));
+      sv.appendChild(elA('circle',{cx:cx2,cy:cy2,r:8,fill:off?'#F4F2EC':'#fff',
+        stroke:off?'#d8d4cb':'#1a1a1a','stroke-width':off?1.1:1.6,opacity:off?0.55:1}));
       if(off){
-        sv.appendChild(elA('line',{x1:cx2-5,y1:cy2-5,x2:cx2+5,y2:cy2+5,stroke:D_BAD,'stroke-width':1.4}));
-        sv.appendChild(elA('line',{x1:cx2-5,y1:cy2+5,x2:cx2+5,y2:cy2-5,stroke:D_BAD,'stroke-width':1.4}));
+        sv.appendChild(elA('line',{x1:cx2-5,y1:cy2-5,x2:cx2+5,y2:cy2+5,stroke:D_BAD,'stroke-width':1.8}));
+        sv.appendChild(elA('line',{x1:cx2-5,y1:cy2+5,x2:cx2+5,y2:cy2-5,stroke:D_BAD,'stroke-width':1.8}));
       }
     }
-    node(xs[0],iy[0],12,'x₁'); node(xs[0],iy[1],12,'x₂');
+    node(xs[0],iy[0],10,'x₁'); node(xs[0],iy[1],10,'x₂');
     for(j=0;j<DH;j++) hnode(xs[1],hy[j],m1&&m1[j]===0);
     for(k=0;k<DH;k++) hnode(xs[2],hy[k],m2&&m2[k]===0);
-    node(xs[3],oy[0],12,'y');
-    sv.appendChild(elA('text',{x:(xs[1]+xs[2])/2,y:12,'font-size':10,'text-anchor':'middle',fill:D_MUT},
-      '中間 2 層に dropout 0.5（AlexNet と同じ場所）'));
-    sv.appendChild(elA('text',{x:xs[0],y:cy+50,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'入力 2'));
-    sv.appendChild(elA('text',{x:xs[1],y:hy[DH-1]+22,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'中間 8'));
-    sv.appendChild(elA('text',{x:xs[2],y:hy[DH-1]+22,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'中間 8'));
-    sv.appendChild(elA('text',{x:xs[3],y:cy+50,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'出力 1'));
+    node(xs[3],oy[0],10,'y');
+    sv.appendChild(elA('text',{x:190,y:12,'font-size':10.5,'text-anchor':'middle',fill:'#565248',
+      'font-weight':'600'},title));
+    if(caps){
+      sv.appendChild(elA('text',{x:xs[0],y:hy[DH-1]+22,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'入力 2'));
+      sv.appendChild(elA('text',{x:xs[1],y:hy[DH-1]+22,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'中間 8'));
+      sv.appendChild(elA('text',{x:xs[2],y:hy[DH-1]+22,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'中間 8'));
+      sv.appendChild(elA('text',{x:xs[3],y:hy[DH-1]+22,'font-size':9.5,'text-anchor':'middle',fill:D_MUT},'出力 1'));
+    }
   }
+  var DT_A='dropout なし ―― 毎回、全ノードが学ぶ';
+  var DT_B='dropout あり(0.5) ―― 毎回、無作為の半分が眠る';
   function drawRegion(svgId, net){
     var sv=document.getElementById(svgId); sv.innerHTML='';
     var S=300, pad=10, W=S-pad*2, N=40, cw=W/N;
@@ -623,6 +631,27 @@ AlexNet は全結合の 2 層に <b>$p=0.5$</b> を使い、推論時はマス�
   document.getElementById('dTrain').addEventListener('click',function(){
     if(dBusy) return;
     dBusy=true;
+    // ── スロー再生: 本物の学習を 1 点ずつ進め、上下の構成図で「誰が眠るか」を見比べる。
+    //    なし側は毎コマ同じ顔ぶれ（それが弱点）、あり側は毎コマ組み合わせが変わる。
+    //    この 2 体は見せるためだけに育て、測定はこの後まっさらな 6 体で行う。
+    var demoA=newNet(99), demoB=newNet(99), ds=0, DEMO=10;
+    (function demo(){
+      if(ds>=DEMO){
+        drawDnet('dnetA', null, DT_A, false);
+        drawDnet('dnetB', null, DT_B, true);
+        startRuns(); return;
+      }
+      trainSample(demoA, 0, ds);
+      var lm=trainSample(demoB, 0.5, ds);
+      var k1=0, k2=0, j;
+      for(j=0;j<DH;j++){ if(lm.m1[j]===0)k1++; if(lm.m2[j]===0)k2++; }
+      drawDnet('dnetA', null, 'dropout なし ―― '+(ds+1)+' 点目: 全ノードが学ぶ', false);
+      drawDnet('dnetB', lm, 'dropout あり ―― '+(ds+1)+' 点目: 中間1で '+k1+' 個・中間2で '+k2+' 個が眠る', true);
+      document.getElementById('dOut').innerHTML='<b>スロー再生 '+(ds+1)+' / '+DEMO+'</b>（1 コマ = 訓練 1 点）'
+        +' ―― なし側は毎回<b>同じ全員</b>で学ぶのでノイズも全員で覚え込める。'
+        +'あり側は眠る組み合わせが毎回変わり、<b>特定の経路に頼れない</b>。';
+      ds++; setTimeout(demo, 650);
+    })();
     var runs=[], SEEDS=[99,300,777];
     SEEDS.forEach(function(sd){ runs.push({drop:0,seed:sd}); });
     SEEDS.forEach(function(sd){ runs.push({drop:0.5,seed:sd}); });
@@ -637,7 +666,9 @@ AlexNet は全結合の 2 層に <b>$p=0.5$</b> を使い、推論時はマス�
           +'ありは覚え込みをやめたぶん訓練は下がり、<b>初見に強くなる</b>。'
           +'下の絵でも、なし側は × を取りに行って境界がゆがみ、あり側は × を無視してなだらかになる。';
         drawRegion('dPlotA', keep[0]); drawRegion('dPlotB', keep[0.5]);
-        drawDnet(null); dBusy=false;
+        drawDnet('dnetA', null, DT_A, false);
+        drawDnet('dnetB', null, DT_B+'（測定後は全員参加）', true);
+        dBusy=false;
         return;
       }
       var r=runs[ri];
@@ -648,7 +679,7 @@ AlexNet は全結合の 2 層に <b>$p=0.5$</b> を使い、推論時はマス�
         (function chunk(){
           var lm=trainEpochs(net, r.drop, CH);
           done+=CH;
-          if(r.drop>0) drawDnet(lm);
+          if(r.drop>0) drawDnet('dnetB', lm, DT_B, true);
           if(done<1800){ setTimeout(chunk, 0); return; }
           res[r.drop].push({tr:accOf(net,DDATA.tr), te:accOf(net,DDATA.te)});
           if(r.seed===99) keep[r.drop]=net;
@@ -656,9 +687,11 @@ AlexNet は全結合の 2 層に <b>$p=0.5$</b> を使い、推論時はマス�
         })();
       }, 30);
     }
-    stepRun();
+    function startRuns(){ stepRun(); }
   });
-  drawDnet(null); drawRegion('dPlotA', null); drawRegion('dPlotB', null);
+  drawDnet('dnetA', null, DT_A, false);
+  drawDnet('dnetB', null, DT_B, true);
+  drawRegion('dPlotA', null); drawRegion('dPlotB', null);
 })();
 </script>
 <script>
