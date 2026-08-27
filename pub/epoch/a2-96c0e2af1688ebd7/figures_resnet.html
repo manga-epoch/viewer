@@ -175,6 +175,16 @@ table{display:block;overflow-x:auto;max-width:100%}
 .foldbox[open]>summary::before{transform:rotate(90deg)}
 .foldbox>summary:hover{color:var(--ink)}
 .foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
+</style><style class="epoch-theme-toc">
+.fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px}
+.fig-toc .ft-label{font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--ink-muted);
+ text-transform:uppercase;display:block;margin-bottom:8px}
+.fig-toc ol{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px}
+.fig-toc a{display:inline-block;padding:6px 13px;background:#fff;border:1px solid var(--border);
+ border-radius:16px;font-size:13px;text-decoration:none;color:var(--ink)}
+.fig-toc a:hover{border-color:var(--arc)}
+.fig-stage{scroll-margin-top:16px}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 残差接続と勾配消失</div>
@@ -182,46 +192,73 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="intro">
 <div class="eyebrow">EPOCH Arc 2 ・ Scene 5「より深く」</div>
 <h1>残差接続と勾配消失 — 「より深く」を可能にした一手</h1>
-<p>層を深くすれば表現力は上がる ―― はずだった。ところが 20 層を超えると、誤差逆伝播で<strong>勾配が入力側へ届く前に指数的に小さくなり</strong> (勾配消失)、浅い層がほとんど学習しなくなる。
-2015 年 He らの <strong>ResNet</strong> は、各ブロックに「入力をそのまま足す」<strong>残差接続 (skip connection)</strong> を入れた。
-勾配が skip を通って<strong>素通り</strong>できるため、152 層でも学習が進み、ImageNet で人間 (top-5 誤り 5.1%) を初めて下回った (3.57%)。
-下のスライダーで層を深くし、skip のオン/オフで勾配がどう変わるかを見よう。</p>
+<p>層を深くすれば表現力は上がる ―― はずだった。ところが層を重ねると、誤差逆伝播で
+<strong>ズレが入口へ届く前に小さくなりすぎる</strong>（勾配消失）。手前の層はほとんど学習しない。
+2015 年 He らの <strong>ResNet</strong> は、各ブロックに「入力をそのまま足す」
+<strong>残差接続</strong>を入れた。足し算の枝を勾配がそのまま通れるので、152 層でも学習が進み、
+ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。</p>
+<p>下では、<a href="figures_nn.html">ニューラルネットの図解</a>⑤で勾配消失を見たときと
+<strong>まったく同じネット・同じ重み</strong>（入力 2 → 中間 3 が n 層 → 出力 2）に残差接続を足して、
+<strong>実際に逆伝播した勾配</strong>を測って比べる。掛け算の模式ではない。</p>
 </div>
 
-<div class="fig-stage">
-<h2>深さと勾配の関係 — 残差接続の有無による比較</h2>
+<style>
+/* ※ このページ限定。共通 CSS に足すと、同じクラス名を使っている figures_cnn の
+   全幅レイアウトが崩れた（実測で横 15px はみ出し）ので、ここだけに閉じる */
+.rfig svg{width:100%;max-width:480px;height:auto;display:block;margin:0 auto}
+</style>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">しくみ</a></li><li><a href="#sec2">実演</a></li></ol></nav>
+<div class="fig-stage" id="sec1">
+<h2>しくみ — 勾配に道が 2 本できる</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">層数を増やすと、出力側 (右) から入力側 (左) へ伝わる勾配の大きさが各層でどう変化するかを棒で表す。縦軸は<strong>対数</strong>――1 目盛りで 10 倍変わるので、skip 無しがどれだけ急に潰れるか、skip 有りがそれと比べてどれだけ緩やかかが桁で見える。</div>
-<p class="note">「各層の勾配係数」は、残差ブロックの中身 $\mathcal{F}$ 自身の局所勾配 $\mathcal{F}'$ の大きさに相当する模式的な値。棒グラフは、その値で各層を掛け合わせていくシミュレーション計算であり、実測の勾配ではない。</p>
+<div class="lead">残差ブロックは、重みを通した結果 $\mathcal{F}(x)$ に<strong>入力 $x$ をそのまま足す</strong>。
+順方向の足し算は、逆方向では<strong>分岐</strong>になる ―― 勾配が「重みを通る道」と
+「足し算の枝をそのまま通る道」の 2 本に分かれて手前へ届く。</div>
 </details>
-
-<div class="ctrls">
-  <div class="ctrl" style="flex:1;min-width:200px">
-    <label>層数 <span class="val" id="depthV">28</span> 層</label>
-    <input type="range" id="depth" min="4" max="100" step="2" value="28">
-  </div>
-  <div class="ctrl" style="flex:1;min-width:200px">
-    <label>各層の勾配係数 $\mathcal{F}'$ <span class="val" id="gainV">0.15</span></label>
-    <input type="range" id="gain" min="0" max="105" step="1" value="15">
-  </div>
-  <button class="btn ghost on" id="skipBtn">skip 接続: ON</button>
-</div>
-
 <details class="foldbox" open><summary>構成図</summary>
-<svg id="gradSvg" width="100%" viewBox="0 0 840 260" style="max-width:840px;display:block;margin:6px auto"></svg>
-<div class="legend">
-  <span><i style="background:var(--arc)"></i>skip あり (残差接続)</span>
-  <span><i style="background:#b4493f"></i>skip なし (勾配消失)</span>
+<div class="rfig"><svg id="rBlock" viewBox="0 0 380 222"></svg></div>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
+<div class="formula">$\mathbf{y} = \mathcal{F}(\mathbf{x}, W) + \mathbf{x}
+\qquad\Rightarrow\qquad
+\dfrac{\partial \mathbf{y}}{\partial \mathbf{x}} = \mathcal{F}'(\cdot) + 1$
+<div class="note" style="margin-top:8px">この <strong>+1</strong> があるので、$\mathcal{F}'$ がどれだけ小さくても
+掛け算の積がゼロへ潰れない。逆に言えば<strong>消失を防ぐ仕組みであって、増えすぎる方は防がない</strong>
+―― 下の実演で、そこも見える。</div>
 </div>
 </details>
-<div class="readout" id="rout"></div>
-
-<details class="foldbox"><summary>式と計算</summary>
-<div class="formula">
-残差ブロック: $\quad \mathbf{y} = \mathcal{F}(\mathbf{x}, W) + \mathbf{x}$
-<div class="note" style="margin-top:8px">勾配は $\dfrac{\partial \mathbf{y}}{\partial \mathbf{x}} = \mathcal{F}'(\cdot) + 1$。
-この <strong>+1</strong> があるおかげで、各層の勾配係数がどんなに小さくても、層を重ねた積がゼロへ潰れることはない (消失を防ぐ)。ただし +1 より大きい値が積み重なれば増幅方向にも振れる ―― 残差接続は消失を防ぐ仕組みであって、あらゆる不安定さを消す魔法ではない。</div>
 </div>
+
+<div class="fig-stage" id="sec2">
+<h2>実演 — 同じネットで、残差接続の有無を測る</h2>
+<details class="foldbox" open><summary>説明</summary>
+<div class="lead">出口で出たズレを逆伝播させ、<strong>各層に届いたズレの大きさ</strong>（丸の値の 2 乗平均）を
+層ごとに測る。縦軸は<strong>対数</strong>で、1 目盛りが 10 倍。
+<span style="color:#b4493f;font-weight:700">赤い破線＝残差接続なし</span> ／
+<span style="font-weight:700">黒い実線＝あり</span>。</div>
+</details>
+<div class="chips" id="racts" style="justify-content:center">
+  <span class="chip on" data-ra="sigmoid">シグモイド</span>
+  <span class="chip" data-ra="tanh">tanh</span>
+  <span class="chip" data-ra="relu">ReLU</span>
+  <span class="chip" data-ra="none">なし（恒等）</span>
+</div>
+<div class="ctrls" style="justify-content:center">
+  <button class="btn ghost" id="rPrev">◁ 中間層を減らす</button>
+  <span class="tag" id="rNow">中間層 8 つ</span>
+  <button class="btn ghost" id="rNext">中間層を増やす ▷</button>
+</div>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="rfig"><svg id="rChart" viewBox="0 0 380 250"></svg></div>
+</details>
+<div class="readout" id="rOut"></div>
+<details class="foldbox" open><summary>補足</summary>
+<p class="note">残差接続は中間層どうし（幅が同じ所）だけに入る。入口と出口は幅が違うので、
+そのままは足せない ―― 本物の ResNet も、幅が変わる所では 1×1 の畳み込みを挟んで揃えている。<br>
+<strong>ReLU や tanh で「あり」を深くすると、今度は増えすぎる</strong>のが見える。
+足し算の枝を通ってズレがそのまま重なるからで、これは実測どおりの挙動。
+本物の ResNet が各ブロックに <a href="figures_depth.html">Batch Normalization</a> を挟んでいるのは、
+これを抑えるため。<strong>残差接続だけでは足りない</strong>。</p>
 </details>
 </div>
 
@@ -229,65 +266,190 @@ table{display:block;overflow-x:auto;max-width:100%}
 
 <script>
 (function(){
-  var ARC="#6E7BA8";
-  var depth=28, gain=0.15, skip=true;
-  // 対数軸の表示範囲。爆発 (>1e12) も消失 (<1e-12) もこの中に収まる想定で余裕を取る
-  var LOGMIN=-12, LOGMAX=12;
-  function fmt(v){
-    // 「0.000 なのに生き残る」のような自己矛盾を避けるため、極端に小さい/大きい値は指数表記にする
-    if(v===0)return'0';
-    if(v>=1e-3&&v<1e4)return v.toFixed(v<1?4:3);
-    return v.toExponential(2);
-  }
-  function draw(){
-    var svg=document.getElementById('gradSvg');svg.innerHTML='';
-    var W=840,H=260,padL=54,padR=20,padB=40,padT=20,n=depth;
-    var bw=(W-padL-padR)/n;
-    // 出力側 (勾配=1) から入力側へ、各層を通るたびに勾配係数を掛けていく
-    // ―― 表示している式 ∂y/∂x = F'+1 と一致させる: skip 無しは F' そのもの、skip 有りは (F'+1)
-    var g=1, mags=[];
-    for(var i=0;i<n;i++){ g = skip ? g*Math.abs(gain+1) : g*gain; mags.push(g); }
-    var SVGNS="http://www.w3.org/2000/svg";
-    function el(t,a,txt){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
-    var y0=H-padB,y1=padT;
-    function toY(m){
-      var lv = m>0 ? Math.log(m)/Math.LN10 : LOGMIN;
-      lv=Math.max(LOGMIN,Math.min(LOGMAX,lv));
-      return y0-(lv-LOGMIN)/(LOGMAX-LOGMIN)*(y0-y1);
-    }
-    // 目盛り (10 の累乗) と、勾配=1 (理想: 入力までそのまま届く) の基準線
-    [-9,-6,-3,0,3,6,9].forEach(function(p){
-      var yy=toY(Math.pow(10,p));
-      svg.appendChild(el('line',{x1:padL,y1:yy,x2:W-padR,y2:yy,stroke:p===0?'#CFCBBE':'#EFEDE5','stroke-width':p===0?1.4:1}));
-      svg.appendChild(el('text',{x:padL-8,y:yy+4,'text-anchor':'end','font-size':10,fill:'#9A9488'},
-        p===0?'1':'10^'+p));
-    });
-    for(var i=0;i<n;i++){
-      var m=mags[n-1-i]; // i=0 (左端) = 入力側 = 最も減衰/増幅が進んだ値
-      var yTop=toY(m);
-      svg.appendChild(el('rect',{x:padL+i*bw+1,y:Math.min(yTop,y0),width:Math.max(1,bw-2),height:Math.max(1.5,Math.abs(y0-yTop)),
-        fill: skip?ARC:'#b4493f', opacity: skip?0.85:0.8, rx:1}));
-    }
-    svg.appendChild(el('text',{x:padL,y:H-12,'font-size':12,fill:'#9A9488'},'入力側 (浅い層)'));
-    svg.appendChild(el('text',{x:W-padR,y:H-12,'font-size':12,fill:'#9A9488','text-anchor':'end'},'出力側 (損失)'));
-    svg.appendChild(el('text',{x:padL,y:padT-4,'font-size':12,fill:'#565248'},'勾配の大きさ (対数軸) →'));
+  var ARC="#6E7BA8", BAD="#b4493f", INK="#1A1A1A", MUT="#9A9488", LINE="#E4E1D8";
+  var NS="http://www.w3.org/2000/svg";
+  function el(t,a,txt){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);
+    if(txt!=null)e.textContent=txt;return e;}
+  function clear(id){var s=document.getElementById(id);s.innerHTML='';return s;}
+  function tx(sv,x,y,s,o){var a={x:x,y:y,'font-size':(o&&o.fs)||9.5,fill:(o&&o.fill)||MUT};
+    if(o&&o.anchor)a['text-anchor']=o.anchor; if(o&&o.weight)a['font-weight']=o.weight;
+    sv.appendChild(el('text',a,s));}
 
-    // 読み上げは実際に計算した値から分岐する (skip の ON/OFF で文言を固定しない) ―― でないと
-    // 「0.000 なのに生き残る」のような、値と説明が矛盾する表示を生んでしまう
-    var inputGrad=mags[n-1];
-    var label;
-    if(inputGrad>100){ label='勾配爆発 ―― 層を経るごとに値が指数的に増大している'; }
-    else if(inputGrad<0.01){ label='勾配消失 ―― 層を経るごとに値が指数的に潰れている'; }
-    else { label='1 の周辺に保たれている ―― 学習に使える大きさが入力側まで届く'; }
-    var ro=document.getElementById('rout');
-    ro.textContent = 'skip 接続 '+(skip?'ON':'OFF')+' ・ '+depth+'層 ・ 勾配係数 '+gain.toFixed(2)+
-      ' → 入力層に届く勾配の大きさ ≈ '+fmt(inputGrad)+'  ('+label+')';
+  // ── ① 残差ブロックの構成図（静的）
+  (function(){
+    var sv=clear('rBlock');
+    function box(x,y,w,h,t1,t2){
+      sv.appendChild(el('rect',{x:x,y:y,width:w,height:h,rx:5,fill:'#fff',
+        stroke:'#1a1a1a','stroke-width':1.4}));
+      tx(sv,x+w/2,y+(t2?h/2-2:h/2+4),t1,{anchor:'middle',fs:10.5,fill:INK,weight:600});
+      if(t2) tx(sv,x+w/2,y+h/2+12,t2,{anchor:'middle',fs:9});
+    }
+    function arw(x1,y1,x2,y2,col){
+      sv.appendChild(el('line',{x1:x1,y1:y1,x2:x2,y2:y2,stroke:col||'#b9c0d8','stroke-width':1.6}));
+      var dx=x2-x1, dy=y2-y1, L=Math.sqrt(dx*dx+dy*dy)||1, ux=dx/L, uy=dy/L;
+      sv.appendChild(el('path',{d:'M'+(x2-6*ux-3*uy)+' '+(y2-6*uy+3*ux)+
+        ' L'+x2+' '+y2+' L'+(x2-6*ux+3*uy)+' '+(y2-6*uy-3*ux)+' Z',fill:col||'#b9c0d8'}));
+    }
+    // ※ 行間は font-size×1.44 以上あけ、skip の弧とラベルの帯も重ねない（実測で 2 件ぶつかった）
+    tx(sv,10,12,'順方向 ―― 重みを通った結果に、入力をそのまま足す',{fs:10,fill:'#565248',weight:600});
+    tx(sv,146,28,'残差接続 ―― x をそのまま運ぶ',{anchor:'middle',fs:9.5,fill:ARC,weight:600});
+    box(14,52,58,34,'入力 x');
+    arw(74,69,104,69);
+    box(106,52,96,34,'重み W と h','これが F(x)');
+    arw(204,69,236,69);
+    sv.appendChild(el('circle',{cx:250,cy:69,r:13,fill:'#fff',stroke:'#1a1a1a','stroke-width':1.6}));
+    tx(sv,250,73,'＋',{anchor:'middle',fs:13,fill:INK});
+    arw(264,69,296,69);
+    box(298,52,66,34,'出力 y');
+    sv.appendChild(el('path',{d:'M43 52 C43 36 250 36 250 54',fill:'none',stroke:ARC,'stroke-width':2}));
+    arw(250,40,250,54,ARC);
+    // 逆方向
+    tx(sv,10,124,'逆方向 ―― 足し算は分岐になる。勾配が 2 本の道で手前へ届く',
+       {fs:10,fill:'#565248',weight:600});
+    sv.appendChild(el('line',{x1:14,y1:134,x2:366,y2:134,stroke:LINE,'stroke-width':1}));
+    arw(244,160,110,160,BAD); tx(sv,177,154,'重みを通る道（小さくなる）',{anchor:'middle',fs:9.5,fill:BAD});
+    arw(244,192,60,192,ARC);  tx(sv,152,186,'足し算の枝（そのまま通る）',{anchor:'middle',fs:9.5,fill:ARC});
+    tx(sv,300,176,'ここで 2 本に',{anchor:'middle',fs:9});
+    tx(sv,14,212,'手前の層へ',{fs:9});
+    tx(sv,366,212,'出口から',{anchor:'end',fs:9});
+  })();
+
+  // ── ② 実演。figures_nn ⑤ と同じネット・同じ重み。残差接続を足して実測する
+  //    数値は Python で事前検証済み（シグモイド・中間 8 層で
+  //    なし 入口 7.4e-06（8.0e-06 倍）／あり 1.193（0.277 倍））
+  var XIN=[-0.4,0.8], TGT=[1,0];
+  function sg(z){return 1/(1+Math.exp(-z));}
+  var ACTS={
+    none:{nm:'なし（恒等）',f:function(z){return z;},d:function(){return 1;}},
+    sigmoid:{nm:'シグモイド',f:sg,d:function(z){var s=sg(z);return s*(1-s);}},
+    tanh:{nm:'tanh',f:function(z){return Math.tanh(z);},d:function(z){var t=Math.tanh(z);return 1-t*t;}},
+    relu:{nm:'ReLU',f:function(z){return z>0?z:0;},d:function(z){return z>0?1:0;}}
+  };
+  var RHID=8, RK='sigmoid';
+  function dnet(nh){
+    var shape=[2],q; for(q=0;q<nh;q++) shape.push(3); shape.push(2);
+    var s2=20260808, r=function(){s2=(s2*16807)%2147483647; return s2/2147483647;};
+    var W=[],Bs=[],l,j,i2;
+    for(l=0;l<shape.length-1;l++){
+      var m=[],bb=[];
+      for(j=0;j<shape[l+1];j++){
+        var row=[]; for(i2=0;i2<shape[l];i2++) row.push(Math.round((r()*2-1)*140)/100);
+        m.push(row); bb.push(0);
+      }
+      W.push(m); Bs.push(bb);
+    }
+    return {shape:shape,W:W,B:Bs};
   }
-  document.getElementById('depth').addEventListener('input',function(e){depth=+e.target.value;document.getElementById('depthV').textContent=depth;draw();});
-  document.getElementById('gain').addEventListener('input',function(e){gain=+e.target.value/100;document.getElementById('gainV').textContent=gain.toFixed(2);draw();});
-  document.getElementById('skipBtn').addEventListener('click',function(){
-    skip=!skip;this.textContent='skip 接続: '+(skip?'ON':'OFF');this.classList.toggle('on',skip);draw();});
-  draw();
+  function drun(nh,skip){
+    var N=dnet(nh), shape=N.shape, L=shape.length-1;
+    var f=ACTS[RK].f, fd=ACTS[RK].d;
+    var a=[XIN.slice()], mm=[], used=[], l,j,i2,s3;
+    for(l=0;l<L;l++){
+      var m=[],nx=[];
+      for(j=0;j<shape[l+1];j++){
+        s3=N.B[l][j]; for(i2=0;i2<shape[l];i2++) s3+=N.W[l][j][i2]*a[l][i2];
+        m.push(s3); nx.push(l===L-1?s3:f(s3));
+      }
+      var sk = skip && l>0 && l<L-1 && shape[l]===shape[l+1];
+      used.push(sk);
+      if(sk) for(j=0;j<shape[l+1];j++) nx[j]+=a[l][j];
+      mm.push(m); a.push(nx);
+    }
+    var gA=[]; for(l=0;l<=L;l++) gA.push(null);
+    gA[L]=[a[L][0]-TGT[0], a[L][1]-TGT[1]];
+    var gm=gA[L].slice();
+    for(l=L-1;l>=0;l--){
+      var ga=[];
+      for(i2=0;i2<shape[l];i2++){ s3=0;
+        for(j=0;j<shape[l+1];j++) s3+=N.W[l][j][i2]*gm[j];
+        ga.push(s3); }
+      if(used[l]) for(i2=0;i2<shape[l];i2++) ga[i2]+=gA[l+1][i2];
+      gA[l]=ga;
+      if(l>0){ gm=[]; for(i2=0;i2<shape[l];i2++) gm.push(ga[i2]*fd(mm[l-1][i2])); }
+    }
+    var rms=gA.map(function(v){var t=0,q2;for(q2=0;q2<v.length;q2++)t+=v[q2]*v[q2];
+      return Math.sqrt(t/v.length);});
+    var ns=0; for(l=0;l<used.length;l++) if(used[l]) ns++;
+    return {rms:rms, nskip:ns};
+  }
+  function fmt(v){
+    if(!isFinite(v)) return '∞';
+    if(v===0) return '0';
+    if(v>=1e-3 && v<1e4) return v.toFixed(v<1?3:2);
+    return v.toExponential(1).replace('e','e');
+  }
+  function drawChart(){
+    var A=drun(RHID,false), B=drun(RHID,true), n=A.rms.length;
+    var sv=clear('rChart');
+    var x0=44, x1=352, y0=196, y1=28;
+    var all=A.rms.concat(B.rms), lo=99, hi=-99, i;
+    for(i=0;i<all.length;i++){ var lv=all[i]>0?Math.log(all[i])/Math.LN10:-12;
+      if(lv<lo) lo=lv; if(lv>hi) hi=lv; }
+    lo=Math.floor(Math.min(lo,-1))-0.4; hi=Math.ceil(Math.max(hi,1))+0.4;
+    if(hi-lo<3){ hi=lo+3; }
+    function X(i2){ return x0+(n>1?i2/(n-1):0)*(x1-x0); }
+    function Y(v){ var lv=v>0?Math.log(v)/Math.LN10:lo;
+      lv=Math.max(lo,Math.min(hi,lv)); return y0-(lv-lo)/(hi-lo)*(y0-y1); }
+    // 目盛り
+    var step=Math.max(1,Math.ceil((hi-lo)/5));
+    for(var p=Math.ceil(lo);p<=Math.floor(hi);p+=step){
+      var yy=Y(Math.pow(10,p));
+      sv.appendChild(el('line',{x1:x0,y1:yy,x2:x1,y2:yy,stroke:p===0?'#CFCBBE':'#EFEDE5',
+        'stroke-width':p===0?1.3:1}));
+      tx(sv,x0-6,yy+3.5,p===0?'1':'10'+String(p).replace('-','⁻')
+        .replace(/[0-9]/g,function(c){return '⁰¹²³⁴⁵⁶⁷⁸⁹'.charAt(+c);}),{anchor:'end',fs:8.5});
+    }
+    function series(r,color,dash){
+      var d='',i2;
+      for(i2=0;i2<n;i2++) d+=(i2?' L':'M')+X(i2).toFixed(1)+' '+Y(r[i2]).toFixed(1);
+      var at={d:d,fill:'none',stroke:color,'stroke-width':2.2};
+      if(dash) at['stroke-dasharray']='6 4';
+      sv.appendChild(el('path',at));
+      for(i2=0;i2<n;i2++)
+        sv.appendChild(el('circle',{cx:X(i2).toFixed(1),cy:Y(r[i2]).toFixed(1),r:2.6,fill:color}));
+    }
+    series(A.rms,BAD,true); series(B.rms,INK,false);
+    sv.appendChild(el('line',{x1:x0,y1:y0,x2:x1,y2:y0,stroke:'#b9b9b2','stroke-width':1.2}));
+    tx(sv,x0,y0+16,'入口（手前の層）',{fs:9.5,fill:INK});
+    tx(sv,x1,y0+16,'出口',{anchor:'end',fs:9.5,fill:INK});
+    tx(sv,x0-6,y1-8,'届いたズレの大きさ（対数）',{fs:9});
+    sv.appendChild(el('line',{x1:x0+2,y1:y0+34,x2:x0+26,y2:y0+34,stroke:BAD,'stroke-width':2.2,
+      'stroke-dasharray':'6 4'}));
+    tx(sv,x0+30,y0+37,'残差接続なし',{fs:9.5,fill:INK});
+    sv.appendChild(el('line',{x1:x0+112,y1:y0+34,x2:x0+136,y2:y0+34,stroke:INK,'stroke-width':2.2}));
+    tx(sv,x0+140,y0+37,'あり（skip '+B.nskip+' 本）',{fs:9.5,fill:INK});
+    document.getElementById('rNow').textContent='中間層 '+RHID+' つ';
+    Array.prototype.forEach.call(document.querySelectorAll('.chip[data-ra]'),function(c){
+      c.classList.toggle('on', c.getAttribute('data-ra')===RK); });
+    var rA=A.rms[n-1]>0?A.rms[0]/A.rms[n-1]:0, rB=B.rms[n-1]>0?B.rms[0]/B.rms[n-1]:0;
+    var msg;
+    if(B.nskip===0){
+      msg='中間層が 1 つだと、飛び越す先がないので残差接続は 1 本も入らない（2 本の線が重なる）。'+
+          '▷ で層を増やしてほしい。';
+    } else if(rA<0.05 && rB>0.1){
+      msg='<b>なし</b>は出口 '+fmt(A.rms[n-1])+' が入口で <b>'+fmt(A.rms[0])+'</b>（'+fmt(rA)+' 倍）まで潰れ、'+
+          '手前の層はほとんど動かない。<b>あり</b>は同じ重みで入口 <b>'+fmt(B.rms[0])+'</b>（'+fmt(rB)+' 倍）。'+
+          '足し算の枝を通った分がそのまま残るので、深くしても届く。';
+    } else if(rB>20){
+      msg='この $h$ では、<b>あり</b>の側が入口で <b>'+fmt(B.rms[0])+'</b>（'+fmt(rB)+' 倍）まで<b>増えている</b>。'+
+          '足し算の枝でズレがそのまま重なるためで、これも実測どおり。'+
+          '残差接続は<b>潰れるのを防ぐ仕組みであって、増えすぎる方は防がない</b>。'+
+          '本物の ResNet が各ブロックに Batch Normalization を挟むのは、ここを抑えるため。';
+    } else {
+      msg='なし: 入口 <b>'+fmt(A.rms[0])+'</b>（'+fmt(rA)+' 倍）／あり: 入口 <b>'+fmt(B.rms[0])+'</b>（'+fmt(rB)+' 倍）。'+
+          'この $h$ と深さでは、まだ大きな差にならない。'+
+          '<b>シグモイド</b>にして層を増やすと、差がはっきり出る。';
+    }
+    document.getElementById('rOut').innerHTML=
+      'h = '+ACTS[RK].nm+'　中間層 '+RHID+' つ（全 '+(n-1)+' 段）<br>'+msg;
+  }
+  document.getElementById('rPrev').addEventListener('click',function(){
+    RHID=Math.max(1,RHID-1); drawChart(); });
+  document.getElementById('rNext').addEventListener('click',function(){
+    RHID=Math.min(12,RHID+1); drawChart(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-ra]'),function(c){
+    c.addEventListener('click',function(){ RK=c.getAttribute('data-ra'); drawChart(); }); });
+  drawChart();
 })();
 </script>
 
