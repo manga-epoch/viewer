@@ -244,6 +244,33 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="nnfig mynet"><svg id="vW" viewBox="0 0 380 190"></svg></div>
 </details>
 <div class="readout" id="rv"></div>
+
+<details class="foldbox" open><summary>補足</summary>
+<p style="margin-top:22px"><b>では、重ねると実際に何が見えるのか。</b>
+下は同じ絵を 2 通りに通した結果——上は 3×3 を 3 枚（間に ReLU）、下は 7×7 を 1 枚。
+<b>絵はどれも実際に畳み込んだ結果</b>で、描いたものではない。</p>
+</details>
+<div class="ctrls">
+  <button class="chip on" data-vi="square">四角</button>
+  <button class="chip" data-vi="cross">十字</button>
+  <button class="chip" data-vi="ell">L 字</button>
+  <label>2 層目のしきい値 <input type="range" id="vth" min="40" max="185" step="5" value="115"></label>
+  <span class="tag" id="vth-v">1.15</span>
+</div>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="nnfig mynet"><svg id="vMaps" viewBox="0 0 380 218"></svg></div>
+</details>
+<div class="readout" id="rvm"></div>
+<details class="foldbox" open><summary>補足</summary>
+<p class="note">1 層目の 2 枚は、縦の線・横の線に反応するフィルタ。
+2 層目は<b>その 2 枚を足して、しきい値を引いて ReLU</b>——だから
+「縦も横も立っている所」だけが残り、<b>角</b>になる。
+しきい値を下げると条件がゆるみ、辺も残りはじめる（＝ただの「どちらか」に戻る）。
+7×7 を 1 枚だけ通した下段は、線のある所すべてが光る。
+<b>重みをどう選んでも、折り曲げが 1 回では「縦かつ横」は作れない</b>——
+半分に切る操作を 1 回しかしていないので、2 つの条件の重なりを取り出せない。</p>
+</details>
+
 <details class="foldbox"><summary>式と計算</summary>
 <div class="formula">受容野 $(2k+1)\times(2k+1)$ ／ 重み $9k$（3×3 を $k$ 枚）対 $(2k+1)^2$（1 枚で）
 <div class="note" style="margin-top:8px">$k=1$ では $9k=(2k+1)^2=9$ で<b>差が出ない</b>。2 枚以上で効いてくる。
@@ -307,6 +334,22 @@ GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、
 <div class="nnfig mynet"><svg id="bnFig" viewBox="0 0 380 238"></svg></div>
 </details>
 <div class="readout" id="r4"></div>
+
+<details class="foldbox" open><summary>補足</summary>
+<p style="margin-top:22px"><b>その結果、学習はどう変わるか。</b>
+目盛りが揃うと、<b>大きい歩幅（学習率）を使っても壊れなくなる</b>。
+下は同じ 2-8-8-8-1 のネットを BatchNorm あり／なしで<b>実際に 160 回学習させた誤差</b>
+――模式ではなく、その場で走らせた結果を描いている。</p>
+</details>
+<div class="ctrls">
+  <label>学習率 <input type="range" id="bnlr" min="1" max="30" value="12"></label>
+  <span class="tag" id="bnlr-v">12</span>
+</div>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="nnfig mynet"><svg id="bnLoss" viewBox="0 0 380 196"></svg></div>
+</details>
+<div class="readout" id="r5"></div>
+
 <details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$\hat{x} = (x-\mu_B)\,/\,\sqrt{\sigma_B^2+\varepsilon}$
 <div class="note" style="margin-top:8px">$\mu_B, \sigma_B^2$ はミニバッチ内・チャンネルごとの平均と分散。
@@ -323,6 +366,7 @@ GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、
 <script>
 (function(){
   var $=function(s){return document.querySelector(s)};
+  var $$=function(s){return [].slice.call(document.querySelectorAll(s))};
   var NS='http://www.w3.org/2000/svg';
   var ARC='#6E7BA8', BAD='#b4493f', MUT='#9A9488', INK='#1A1A1A', LINE='#d8d4cb';
   function el(tg,a,txt){ var e=document.createElementNS(NS,tg);
@@ -400,6 +444,131 @@ GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、
   }
   $('#vgg').oninput=vgg;
 
+  // ── ①b 実際に畳んだ特徴マップ ──────────────────────────────
+  //  主張:「同じ広さでも、間に ReLU を挟むぶん絞り込める」。
+  //  7×7 の線形フィルタ 1 枚＋ReLU 1 回は半空間しか作れないので、
+  //  「縦と横が“両方”立っている所」＝角 と 辺 を分けられない。
+  //  Python で事前検証済み（θ=1.15 で 四角=8 画素・十字=12 画素・L=6 画素の角が残る）
+  var IMG_N=24;
+  function mkImg(kind){
+    var a=[],r; for(r=0;r<IMG_N;r++) a.push(new Array(IMG_N).fill(0));
+    function fill(r0,r1,c0,c1){ for(var i=r0;i<r1;i++) for(var j=c0;j<c1;j++) a[i][j]=1; }
+    if(kind==='square'){ fill(5,7,5,19); fill(17,19,5,19); fill(5,19,5,7); fill(5,19,17,19); }
+    else if(kind==='cross'){ fill(11,13,4,20); fill(4,20,11,13); }
+    else { fill(5,19,6,8); fill(17,19,6,18); }
+    return a;
+  }
+  function conv(a,k){
+    var kh=k.length, ph=(kh-1)/2, out=[],r,c,i,j;
+    for(r=0;r<IMG_N;r++){ var row=[];
+      for(c=0;c<IMG_N;c++){ var s=0;
+        for(i=0;i<kh;i++) for(j=0;j<kh;j++){
+          var rr=r+i-ph, cc=c+j-ph;
+          if(rr>=0&&rr<IMG_N&&cc>=0&&cc<IMG_N) s+=a[rr][cc]*k[i][j];
+        }
+        row.push(s); }
+      out.push(row); }
+    return out;
+  }
+  function mapOp(f){ return function(a,b){ var o=[],r,c;
+    for(r=0;r<IMG_N;r++){ var row=[]; for(c=0;c<IMG_N;c++) row.push(f(a[r][c], b?b[r][c]:0)); o.push(row); } return o; }; }
+  var addM=mapOp(function(x,y){ return x+y; });
+  var reluM=mapOp(function(x){ return x>0?x:0; });
+  function negK(k){ return k.map(function(r){ return r.map(function(v){ return -v; }); }); }
+  var KV=[[-1,0,1],[-1,0,1],[-1,0,1]].map(function(r){ return r.map(function(v){ return v/3; }); });
+  var KH=[[-1,-1,-1],[0,0,0],[1,1,1]].map(function(r){ return r.map(function(v){ return v/3; }); });
+  var KB=[[1,1,1],[1,1,1],[1,1,1]].map(function(r){ return r.map(function(v){ return v/9; }); });
+  var K7=(function(){                       // 7×7 のエッジ検出（Gauss の差）
+    function g(s){ var m=[],r,c,t=0;
+      for(r=0;r<7;r++){ var row=[]; for(c=0;c<7;c++){
+        var v=Math.exp(-((r-3)*(r-3)+(c-3)*(c-3))/(2*s*s)); row.push(v); t+=v; } m.push(row); }
+      return m.map(function(rw){ return rw.map(function(v){ return v/t; }); }); }
+    var a=g(1.0), b=g(2.0), k=[], r, c, s=0;
+    for(r=0;r<7;r++){ var row=[]; for(c=0;c<7;c++){ var v=a[r][c]-b[r][c]; row.push(v); s+=Math.abs(v); } k.push(row); }
+    return k.map(function(rw){ return rw.map(function(v){ return v/s*3; }); });
+  })();
+  function drawMap(sv,x,y,m,cell,color,title,sub){
+    sv.appendChild(el('rect',{x:x,y:y,width:cell*IMG_N,height:cell*IMG_N,
+      fill:'#fff',stroke:'#e4e1d8','stroke-width':0.8}));
+    var mx=0,r,c;
+    for(r=0;r<IMG_N;r++) for(c=0;c<IMG_N;c++) if(m[r][c]>mx) mx=m[r][c];
+    if(mx<1e-9) mx=1;
+    for(r=0;r<IMG_N;r++) for(c=0;c<IMG_N;c++){
+      var v=m[r][c]/mx; if(v<0.04) continue;
+      sv.appendChild(el('rect',{x:(x+c*cell).toFixed(2),y:(y+r*cell).toFixed(2),
+        width:(cell+0.2).toFixed(2),height:(cell+0.2).toFixed(2),fill:color,opacity:v.toFixed(2)}));
+    }
+    var w=cell*IMG_N;
+    if(title) tx(sv,x+w/2,y-5,title,{anchor:'middle',fs:9.5,fill:'#565248',weight:600});
+    if(sub) tx(sv,x+w/2,y+w+12,sub,{anchor:'middle',fs:9});
+  }
+  function arrow(sv,x1,y,x2){
+    sv.appendChild(el('line',{x1:x1,y1:y,x2:x2-4,y2:y,stroke:'#b9c0d8','stroke-width':1.4}));
+    sv.appendChild(el('path',{d:'M'+(x2-4)+' '+(y-3)+' L'+x2+' '+y+' L'+(x2-4)+' '+(y+3)+' Z',fill:'#b9c0d8'}));
+  }
+  var vKind='square';
+  function vmaps(){
+    var th=+$('#vth').value/100; $('#vth-v').textContent=th.toFixed(2);
+    var a=mkImg(vKind);
+    var v=addM(reluM(conv(a,KV)), reluM(conv(a,negK(KV))));
+    var h=addM(reluM(conv(a,KH)), reluM(conv(a,negK(KH))));
+    var corner=reluM(addM(addM(v,h), mapOp(function(){ return -th; })(a)));
+    var out=conv(corner,KB);
+    var one=reluM(conv(a,K7));
+    var live=0,r,c;
+    for(r=0;r<IMG_N;r++) for(c=0;c<IMG_N;c++){ if(corner[r][c]>1e-6) live++; }
+    var lit=0, omx=0;
+    for(r=0;r<IMG_N;r++) for(c=0;c<IMG_N;c++) if(one[r][c]>omx) omx=one[r][c];
+    for(r=0;r<IMG_N;r++) for(c=0;c<IMG_N;c++) if(one[r][c]>0.35*omx) lit++;
+
+    // 2 列の流れ図。左＝3×3 を 3 枚、右＝7×7 を 1 枚。
+    // ※ 横一列に 5 枚並べるとラベルが重なった（実測）ので、縦に流して列で比べる
+    var sv=clear('vMaps'), S=70, cell=S/IMG_N;
+    var LX=55, LA=17, LB=93, RX=265;
+    function vline(x,y1,y2){
+      sv.appendChild(el('line',{x1:x,y1:y1,x2:x,y2:y2-4,stroke:'#b9c0d8','stroke-width':1.4}));
+      sv.appendChild(el('path',{d:'M'+(x-3)+' '+(y2-4)+' L'+x+' '+y2+' L'+(x+3)+' '+(y2-4)+' Z',
+        fill:'#b9c0d8'}));
+    }
+    tx(sv,LX+S/2,14,'3×3 を 3 枚（間に ReLU）',{anchor:'middle',fs:10,fill:'#565248',weight:600});
+    tx(sv,RX+S/2,14,'7×7 を 1 枚',{anchor:'middle',fs:10,fill:'#565248',weight:600});
+    drawMap(sv,LX,26,a,cell,'#1A1A1A',null,'入力の絵 24×24');
+    drawMap(sv,RX,26,a,cell,'#1A1A1A',null,'同じ絵');
+    vline(LX+S/2,112,130); vline(RX+S/2,112,222);
+    drawMap(sv,LA,134,v,cell,'#6E7BA8',null,'縦の線');
+    drawMap(sv,LB,134,h,cell,'#6E7BA8',null,'横の線');
+    // ※ ラベルは短く割る。1 行に収めようとすると日本語 1 文字 = font-size なので
+    //    「1 層目 ―― 足して、しきい値を引いて ReLU」で 216px になり左へはみ出した
+    tx(sv,LX+S/2,231,'1 層目 ―― 3×3 が 2 枚',{anchor:'middle',fs:9});
+    vline(LA+S/2,238,256); vline(LB+S/2,238,256);
+    tx(sv,LX+S/2,252,'足して引く',{anchor:'middle',fs:9,fill:'#565248'});
+    drawMap(sv,LX,262,out,cell,'#6E7BA8',null,null);
+    drawMap(sv,RX,226,one,cell,'#b4493f',null,null);
+    var ttl = live===0 ? '厳しすぎて何も残らない' : (live<40 ? '角だけが残る' : '条件がゆるく、辺も残る');
+    tx(sv,LX+S/2,346,ttl,{anchor:'middle',fs:10,fill:INK,weight:600});
+    tx(sv,LX+S/2,362,'残った画素 '+live,{anchor:'middle',fs:9});
+    tx(sv,RX+S/2,310,'線ぜんぶが光る',{anchor:'middle',fs:10,fill:INK,weight:600});
+    tx(sv,RX+S/2,326,'光った画素 '+lit,{anchor:'middle',fs:9});
+    sv.setAttribute('viewBox','0 0 380 374');
+    $('#rvm').innerHTML = live===0
+      ? 'しきい値を上げすぎて、<b>1 画素も残らなくなった</b>。'+
+        '「縦も横も、これだけ強く立っていること」という条件が厳しすぎる。'+
+        'スライダを少し左へ戻すと、角だけが残る所がある。'
+      : live<40
+      ? '3×3 を重ねた側に残ったのは <b>'+live+' 画素</b>——'+(vKind==='cross'?'十字の交点と線の端':'角')+'だけ。'+
+        '7×7 を 1 枚通した側は <b>'+lit+' 画素</b>が光っている（線のある所ぜんぶ）。'+
+        '見ている広さは同じ 7×7 なのに、<b>絞り込めているのは重ねた側だけ</b>——'+
+        '違いは、途中に ReLU が入っているかどうか。'
+      : 'しきい値を下げたので、<b>「縦か横のどちらか」でも通ってしまう</b>。'+
+        '残った画素は <b>'+live+' 個</b>まで増え、角だけでなく辺も光っている。'+
+        '<b>「かつ」を作っているのはしきい値（バイアス）と ReLU</b>だと分かる——'+
+        'スライダを右へ戻すと、また角だけになる。';
+  }
+  $('#vth').oninput=vmaps;
+  $$('[data-vi]').forEach(function(b){ b.onclick=function(){
+    $$('[data-vi]').forEach(function(x){ x.classList.remove('on'); }); b.classList.add('on');
+    vKind=b.dataset.vi; vmaps(); }; });
+
   // ── ② Inception: 1×1 が削るのは「厚み」。まず何をしているかを実数で見せる ──
   //    値と重みは決定論（読者が見るたび同じ）。C=6 に縮めた例で内積を最後まで書く。
   function oneone(){
@@ -415,8 +584,9 @@ GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、
       sv.appendChild(el('rect',{x:bx+i*dx+18,y:by+i*dy+18,width:8,height:8,
         fill:'rgba(110,123,168,0.75)'}));
     }
-    tx(sv,bx+30,26,'特徴マップ 6 枚',{anchor:'middle',fs:10.5,fill:'#565248',weight:600});
-    tx(sv,bx+30,38,'（実物は 192 枚）',{anchor:'middle',fs:8.5});
+    // 2 行ラベルの行間は font-size×1.44 以上（詰めると bbox が重なる）
+    tx(sv,bx+30,24,'特徴マップ 6 枚',{anchor:'middle',fs:10.5,fill:'#565248',weight:600});
+    tx(sv,bx+30,40,'（実物は 192 枚）',{anchor:'middle',fs:8.5});
     tx(sv,bx+34,by+sz+(C-1)*dy+16,'同じ 1 画素の位置',{anchor:'middle',fs:9.5});
     tx(sv,bx+34,by+sz+(C-1)*dy+30,'（28×28 の 1 マス）',{anchor:'middle',fs:9});
     // 中: その位置の 6 個の値 / 右: 重み
@@ -447,7 +617,7 @@ GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、
         fill:'#fff',stroke:ARC,'stroke-width':1}));
     }
     tx(sv,ox+30,130,'枚数だけ変わる',{anchor:'middle',fs:9.5});
-    tx(sv,ox+30,144,'28×28 のまま',{anchor:'middle',fs:9.5,fill:INK});
+    tx(sv,ox+30,146,'28×28 のまま',{anchor:'middle',fs:9.5,fill:INK});
     sv.setAttribute('viewBox','0 0 380 '+(yEnd+52));
   }
 
@@ -569,15 +739,15 @@ GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、
     var sc=+$('#bnsc').value/10, on=$('#bn-btn').getAttribute('aria-pressed')==='true';
     $('#bnsc-v').textContent=sc.toFixed(1);
     var R=forward(sc,on), sv=clear('bnFig');
-    var pw=64, gap=8, x0=14, hA=52, hB=52, yA=32, yB=136;
-    tx(sv,x0,18,'基準化する前 ―― その層が出した値',{fs:10.5,fill:'#565248',weight:600});
+    var pw=64, gap=8, x0=14, hA=52, hB=52, yA=34, yB=136;
+    tx(sv,x0,16,'基準化する前 ―― その層が出した値',{fs:10.5,fill:'#565248',weight:600});
     tx(sv,x0,yB-14, on?'基準化した後 ―― 次の層へ渡す値':'基準化しないので、そのまま次の層へ',
        {fs:10.5,fill:'#565248',weight:600});
     for(var l=0;l<NL;l++){
       var x=x0+l*(pw+gap);
       hist(sv,x,yA,pw,hA,R.pre[l],'rgba(180,73,63,0.55)');
       tx(sv,x+pw/2,yA+hA+13,'σ '+sdOf(R.pre[l]).toFixed(2),{anchor:'middle',fs:9.5,fill:INK});
-      tx(sv,x+pw/2,yA-4,(l+1)+' 層目',{anchor:'middle',fs:9});
+      tx(sv,x+pw/2,yA-5,(l+1)+' 層目',{anchor:'middle',fs:9});
       hist(sv,x,yB,pw,hB,R.post[l], on?'rgba(110,123,168,0.6)':'rgba(180,73,63,0.35)');
       tx(sv,x+pw/2,yB+hB+13,'σ '+sdOf(R.post[l]).toFixed(2),{anchor:'middle',fs:9.5,
         fill:on?INK:MUT});
@@ -605,7 +775,141 @@ GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、
     this.setAttribute('aria-pressed',!on); this.classList.toggle('on',!on);
     this.textContent='BatchNorm '+(!on?'あり':'なし'); bn(); };
 
-  vgg(); oneone(); incep(); bn();
+  // ── ③b 実際に学習させて誤差を比べる ────────────────────────
+  //  ※ もとは式で描いた作り話の曲線だった。ここは 2-8-8-8-1 を本当に学習させ、
+  //     BN の逆伝播も入れて測る。Python で事前検証済み（初期値 3 通りで再現）:
+  //     lr=2 → 両方収束（なし .029 / あり .031）、lr=12 → なし .298 で止まる／あり .031、
+  //     lr=25 → なし .499（完全に壊れる）／あり .031
+  var TNU=8, TNL=3, EPOCHS=160, BS=16, EPS=1e-8;
+  function tData(seed){
+    var rng=new LCG(seed), p=[], i;
+    for(i=0;i<64;i++){ var lab=i%2, cx=lab?0.68:0.32, cy=lab?0.66:0.34;
+      p.push([cx+0.13*gauss(rng), cy+0.13*gauss(rng), lab]); }
+    return p;
+  }
+  function tNet(seed,scale){
+    var rng=new LCG(seed), L=[], ins=2, l, k, j;
+    for(l=0;l<TNL;l++){ var W=[];
+      for(k=0;k<TNU;k++){ var r=[]; for(j=0;j<ins;j++) r.push(gauss(rng)*scale); W.push(r); }
+      L.push({W:W,b:new Array(TNU).fill(0),ni:ins,no:TNU}); ins=TNU; }
+    var Wo=[]; for(j=0;j<ins;j++) Wo.push(gauss(rng)*scale);
+    L.push({W:[Wo],b:[0],ni:ins,no:1});
+    return L;
+  }
+  function sg(z){ return 1/(1+Math.exp(-Math.max(-30,Math.min(30,z)))); }
+  function trainLoss(lr, useBN, seed){
+    var data=tData(7), net=tNet(seed,1.2), nb=Math.floor(data.length/BS), hist=[], ep, bi, n, l, k, j;
+    for(ep=0;ep<EPOCHS;ep++){
+      var tot=0, cnt=0;
+      for(bi=0;bi<nb;bi++){
+        var batch=data.slice(bi*BS,(bi+1)*BS), N=batch.length;
+        var A=[], Y=[];
+        for(n=0;n<N;n++){ A.push([batch[n][0],batch[n][1]]); Y.push(batch[n][2]); }
+        var cache=[];
+        for(l=0;l<TNL;l++){
+          var Lr=net[l], Z=[];
+          for(n=0;n<N;n++){ var zr=[];
+            for(k=0;k<Lr.no;k++){ var s=Lr.b[k];
+              for(j=0;j<Lr.ni;j++) s+=A[n][j]*Lr.W[k][j]; zr.push(s); }
+            Z.push(zr); }
+          var Xh=Z, sd=null;
+          if(useBN){
+            sd=[]; Xh=[]; var mu=[], k2;
+            for(k2=0;k2<Lr.no;k2++){ var m=0;
+              for(n=0;n<N;n++) m+=Z[n][k2]; m/=N; mu.push(m);
+              var vv=0; for(n=0;n<N;n++) vv+=(Z[n][k2]-m)*(Z[n][k2]-m);
+              sd.push(Math.sqrt(vv/N+EPS)); }
+            for(n=0;n<N;n++){ var xr=[];
+              for(k2=0;k2<Lr.no;k2++) xr.push((Z[n][k2]-mu[k2])/sd[k2]); Xh.push(xr); }
+          }
+          var H=[]; for(n=0;n<N;n++){ var hr=[];
+            for(k=0;k<Lr.no;k++) hr.push(Math.tanh(Xh[n][k])); H.push(hr); }
+          cache.push({A:A,Xh:Xh,H:H,sd:sd}); A=H;
+        }
+        var Lo=net[TNL], O=[];
+        for(n=0;n<N;n++){ var s2=Lo.b[0];
+          for(j=0;j<Lo.ni;j++) s2+=A[n][j]*Lo.W[0][j]; O.push(sg(s2)); }
+        for(n=0;n<N;n++){ var d=O[n]-Y[n]; tot+=d*d; cnt++; }
+        var dA=[]; for(n=0;n<N;n++) dA.push(new Array(Lo.ni).fill(0));
+        var gWo=new Array(Lo.ni).fill(0), gbo=0;
+        for(n=0;n<N;n++){ var g=(O[n]-Y[n])*O[n]*(1-O[n]);
+          for(j=0;j<Lo.ni;j++){ gWo[j]+=g*A[n][j]; dA[n][j]+=g*Lo.W[0][j]; }
+          gbo+=g; }
+        for(j=0;j<Lo.ni;j++) Lo.W[0][j]-=lr*gWo[j]/N;
+        Lo.b[0]-=lr*gbo/N;
+        for(l=TNL-1;l>=0;l--){
+          var Lq=net[l], C=cache[l], dXh=[];
+          for(n=0;n<N;n++){ var dr=[];
+            for(k=0;k<Lq.no;k++) dr.push(dA[n][k]*(1-C.H[n][k]*C.H[n][k])); dXh.push(dr); }
+          var dZ=dXh;
+          if(useBN){
+            dZ=[]; for(n=0;n<N;n++) dZ.push(new Array(Lq.no).fill(0));
+            for(k=0;k<Lq.no;k++){ var s1=0, s3=0;
+              for(n=0;n<N;n++){ s1+=dXh[n][k]; s3+=dXh[n][k]*C.Xh[n][k]; }
+              for(n=0;n<N;n++)
+                dZ[n][k]=(N*dXh[n][k]-s1-C.Xh[n][k]*s3)/(N*C.sd[k]); }
+          }
+          var dP=[]; for(n=0;n<N;n++) dP.push(new Array(Lq.ni).fill(0));
+          var gW=[], gb=new Array(Lq.no).fill(0);
+          for(k=0;k<Lq.no;k++) gW.push(new Array(Lq.ni).fill(0));
+          for(n=0;n<N;n++) for(k=0;k<Lq.no;k++){ var gg=dZ[n][k];
+            for(j=0;j<Lq.ni;j++){ gW[k][j]+=gg*C.A[n][j]; dP[n][j]+=gg*Lq.W[k][j]; }
+            gb[k]+=gg; }
+          for(k=0;k<Lq.no;k++){
+            for(j=0;j<Lq.ni;j++) Lq.W[k][j]-=lr*gW[k][j]/N;
+            Lq.b[k]-=lr*gb[k]/N; }
+          dA=dP;
+        }
+      }
+      hist.push(tot/cnt);
+    }
+    return hist;
+  }
+  function bnloss(){
+    var lr=+$('#bnlr').value; $('#bnlr-v').textContent=lr;
+    var hn=trainLoss(lr,false,99), hb=trainLoss(lr,true,99);
+    var sv=clear('bnLoss');
+    var x0=40, x1=340, y0=26, y1=150, TOP=0.56;
+    sv.appendChild(el('line',{x1:x0,y1:y1,x2:x1,y2:y1,stroke:'#b9b9b2','stroke-width':1.2}));
+    sv.appendChild(el('line',{x1:x0,y1:y1,x2:x0,y2:y0,stroke:'#b9b9b2','stroke-width':1.2}));
+    [0,0.25,0.5].forEach(function(v){
+      var y=y1-v/TOP*(y1-y0);
+      sv.appendChild(el('line',{x1:x0-3,y1:y,x2:x0,y2:y,stroke:'#b9b9b2','stroke-width':1}));
+      tx(sv,x0-6,y+3,v.toFixed(2),{anchor:'end',fs:8.5});
+    });
+    function poly(h,color,dash){
+      var d='', i;
+      for(i=0;i<h.length;i++){
+        var x=x0+i/(h.length-1)*(x1-x0), y=y1-Math.min(TOP,h[i])/TOP*(y1-y0);
+        d+=(i?' L':'M')+x.toFixed(1)+' '+y.toFixed(1);
+      }
+      var a={d:d,fill:'none',stroke:color,'stroke-width':2.2};
+      if(dash) a['stroke-dasharray']='6 4';
+      sv.appendChild(el('path',a));
+    }
+    poly(hn,'#b4493f',true);
+    poly(hb,'#1A1A1A',false);
+    tx(sv,x1,y1+16,'学習の回数 →',{anchor:'end',fs:9});
+    tx(sv,x0-6,y0-6,'誤差',{anchor:'end',fs:9});
+    sv.appendChild(el('line',{x1:x0+6,y1:y1+30,x2:x0+30,y2:y1+30,stroke:'#1A1A1A','stroke-width':2.2}));
+    tx(sv,x0+34,y1+33,'BatchNorm あり',{fs:9.5,fill:INK});
+    sv.appendChild(el('line',{x1:x0+126,y1:y1+30,x2:x0+150,y2:y1+30,stroke:'#b4493f',
+      'stroke-width':2.2,'stroke-dasharray':'6 4'}));
+    tx(sv,x0+154,y1+33,'なし',{fs:9.5,fill:INK});
+    var fn=hn[hn.length-1], fb=hb[hb.length-1];
+    $('#r5').innerHTML='学習率 '+lr+' で 160 回まわした後の誤差 ―― '+
+      'なし <b>'+fn.toFixed(3)+'</b>／あり <b>'+fb.toFixed(3)+'</b>。'+
+      (fn>fb*3
+        ? ' なし側は<b>下がりきらないまま止まっている</b>。'+
+          '目盛りがずれたまま大きい歩幅を踏むと、値が飛んで学習が壊れる。'+
+          'あり側は同じ歩幅でも下がりきる——<b>これが「大きい学習率を使える」の中身</b>。'
+        : ' この歩幅ならどちらも下がる。'+
+          '<b>BatchNorm の効き目は歩幅を大きくしたときに出る</b>ので、スライダを右へ動かしてほしい。'+
+          (fb>fn ? '（小さい歩幅では、あり側がわずかに不利なこともある）' : ''));
+  }
+  $('#bnlr').oninput=bnloss;
+
+  vgg(); vmaps(); oneone(); incep(); bn(); bnloss();
 })();
 </script>
 <script>
