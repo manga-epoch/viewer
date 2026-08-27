@@ -223,9 +223,12 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="fig-stage" id="sec1">
 <h2>VGG — 3×3 のフィルタを重ねる</h2>
 <details class="foldbox" open><summary>説明</summary>
+<p><b>先に結論。</b>同じ広さを見るなら、大きいフィルタ 1 枚より、小さいフィルタを重ねた方が
+<b>重みが少なく、段数が多い</b>。VGG はこの 2 つの得だけを頼りに 16〜19 層まで積んだ。
+下では、その 2 つを順に確かめる——まず<b>広さと重み</b>、次に<b>段数で何が変わるか</b>。</p>
 <p>フィルタが大きいほど、一度に広い範囲を見られる。ただし重みの数はその面積ぶん要る。
 <b>7×7 を 1 枚</b>と<b>3×3 を 3 枚</b>は、最後に見えている範囲が同じになる——
-なのに重みの数が違う。下で <b>画像側で見えている範囲</b>と<b>フィルタの中身</b>を並べて確かめる。</p>
+なのに重みの数が違う。まず <b>画像側で見えている範囲</b>と<b>フィルタの中身</b>を並べて確かめる。</p>
 </details>
 <div class="ctrls">
   <label>3×3 を何枚重ねるか <input type="range" id="vgg" min="1" max="5" value="3"></label>
@@ -246,15 +249,17 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="readout" id="rv"></div>
 
 <details class="foldbox" open><summary>補足</summary>
-<p style="margin-top:22px"><b>では、重ねると実際に何が見えるのか。</b>
-下は同じ絵を 2 通りに通した結果——上は 3×3 を 3 枚（間に ReLU）、下は 7×7 を 1 枚。
-<b>絵はどれも実際に畳み込んだ結果</b>で、描いたものではない。</p>
+<p style="margin-top:22px"><b>では、段数が多いと何が変わるのか。</b>
+ここが VGG の肝で、<b>重みが減ることより、こちらが本題</b>だ。
+下は同じ絵を 2 通りに通した実際の出力——左は <b>3×3 を 2 枚（2 段）</b>、
+右は <b>5×5 を 1 枚（1 段）</b>。<b>見ている広さはどちらも 5×5 で同じ</b>にしてある
+（しくみは 3 枚でも同じなので、ここでは 2 枚で見る）。</p>
 </details>
 <div class="ctrls">
   <button class="chip on" data-vi="square">四角</button>
   <button class="chip" data-vi="cross">十字</button>
   <button class="chip" data-vi="ell">L 字</button>
-  <label>2 層目のしきい値 <input type="range" id="vth" min="40" max="185" step="5" value="115"></label>
+  <label>2 段目のしきい値 <input type="range" id="vth" min="40" max="185" step="5" value="115"></label>
   <span class="tag" id="vth-v">1.15</span>
 </div>
 <details class="foldbox" open><summary>構成図</summary>
@@ -262,13 +267,15 @@ table{display:block;overflow-x:auto;max-width:100%}
 </details>
 <div class="readout" id="rvm"></div>
 <details class="foldbox" open><summary>補足</summary>
-<p class="note">1 層目の 2 枚は、縦の線・横の線に反応するフィルタ。
-2 層目は<b>その 2 枚を足して、しきい値を引いて ReLU</b>——だから
-「縦も横も立っている所」だけが残り、<b>角</b>になる。
-しきい値を下げると条件がゆるみ、辺も残りはじめる（＝ただの「どちらか」に戻る）。
-7×7 を 1 枚だけ通した下段は、線のある所すべてが光る。
-<b>重みをどう選んでも、折り曲げが 1 回では「縦かつ横」は作れない</b>——
-半分に切る操作を 1 回しかしていないので、2 つの条件の重なりを取り出せない。</p>
+<p class="note"><b>「かどだけになった」は、情報が減ったのではない。</b>
+「線」より<b>一段上の情報</b>に変わったということ——
+1 段目は「ある向きの線がある」しか言えないが、2 段目は 1 段目の出力を受け取れるので、
+<b>「縦も横も立っている」という重なりの条件</b>を書ける。それが「かど」だ。
+CNN はこれを繰り返して <b>線 → かど → 部品 → 物体</b> と上げていく。
+1 段で止まると、線から先へ行けない。<br>
+では 5×5 をもう 1 枚積めばいいのでは、というと——それだと見る広さが <b>9×9</b> に広がり、
+重みは <b>50 個</b>になる。<b>同じ 5×5 の広さのまま 2 段を得るには、3×3 を 2 枚しかない</b>。
+これが「小さいフィルタを重ねる」の意味。</p>
 </details>
 
 <details class="foldbox"><summary>式と計算</summary>
@@ -478,13 +485,14 @@ GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、
   var KV=[[-1,0,1],[-1,0,1],[-1,0,1]].map(function(r){ return r.map(function(v){ return v/3; }); });
   var KH=[[-1,-1,-1],[0,0,0],[1,1,1]].map(function(r){ return r.map(function(v){ return v/3; }); });
   var KB=[[1,1,1],[1,1,1],[1,1,1]].map(function(r){ return r.map(function(v){ return v/9; }); });
-  var K7=(function(){                       // 7×7 のエッジ検出（Gauss の差）
+  // 5×5 のエッジ検出 1 枚（Gauss の差）。3×3 を 2 枚と受容野をそろえるための比較相手
+  var K5=(function(){
     function g(s){ var m=[],r,c,t=0;
-      for(r=0;r<7;r++){ var row=[]; for(c=0;c<7;c++){
-        var v=Math.exp(-((r-3)*(r-3)+(c-3)*(c-3))/(2*s*s)); row.push(v); t+=v; } m.push(row); }
+      for(r=0;r<5;r++){ var row=[]; for(c=0;c<5;c++){
+        var v=Math.exp(-((r-2)*(r-2)+(c-2)*(c-2))/(2*s*s)); row.push(v); t+=v; } m.push(row); }
       return m.map(function(rw){ return rw.map(function(v){ return v/t; }); }); }
-    var a=g(1.0), b=g(2.0), k=[], r, c, s=0;
-    for(r=0;r<7;r++){ var row=[]; for(c=0;c<7;c++){ var v=a[r][c]-b[r][c]; row.push(v); s+=Math.abs(v); } k.push(row); }
+    var a=g(0.8), b=g(1.6), k=[], r, c, s=0;
+    for(r=0;r<5;r++){ var row=[]; for(c=0;c<5;c++){ var v=a[r][c]-b[r][c]; row.push(v); s+=Math.abs(v); } k.push(row); }
     return k.map(function(rw){ return rw.map(function(v){ return v/s*3; }); });
   })();
   function drawMap(sv,x,y,m,cell,color,title,sub){
@@ -514,15 +522,16 @@ GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、
     var h=addM(reluM(conv(a,KH)), reluM(conv(a,negK(KH))));
     var corner=reluM(addM(addM(v,h), mapOp(function(){ return -th; })(a)));
     var out=conv(corner,KB);
-    var one=reluM(conv(a,K7));
+    var one=reluM(conv(a,K5));
     var live=0,r,c;
     for(r=0;r<IMG_N;r++) for(c=0;c<IMG_N;c++){ if(corner[r][c]>1e-6) live++; }
     var lit=0, omx=0;
     for(r=0;r<IMG_N;r++) for(c=0;c<IMG_N;c++) if(one[r][c]>omx) omx=one[r][c];
     for(r=0;r<IMG_N;r++) for(c=0;c<IMG_N;c++) if(one[r][c]>0.35*omx) lit++;
 
-    // 2 列の流れ図。左＝3×3 を 3 枚、右＝7×7 を 1 枚。
-    // ※ 横一列に 5 枚並べるとラベルが重なった（実測）ので、縦に流して列で比べる
+    // 2 列の流れ図。左＝3×3 を 2 枚（2 段）、右＝5×5 を 1 枚（1 段）。受容野はどちらも 5×5。
+    // ※ 主張は「どちらの絵が綺麗か」ではなく **段数**。
+    //    以前は右に 7×7 のエッジ検出を置いたため、右の方が良く見えて主張が伝わらなかった。
     var sv=clear('vMaps'), S=70, cell=S/IMG_N;
     var LX=55, LA=17, LB=93, RX=265;
     function vline(x,y1,y2){
@@ -530,39 +539,45 @@ GoogLeNet はその手前に <b>1×1 の畳み込み</b>を挟んだ。まず、
       sv.appendChild(el('path',{d:'M'+(x-3)+' '+(y2-4)+' L'+x+' '+y2+' L'+(x+3)+' '+(y2-4)+' Z',
         fill:'#b9c0d8'}));
     }
-    tx(sv,LX+S/2,14,'3×3 を 3 枚（間に ReLU）',{anchor:'middle',fs:10,fill:'#565248',weight:600});
-    tx(sv,RX+S/2,14,'7×7 を 1 枚',{anchor:'middle',fs:10,fill:'#565248',weight:600});
-    drawMap(sv,LX,26,a,cell,'#1A1A1A',null,'入力の絵 24×24');
-    drawMap(sv,RX,26,a,cell,'#1A1A1A',null,'同じ絵');
-    vline(LX+S/2,112,130); vline(RX+S/2,112,222);
-    drawMap(sv,LA,134,v,cell,'#6E7BA8',null,'縦の線');
-    drawMap(sv,LB,134,h,cell,'#6E7BA8',null,'横の線');
-    // ※ ラベルは短く割る。1 行に収めようとすると日本語 1 文字 = font-size なので
-    //    「1 層目 ―― 足して、しきい値を引いて ReLU」で 216px になり左へはみ出した
-    tx(sv,LX+S/2,231,'1 層目 ―― 3×3 が 2 枚',{anchor:'middle',fs:9});
-    vline(LA+S/2,238,256); vline(LB+S/2,238,256);
-    tx(sv,LX+S/2,252,'足して引く',{anchor:'middle',fs:9,fill:'#565248'});
-    drawMap(sv,LX,262,out,cell,'#6E7BA8',null,null);
-    drawMap(sv,RX,226,one,cell,'#b4493f',null,null);
-    var ttl = live===0 ? '厳しすぎて何も残らない' : (live<40 ? '角だけが残る' : '条件がゆるく、辺も残る');
-    tx(sv,LX+S/2,346,ttl,{anchor:'middle',fs:10,fill:INK,weight:600});
-    tx(sv,LX+S/2,362,'残った画素 '+live,{anchor:'middle',fs:9});
-    tx(sv,RX+S/2,310,'線ぜんぶが光る',{anchor:'middle',fs:10,fill:INK,weight:600});
-    tx(sv,RX+S/2,326,'光った画素 '+lit,{anchor:'middle',fs:9});
-    sv.setAttribute('viewBox','0 0 380 374');
+    tx(sv,LX+S/2,13,'3×3 を 2 枚',{anchor:'middle',fs:10.5,fill:'#565248',weight:600});
+    tx(sv,LX+S/2,27,'＝ 2 段',{anchor:'middle',fs:10,fill:ARC,weight:600});
+    tx(sv,RX+S/2,13,'5×5 を 1 枚',{anchor:'middle',fs:10.5,fill:'#565248',weight:600});
+    tx(sv,RX+S/2,27,'＝ 1 段',{anchor:'middle',fs:10,fill:ARC,weight:600});
+    drawMap(sv,LX,38,a,cell,'#1A1A1A',null,'同じ入力');
+    drawMap(sv,RX,38,a,cell,'#1A1A1A',null,'同じ入力');
+    vline(LX+S/2,124,142); vline(RX+S/2,124,142);
+    tx(sv,LX+S/2,138,'1 段目',{anchor:'middle',fs:9,fill:MUT});
+    tx(sv,RX+S/2,138,'1 段目',{anchor:'middle',fs:9,fill:MUT});
+    drawMap(sv,LA,146,v,cell,'#6E7BA8',null,'縦の線');
+    drawMap(sv,LB,146,h,cell,'#6E7BA8',null,'横の線');
+    drawMap(sv,RX,146,one,cell,'#6E7BA8',null,'線');
+    tx(sv,RX+S/2,244,'ここで終わり',{anchor:'middle',fs:10.5,fill:BAD,weight:600});
+    tx(sv,RX+S/2,260,'この広さでは',{anchor:'middle',fs:9});
+    tx(sv,RX+S/2,274,'もう 1 段を足せない',{anchor:'middle',fs:9});
+    vline(LA+S/2,242,262); vline(LB+S/2,242,262);
+    tx(sv,LX+S/2,256,'2 段目',{anchor:'middle',fs:9,fill:MUT});
+    drawMap(sv,LX,266,out,cell,'#6E7BA8',null,null);
+    var ttl = live===0 ? 'かどが消えた' : (live<40 ? 'かどが出る' : 'ゆるくて辺も残る');
+    tx(sv,LX+S/2,352,ttl,{anchor:'middle',fs:11,fill:INK,weight:600});
+    tx(sv,LX+S/2,368,'「線」より一段上の情報',{anchor:'middle',fs:9});
+    sv.appendChild(el('line',{x1:14,y1:386,x2:366,y2:386,stroke:LINE,'stroke-width':1}));
+    tx(sv,14,402,'見ている広さ ―― どちらも 5×5（同じ）',{fs:9.5,fill:INK});
+    tx(sv,14,418,'重みの数 ―― 3×3×2 = 18 個  対  5×5 = 25 個',{fs:9.5,fill:INK});
+    tx(sv,14,434,'段数 ―― 2 段  対  1 段',{fs:9.5,fill:ARC,weight:600});
+    sv.setAttribute('viewBox','0 0 380 444');
     $('#rvm').innerHTML = live===0
-      ? 'しきい値を上げすぎて、<b>1 画素も残らなくなった</b>。'+
-        '「縦も横も、これだけ強く立っていること」という条件が厳しすぎる。'+
-        'スライダを少し左へ戻すと、角だけが残る所がある。'
+      ? 'しきい値を上げすぎて、2 段目から<b>何も出てこなくなった</b>。'+
+        '「縦も横も、これだけ強く立っていること」という条件が厳しすぎる。少し左へ戻してほしい。'
       : live<40
-      ? '3×3 を重ねた側に残ったのは <b>'+live+' 画素</b>——'+(vKind==='cross'?'十字の交点と線の端':'角')+'だけ。'+
-        '7×7 を 1 枚通した側は <b>'+lit+' 画素</b>が光っている（線のある所ぜんぶ）。'+
-        '見ている広さは同じ 7×7 なのに、<b>絞り込めているのは重ねた側だけ</b>——'+
-        '違いは、途中に ReLU が入っているかどうか。'
-      : 'しきい値を下げたので、<b>「縦か横のどちらか」でも通ってしまう</b>。'+
-        '残った画素は <b>'+live+' 個</b>まで増え、角だけでなく辺も光っている。'+
-        '<b>「かつ」を作っているのはしきい値（バイアス）と ReLU</b>だと分かる——'+
-        'スライダを右へ戻すと、また角だけになる。';
+      ? '右は 1 段しかないので、出てくるのは<b>「線」まで</b>（'+lit+' 画素が光っている）。'+
+        '左は 2 段あるので、1 段目の「縦の線」「横の線」を受け取って、'+
+        '<b>「縦も横も立っている所」＝かど</b>を '+live+' 画素だけ書き出せた'+
+        (vKind==='cross'?'（十字なので交点と線の端）':'')+'。<br>'+
+        '<b>絵の見栄えではなく、どこまで積み上がったかを見てほしい。</b>'+
+        '同じ 5×5 の広さ・重みは 18 対 25 で左が少ないのに、段は 1 つ多い。'
+      : 'しきい値を下げたので、<b>「縦か横のどちらか」でも通ってしまう</b>（'+live+' 画素）。'+
+        'これでは 1 段目とほとんど同じで、せっかくの 2 段目が活きていない。'+
+        '<b>「かつ」を作っているのはしきい値（バイアス）と ReLU</b>だと分かる——右へ戻すと、またかどになる。';
   }
   $('#vth').oninput=vmaps;
   $$('[data-vi]').forEach(function(b){ b.onclick=function(){
