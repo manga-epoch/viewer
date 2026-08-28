@@ -195,7 +195,8 @@ table{display:block;overflow-x:auto;max-width:100%}
 <p>層を深くすれば表現力は上がる ―― はずだった。ところが層を重ねると、誤差逆伝播で
 <strong>ズレが入口へ届く前に小さくなりすぎる</strong>（勾配消失）。手前の層はほとんど学習しない。
 2015 年 He らの <strong>ResNet</strong> は、各ブロックに「入力をそのまま足す」
-<strong>残差接続</strong>を入れた。足し算の枝を勾配がそのまま通れるので、152 層でも学習が進み、
+<strong>残差接続</strong>を入れた。ブロックの重みが学ぶ対象を<strong>入力との差だけ</strong>に変える一手で、
+152 層でも学習が進み、
 ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。</p>
 <p>下では、<a href="figures_nn.html">ニューラルネットの図解</a>⑤で勾配消失を見たときと
 <strong>まったく同じネット・同じ重み</strong>（入力 2 → 中間 3 が n 層 → 出力 2）に残差接続を足して、
@@ -210,22 +211,31 @@ ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。<
 </style>
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">しくみ</a></li><li><a href="#sec2">実演</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>しくみ — 勾配に道が 2 本できる</h2>
+<h2>しくみ — 学ぶのは「入力との差」だけ</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">残差ブロックは、重みを通した結果 $\mathcal{F}(x)$ に<strong>入力 $x$ をそのまま足す</strong>。
-順方向の足し算は、逆方向では<strong>分岐</strong>になる ―― 勾配が「重みを通る道」と
-「足し算の枝をそのまま通る道」の 2 本に分かれて手前へ届く。</div>
+<div class="lead">普通の層は、そのブロックが出すべき答え $\mathbf{y}$ を丸ごと学ぶ。
+残差ブロックは出力の形を $\mathbf{y}=\mathcal{F}(\mathbf{x})+\mathbf{x}$ と決めてしまうので、
+重みが学ぶ $\mathcal{F}$ は $\mathbf{y}-\mathbf{x}$ ―― <strong>入力からの差分だけ</strong>になる。
+そのブロックで何も変えないのが正解なら、$\mathcal{F}$ を 0 にすればよい。</div>
 </details>
 <details class="foldbox" open><summary>構成図</summary>
-<div class="rfig"><svg id="rBlock" viewBox="0 0 380 222"></svg></div>
+<div class="rfig"><svg id="rBlock" viewBox="0 0 380 152"></svg></div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
+<p class="note">He らが解こうとしたのは<strong>劣化問題</strong>だった ――
+層を増やすと、過学習ではなく<strong>訓練の誤差そのもの</strong>が悪化する。
+足した層が恒等写像（何もしない）を学べば少なくとも悪くならないはずなのに、
+重みを積み上げてそれを当てるのは難しい。出力を $\mathcal{F}+\mathbf{x}$ と書いておけば、
+<strong>「何もしない」は $\mathcal{F}=0$ という簡単な答え</strong>になる。</p>
 </details>
 <details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$\mathbf{y} = \mathcal{F}(\mathbf{x}, W) + \mathbf{x}
-\qquad\Rightarrow\qquad
-\dfrac{\partial \mathbf{y}}{\partial \mathbf{x}} = \mathcal{F}'(\cdot) + 1$
-<div class="note" style="margin-top:8px">この <strong>+1</strong> があるので、$\mathcal{F}'$ がどれだけ小さくても
-掛け算の積がゼロへ潰れない。逆に言えば<strong>消失を防ぐ仕組みであって、増えすぎる方は防がない</strong>
-―― 下の実演で、そこも見える。</div>
+\qquad\Leftrightarrow\qquad
+\mathcal{F}(\mathbf{x}, W) = \mathbf{y} - \mathbf{x}$
+<div class="note" style="margin-top:8px">$\mathbf{x}$ をそのまま足したので、$\mathbf{x}$ で微分すると
+$\partial\mathbf{y}/\partial\mathbf{x} = \mathcal{F}'(\cdot) + 1$ となり <strong>+1</strong> が残る。
+この項があるおかげで、$\mathcal{F}'$ がどれだけ小さくても層をまたぐ掛け算の積がゼロへ潰れない。
+逆に言えば<strong>潰れるのを防ぐだけで、増えすぎる方は防がない</strong>。②で実測する。</div>
 </div>
 </details>
 </div>
@@ -264,7 +274,7 @@ ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。<
 <p class="note">残差接続は中間層どうし（幅が同じ所）だけに入る。入口と出口は幅が違うので、
 そのままは足せない ―― 本物の ResNet も、幅が変わる所では 1×1 の畳み込みを挟んで揃えている。<br>
 <strong>ReLU や tanh で「あり」を深くすると、今度は増えすぎる</strong>のが見える。
-足し算の枝を通ってズレがそのまま重なるからで、これは実測どおりの挙動。
+$\mathbf{x}$ をそのまま足した分（式の +1）が層ごとに重なるからで、これは実測どおりの挙動。
 本物の ResNet が各ブロックに <a href="figures_depth.html">Batch Normalization</a> を挟んでいるのは、
 これを抑えるため。<strong>残差接続だけでは足りない</strong>。</p>
 </details>
@@ -284,54 +294,41 @@ ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。<
     sv.appendChild(el('text',a,s));}
 
   // ── ① 残差ブロックの構成図（静的）
+  //    ※ もとは逆伝播も描いて「勾配の道が 2 本」と言っていたが、赤と青の線が何なのか
+  //       説明されておらず読者に伝わらなかった。①は「学ぶのは差分だけ」に絞り、
+  //       勾配の話は実測のある ② に任せる。
   (function(){
     var sv=clear('rBlock');
-    function box(x,y,w,h,t1,t2){
+    function box(x,y,w,h,t1,t2,em){
       sv.appendChild(el('rect',{x:x,y:y,width:w,height:h,rx:5,fill:'#fff',
-        stroke:'#1a1a1a','stroke-width':1.4}));
+        stroke:em?ARC:'#1a1a1a','stroke-width':em?2:1.4}));
       tx(sv,x+w/2,y+(t2?h/2-2:h/2+4),t1,{anchor:'middle',fs:10.5,fill:INK,weight:600});
       if(t2) tx(sv,x+w/2,y+h/2+12,t2,{anchor:'middle',fs:9});
     }
     function arw(x1,y1,x2,y2,col){
-      sv.appendChild(el('line',{x1:x1,y1:y1,x2:x2,y2:y2,stroke:col||'#b9c0d8','stroke-width':1.6}));
-      var dx=x2-x1, dy=y2-y1, L=Math.sqrt(dx*dx+dy*dy)||1, ux=dx/L, uy=dy/L;
-      sv.appendChild(el('path',{d:'M'+(x2-6*ux-3*uy)+' '+(y2-6*uy+3*ux)+
-        ' L'+x2+' '+y2+' L'+(x2-6*ux+3*uy)+' '+(y2-6*uy-3*ux)+' Z',fill:col||'#b9c0d8'}));
+      sv.appendChild(el('line',{x1:x1,y1:y1,x2:x2,y2:y2,stroke:col||'#b9c0d8','stroke-width':1.8}));
+      sv.appendChild(el('path',{d:'M'+(x2-7)+' '+(y2-4)+' L'+x2+' '+y2+' L'+(x2-7)+' '+(y2+4)+' Z',
+        fill:col||'#b9c0d8'}));
     }
-    // ※ 行間は font-size×1.44 以上あけ、skip の弧とラベルの帯も重ねない（実測で 2 件ぶつかった）
-    tx(sv,10,12,'順方向 ―― 重みを通った結果に、入力をそのまま足す',{fs:10,fill:'#565248',weight:600});
-    tx(sv,146,28,'残差接続 ―― x をそのまま運ぶ',{anchor:'middle',fs:9.5,fill:ARC,weight:600});
-    box(14,52,58,34,'入力 x');
-    arw(74,69,104,69);
-    box(106,52,96,34,'重み W と h','これが F(x)');
-    arw(204,69,236,69);
-    sv.appendChild(el('circle',{cx:250,cy:69,r:13,fill:'#fff',stroke:'#1a1a1a','stroke-width':1.6}));
-    tx(sv,250,73,'＋',{anchor:'middle',fs:13,fill:INK});
-    arw(264,69,296,69);
-    box(298,52,66,34,'出力 y');
-    // 角丸の鍵線（elbow）。曲線＋細い矢印だと見落とされた（読者の指摘）ので、
-    // 直角に折って角だけ丸め、線を太くし、矢じりも大きくする
-    sv.appendChild(el('path',{d:'M43 52 V44 Q43 36 51 36 H242 Q250 36 250 44 V50',
+    tx(sv,10,14,'ブロック 1 つ',{fs:10,fill:'#565248',weight:600});
+    tx(sv,146,32,'x をそのまま足す',{anchor:'middle',fs:9.5,fill:ARC,weight:600});
+    box(14,56,54,34,'入力 x');
+    arw(70,73,102,73);
+    box(104,56,100,34,'重み W','ここだけ学ぶ',true);
+    arw(206,73,238,73);
+    tx(sv,222,64,'F(x)',{anchor:'middle',fs:10,fill:ARC,weight:600});
+    sv.appendChild(el('circle',{cx:252,cy:73,r:13,fill:'#fff',stroke:'#1a1a1a','stroke-width':1.6}));
+    tx(sv,252,77,'＋',{anchor:'middle',fs:13,fill:INK});
+    arw(266,73,298,73);
+    box(300,56,64,34,'出力 y');
+    // x を運ぶ角丸の鍵線
+    sv.appendChild(el('path',{d:'M41 56 V48 Q41 40 49 40 H244 Q252 40 252 48 V54',
       fill:'none',stroke:ARC,'stroke-width':2.6,'stroke-linecap':'round'}));
-    sv.appendChild(el('path',{d:'M244 50 L250 58 L256 50 Z',fill:ARC}));
-    sv.appendChild(el('circle',{cx:43,cy:52,r:3.2,fill:ARC}));
-    // 逆方向
-    tx(sv,10,124,'逆方向 ―― 足し算は分岐になる。勾配が 2 本の道で手前へ届く',
-       {fs:10,fill:'#565248',weight:600});
-    sv.appendChild(el('line',{x1:14,y1:134,x2:366,y2:134,stroke:LINE,'stroke-width':1}));
-    // 逆方向も鍵線で。分岐点から折れて 2 本に分かれることを形で見せる
-    sv.appendChild(el('path',{d:'M290 146 H252 Q244 146 244 154 V160 H116',
-      fill:'none',stroke:BAD,'stroke-width':2.2,'stroke-linecap':'round'}));
-    sv.appendChild(el('path',{d:'M116 154 L108 160 L116 166 Z',fill:BAD}));
-    tx(sv,180,152,'重みを通る道（小さくなる）',{anchor:'middle',fs:9.5,fill:BAD});
-    sv.appendChild(el('path',{d:'M290 146 H298 Q306 146 306 154 V184 Q306 192 298 192 H66',
-      fill:'none',stroke:ARC,'stroke-width':2.6,'stroke-linecap':'round'}));
-    sv.appendChild(el('path',{d:'M66 186 L58 192 L66 198 Z',fill:ARC}));
-    tx(sv,170,186,'足し算の枝（そのまま通る）',{anchor:'middle',fs:9.5,fill:ARC});
-    sv.appendChild(el('circle',{cx:290,cy:146,r:3.4,fill:'#565248'}));
-    tx(sv,290,138,'ここで 2 本に',{anchor:'middle',fs:9});
-    tx(sv,14,212,'手前の層へ',{fs:9});
-    tx(sv,366,212,'出口から',{anchor:'end',fs:9});
+    sv.appendChild(el('path',{d:'M246 54 L252 62 L258 54 Z',fill:ARC}));
+    sv.appendChild(el('circle',{cx:41,cy:56,r:3.2,fill:ARC}));
+    // 重みが担当するのは差分だ、と図の中で言い切る
+    tx(sv,190,116,'F(x) = y − x   ← 重みが学ぶのは、入力からの差',{anchor:'middle',fs:11,fill:INK,weight:600});
+    tx(sv,190,134,'何も変えないのが正解なら F(x) = 0 でよい',{anchor:'middle',fs:9.5});
   })();
 
   // ── ② 実演。figures_nn ⑤ と同じネット・同じ重み。残差接続を足して実測する
@@ -504,10 +501,10 @@ ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。<
     } else if(rA<0.05 && rB>0.1){
       msg='<b>なし</b>は出口 '+fmt(A.rms[n-1])+' が入口で <b>'+fmt(A.rms[0])+'</b>（'+fmt(rA)+' 倍）まで潰れ、'+
           '手前の層はほとんど動かない。<b>あり</b>は同じ重みで入口 <b>'+fmt(B.rms[0])+'</b>（'+fmt(rB)+' 倍）。'+
-          '足し算の枝を通った分がそのまま残るので、深くしても届く。';
+          '<b>x をそのまま足した分（式の +1）</b>が層ごとに残るので、深くしても届く。';
     } else if(rB>20){
       msg='この $h$ では、<b>あり</b>の側が入口で <b>'+fmt(B.rms[0])+'</b>（'+fmt(rB)+' 倍）まで<b>増えている</b>。'+
-          '足し算の枝でズレがそのまま重なるためで、これも実測どおり。'+
+          'x をそのまま足した分が層ごとに重なるためで、これも実測どおり。'+
           '残差接続は<b>潰れるのを防ぐ仕組みであって、増えすぎる方は防がない</b>。'+
           '本物の ResNet が各ブロックに Batch Normalization を挟むのは、ここを抑えるため。';
     } else {
