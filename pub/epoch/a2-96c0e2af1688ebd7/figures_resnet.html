@@ -206,6 +206,7 @@ ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。<
 /* ※ このページ限定。共通 CSS に足すと、同じクラス名を使っている figures_cnn の
    全幅レイアウトが崩れた（実測で横 15px はみ出し）ので、ここだけに閉じる */
 .rfig svg{width:100%;max-width:480px;height:auto;display:block;margin:0 auto}
+.rarc{color:var(--arc)}
 </style>
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">しくみ</a></li><li><a href="#sec2">実演</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
@@ -248,6 +249,13 @@ ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。<
   <span class="tag" id="rNow">中間層 8 つ</span>
   <button class="btn ghost" id="rNext">中間層を増やす ▷</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="rfig"><svg id="rNet" viewBox="0 0 380 300"></svg></div>
+</details>
+<details class="foldbox" open><summary>補足</summary>
+<p class="note" style="margin:2px 0 18px">丸の濃さ＝そこに届いたズレの大きさ（対数で色分け）。
+上下で<b>重みも入力も同じ</b>。違いは<b class="rarc">水色の鍵線＝残差接続</b>があるかどうかだけ。</p>
+</details>
 <details class="foldbox" open><summary>構成図</summary>
 <div class="rfig"><svg id="rChart" viewBox="0 0 380 250"></svg></div>
 </details>
@@ -301,15 +309,27 @@ ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。<
     tx(sv,250,73,'＋',{anchor:'middle',fs:13,fill:INK});
     arw(264,69,296,69);
     box(298,52,66,34,'出力 y');
-    sv.appendChild(el('path',{d:'M43 52 C43 36 250 36 250 54',fill:'none',stroke:ARC,'stroke-width':2}));
-    arw(250,40,250,54,ARC);
+    // 角丸の鍵線（elbow）。曲線＋細い矢印だと見落とされた（読者の指摘）ので、
+    // 直角に折って角だけ丸め、線を太くし、矢じりも大きくする
+    sv.appendChild(el('path',{d:'M43 52 V44 Q43 36 51 36 H242 Q250 36 250 44 V50',
+      fill:'none',stroke:ARC,'stroke-width':2.6,'stroke-linecap':'round'}));
+    sv.appendChild(el('path',{d:'M244 50 L250 58 L256 50 Z',fill:ARC}));
+    sv.appendChild(el('circle',{cx:43,cy:52,r:3.2,fill:ARC}));
     // 逆方向
     tx(sv,10,124,'逆方向 ―― 足し算は分岐になる。勾配が 2 本の道で手前へ届く',
        {fs:10,fill:'#565248',weight:600});
     sv.appendChild(el('line',{x1:14,y1:134,x2:366,y2:134,stroke:LINE,'stroke-width':1}));
-    arw(244,160,110,160,BAD); tx(sv,177,154,'重みを通る道（小さくなる）',{anchor:'middle',fs:9.5,fill:BAD});
-    arw(244,192,60,192,ARC);  tx(sv,152,186,'足し算の枝（そのまま通る）',{anchor:'middle',fs:9.5,fill:ARC});
-    tx(sv,300,176,'ここで 2 本に',{anchor:'middle',fs:9});
+    // 逆方向も鍵線で。分岐点から折れて 2 本に分かれることを形で見せる
+    sv.appendChild(el('path',{d:'M290 146 H252 Q244 146 244 154 V160 H116',
+      fill:'none',stroke:BAD,'stroke-width':2.2,'stroke-linecap':'round'}));
+    sv.appendChild(el('path',{d:'M116 154 L108 160 L116 166 Z',fill:BAD}));
+    tx(sv,180,152,'重みを通る道（小さくなる）',{anchor:'middle',fs:9.5,fill:BAD});
+    sv.appendChild(el('path',{d:'M290 146 H298 Q306 146 306 154 V184 Q306 192 298 192 H66',
+      fill:'none',stroke:ARC,'stroke-width':2.6,'stroke-linecap':'round'}));
+    sv.appendChild(el('path',{d:'M66 186 L58 192 L66 198 Z',fill:ARC}));
+    tx(sv,170,186,'足し算の枝（そのまま通る）',{anchor:'middle',fs:9.5,fill:ARC});
+    sv.appendChild(el('circle',{cx:290,cy:146,r:3.4,fill:'#565248'}));
+    tx(sv,290,138,'ここで 2 本に',{anchor:'middle',fs:9});
     tx(sv,14,212,'手前の層へ',{fs:9});
     tx(sv,366,212,'出口から',{anchor:'end',fs:9});
   })();
@@ -378,6 +398,60 @@ ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。<
     if(v>=1e-3 && v<1e4) return v.toFixed(v<1?3:2);
     return v.toExponential(1).replace('e','e');
   }
+  // 勾配消失の図解（figures_nn ⑤）と同じ形の構成図を、なし／あり の 2 段で描く。
+  // ※ 中間層は最大 12（＝14 列）まで伸びるので、丸の中に数を入れると読めない。
+  //    数はグラフ側に任せ、この図は「構造」と「どこまで濃さが残るか」を担当する。
+  function drawNet(A,B,lo,hi){
+    var sv=clear('rNet'), nh=RHID, shape=[2], q;
+    for(q=0;q<nh;q++) shape.push(3);
+    shape.push(2);
+    var n=shape.length, x0=42, x1=348;
+    function X(i){ return x0+(n>1?i/(n-1):0)*(x1-x0); }
+    var R=Math.max(3.4, Math.min(7, 150/n));
+    var GAP=Math.max(11, Math.min(17, R*2.4));
+    function alpha(v){
+      var lv=v>0?Math.log(v)/Math.LN10:lo;
+      return 0.07+0.86*Math.max(0,Math.min(1,(lv-lo)/(hi-lo)));
+    }
+    function row(cy,rms,skip,title){
+      var i,j,k;
+      function Y(i2,j2){ return cy+GAP*(j2-(shape[i2]-1)/2); }
+      for(i=0;i<n-1;i++) for(j=0;j<shape[i];j++) for(k=0;k<shape[i+1];k++)
+        sv.appendChild(el('line',{x1:(X(i)+R).toFixed(1),y1:Y(i,j).toFixed(1),
+          x2:(X(i+1)-R).toFixed(1),y2:Y(i+1,k).toFixed(1),
+          stroke:'#d8d4cb','stroke-width':0.6}));
+      if(skip){
+        // 中間→中間だけ。角丸の鍵線で「飛び越している」ことを形で見せる
+        var top=cy-GAP*1.1-R-9;
+        for(i=1;i<n-2;i++){
+          var xa=X(i), xb=X(i+1), r2=Math.min(6,(xb-xa)/2.5);
+          sv.appendChild(el('path',{d:'M'+xa+' '+(cy-GAP-R-1)+' V'+(top+r2)+
+            ' Q'+xa+' '+top+' '+(xa+r2)+' '+top+' H'+(xb-r2)+
+            ' Q'+xb+' '+top+' '+xb+' '+(top+r2)+' V'+(cy-GAP-R-3),
+            fill:'none',stroke:ARC,'stroke-width':1.8,'stroke-linecap':'round'}));
+          sv.appendChild(el('path',{d:'M'+(xb-3.2)+' '+(cy-GAP-R-6)+' L'+xb+' '+(cy-GAP-R-1)+
+            ' L'+(xb+3.2)+' '+(cy-GAP-R-6)+' Z',fill:ARC}));
+        }
+      }
+      for(i=0;i<n;i++) for(j=0;j<shape[i];j++)
+        sv.appendChild(el('circle',{cx:X(i).toFixed(1),cy:Y(i,j).toFixed(1),r:R,
+          fill:'rgba(180,73,63,'+alpha(rms[i]).toFixed(3)+')',
+          stroke:'#b4493f','stroke-width':0.9}));
+      // ※ 値を丸の横に置くと 1 列目の丸に重なる（テキスト同士の検査では拾えない）。
+      //    行の名前だけを左に置き、実測値は行の下へ出す
+      tx(sv,10,cy+4,title,{fs:11,fill:INK,weight:600});
+    }
+    tx(sv,10,14,'入口 ◀――――――――――― ズレは右から左へ配られる ――――――――――▶ 出口',
+       {fs:9,fill:MUT});
+    row(96,A.rms,false,'なし');
+    row(232,B.rms,true,'あり');
+    // 実測値は行の下（左＝入口・右＝出口）。丸には触れない
+    tx(sv,10,150,'入口 '+fmt(A.rms[0])+'  ← ほぼ消える',{fs:9.5,fill:BAD});
+    tx(sv,x1+2,150,'出口 '+fmt(A.rms[n-1]),{anchor:'end',fs:9.5,fill:INK});
+    tx(sv,10,286,'入口 '+fmt(B.rms[0])+(B.nskip?'  ← 濃さが残ったまま届く':'  （中間層 1 つでは skip なし）'),
+       {fs:9.5,fill:B.nskip?ARC:MUT});
+    tx(sv,x1+2,286,'出口 '+fmt(B.rms[n-1]),{anchor:'end',fs:9.5,fill:INK});
+  }
   function drawChart(){
     var A=drun(RHID,false), B=drun(RHID,true), n=A.rms.length;
     var sv=clear('rChart');
@@ -387,6 +461,7 @@ ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。<
       if(lv<lo) lo=lv; if(lv>hi) hi=lv; }
     lo=Math.floor(Math.min(lo,-1))-0.4; hi=Math.ceil(Math.max(hi,1))+0.4;
     if(hi-lo<3){ hi=lo+3; }
+    drawNet(A,B,lo,hi);
     function X(i2){ return x0+(n>1?i2/(n-1):0)*(x1-x0); }
     function Y(v){ var lv=v>0?Math.log(v)/Math.LN10:lo;
       lv=Math.max(lo,Math.min(hi,lv)); return y0-(lv-lo)/(hi-lo)*(y0-y1); }
