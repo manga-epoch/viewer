@@ -203,7 +203,7 @@ RNN (再帰型ニューラルネット) は、前の時刻の <strong>隠れ状�
 /* ※ このページ限定。共通 CSS へ足すと他ページのレイアウトを壊す */
 .rnfig svg{width:100%;max-width:470px;height:auto;display:block;margin:8px auto}
 </style>
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">RNN の全体像</a></li><li><a href="#sec2">LSTM の 3 つのゲート</a></li><li><a href="#sec3">seq2seq</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">RNN の全体像</a></li><li><a href="#sec2">LSTM</a></li><li><a href="#sec3">seq2seq</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>RNN の全体像 — 1 語ずつ読み、h を次へ渡す</h2>
 <details class="foldbox" open><summary>説明</summary>
@@ -266,9 +266,22 @@ $h$ は 2 次元、重みと語のベクトルは<b>固定の例</b>で、本物
 </div>
 
 <div class="fig-stage" id="sec2">
-<h2>LSTM の 3 つのゲート</h2>
+<h2>LSTM — 渡す線が 2 本になり、A の中にゲートが入る</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">セル状態 $C$（上の太い線）に、ゲートが情報を出し入れする。ゲートを設定してから「1 ステップ進める」を繰り返し押し、$C_t$ が前のステップの $C_{t-1}$ を受け継ぎながらどう積み上がる/落ち着くかを見よう。候補値 $\tilde{C}$ は $0.80$ に固定する。</div>
+<div class="lead">形は①の RNN とまったく同じ。違いは 2 つだけだ。
+<b>横に渡る線が $h$ の 1 本から、$C$ と $h$ の 2 本になった</b>こと。
+そして <b>A の中に 3 つのゲート $f, i, o$ が入った</b>こと。
+$C$ は掛け算を重ねずに<b>足し算で更新される</b>ので、$f$ が 1 に近ければ古い値が長く残る。</div>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="rnfig"><svg id="lovSvg" viewBox="0 0 380 306"></svg></div>
+</details>
+<div class="readout" id="lovOut"></div>
+
+<details class="foldbox" open><summary>補足</summary>
+<p style="margin-top:20px"><b>では A の中のゲートを動かしてみる。</b>
+$f$ を大きくすると古い $C$ が残り、$i$ を大きくすると新しい値が書き込まれる。
+上の展開図の $C$ の数も、このつまみで変わる。候補値 $\tilde{C}$ は $0.80$ に固定する。</p>
 </details>
 <div class="ctrls">
   <div class="ctrl"><label>忘却ゲート $f$ <span class="val" id="fV">0.9</span></label><input type="range" id="fg" min="0" max="100" value="90"></div>
@@ -591,6 +604,89 @@ $c = h_T$
   // (旧版はスライダーを動かすたびに C を 0 にリセットしていたため、f をどう変えても
   //  表示される数値が同じになるバグがあった。ここでは C をステップ間で保持する)
   var f=0.9,ig=0.6,o=0.7,C=0.0,tstep=0,CTIL=0.80;
+  // ── LSTM の全体像。RNN の展開図と同じ形にして、違いだけを見せる。
+  //    渡る線が C と h の 2 本になり、A の中にゲートが入っている。
+  function lseq(){                       // いまのゲート設定で C と h を実際に計算する
+    var cs=[], hs=[], c=0;
+    for(var t=0;t<SEQ.length;t++){
+      c = f*c + ig*CTIL;
+      cs.push(c); hs.push(o*Math.tanh(c));
+    }
+    return {c:cs, h:hs};
+  }
+  function drawLov(){
+    var sv=document.getElementById('lovSvg'); sv.innerHTML='';
+    var n=SEQ.length, x0=34, gap=(380-x0-40)/(n-1), BW=54, BH=56, cy=146;
+    var R=lseq(), shown=Math.min(tstep,n);
+    sv.appendChild(el2('text',{x:190,y:14,'font-size':10.5,'text-anchor':'middle',fill:'#1A1A1A',
+      'font-weight':700},'LSTM の時間展開 ―― 渡る線が C と h の 2 本'));
+    var CY=cy-BH/2-12, HY=cy+BH/2+12;
+    for(var t=0;t<n;t++){
+      var on=t<shown, cx=x0+t*gap;
+      sv.appendChild(el2('text',{x:cx,y:38,'font-size':9,'text-anchor':'middle',
+        fill:on?'#9A9488':'#CFCBBE'},'t='+(t+1)));
+      sv.appendChild(el2('text',{x:cx,y:54,'font-size':10.5,'text-anchor':'middle',
+        fill:on?'#1A1A1A':'#CFCBBE','font-weight':on?700:400},SEQ[t]));
+      sv.appendChild(el2('line',{x1:cx,y1:60,x2:cx,y2:CY-6,
+        stroke:on?'#1a1a1a':'#d8d4cb','stroke-width':1.4}));
+      sv.appendChild(el2('path',{d:'M'+(cx-3)+' '+(CY-11)+' L'+cx+' '+(CY-4)+' L'+(cx+3)+' '+(CY-11)+' Z',
+        fill:on?'#1a1a1a':'#d8d4cb'}));
+      // A の箱。中に f i o の 3 つのゲート
+      sv.appendChild(el2('rect',{x:cx-BW/2,y:cy-BH/2,width:BW,height:BH,rx:7,
+        fill:'#fff',stroke:on?ARC:'#b9b9b2','stroke-width':on?2:1.2}));
+      var GN=['f','i','o'], GV=[f,ig,o];
+      for(var g=0;g<3;g++){
+        var gy=cy-BH/2+14+g*13;
+        sv.appendChild(el2('rect',{x:cx-19,y:gy-5,width:26,height:9,rx:2,
+          fill:'#F4F2EC',stroke:'#E4E1D8','stroke-width':0.6}));
+        sv.appendChild(el2('rect',{x:cx-19,y:gy-5,width:26*GV[g],height:9,rx:2,
+          fill:on?ARC:'#d8d4cb'}));
+        sv.appendChild(el2('text',{x:cx+13,y:gy+3,'font-size':8.5,'text-anchor':'middle',
+          fill:on?'#1A1A1A':'#CFCBBE'},GN[g]));
+      }
+      sv.appendChild(el2('text',{x:cx,y:cy+BH/2-4,'font-size':9.5,'text-anchor':'middle',
+        fill:'#1A1A1A','font-weight':700},'A'));
+      // C（上）と h（下）を右へ
+      var xa=cx+BW/2, xb=cx+gap-BW/2;
+      function lane(y,lab,val,col,live){
+        if(t<n-1){
+          sv.appendChild(el2('line',{x1:xa,y1:y,x2:xb-5,y2:y,
+            stroke:live?col:'#d8d4cb','stroke-width':live?2.4:1.2}));
+          sv.appendChild(el2('path',{d:'M'+(xb-6)+' '+(y-3.5)+' L'+xb+' '+y+' L'+(xb-6)+' '+(y+3.5)+' Z',
+            fill:live?col:'#d8d4cb'}));
+          sv.appendChild(el2('text',{x:(xa+xb)/2,y:y-6,'font-size':9,'text-anchor':'middle',
+            fill:live?col:'#9A9488','font-weight':700},lab+(t+1)));
+          if(live) sv.appendChild(el2('text',{x:(xa+xb)/2,y:y+11,'font-size':8.5,
+            'text-anchor':'middle',fill:'#565248'},val.toFixed(2)));
+        } else {
+          sv.appendChild(el2('line',{x1:xa,y1:y,x2:xa+20,y2:y,
+            stroke:(shown>=n)?col:'#d8d4cb','stroke-width':(shown>=n)?2.4:1.2}));
+        }
+      }
+      lane(CY,'C',R.c[t],ARC,t<shown-1);
+      lane(HY,'h',R.h[t],'#1a1a1a',t<shown-1);
+      // 出力
+      sv.appendChild(el2('line',{x1:cx,y1:HY+6,x2:cx,y2:HY+24,
+        stroke:on?'#1a1a1a':'#d8d4cb','stroke-width':1.4}));
+      sv.appendChild(el2('path',{d:'M'+(cx-3)+' '+(HY+19)+' L'+cx+' '+(HY+26)+' L'+(cx+3)+' '+(HY+19)+' Z',
+        fill:on?'#1a1a1a':'#d8d4cb'}));
+      sv.appendChild(el2('text',{x:cx,y:HY+40,'font-size':9,'text-anchor':'middle',
+        fill:on?'#9A9488':'#CFCBBE'},'y'+(t+1)));
+    }
+    sv.appendChild(el2('text',{x:10,y:276,'font-size':9.5,fill:ARC,'font-weight':700},
+      'C ＝ 足し算で更新される線。f が 1 に近いほど古い値が残る'));
+    sv.appendChild(el2('text',{x:10,y:292,'font-size':9.5,fill:'#565248'},
+      'h ＝ RNN と同じ線。C から o を通して取り出したもの'));
+    document.getElementById('lovOut').innerHTML = tstep===0
+      ? '①の RNN と同じ形だが、<b>渡る線が 2 本</b>で、A の中に <b>f, i, o</b> の 3 つのゲートがある。'+
+        '下の「1 ステップ進める」で C と h の数が入る。'
+      : '<b>' + Math.min(tstep,n) + ' 語目まで進んだ。</b>いまのゲート設定（f=' + f.toFixed(2) +
+        '・i=' + ig.toFixed(2) + '・o=' + o.toFixed(2) + '）だと、'+
+        'C は ' + R.c[0].toFixed(2) + ' → ' + R.c[Math.min(tstep,n)-1].toFixed(2) + ' と動く。'+
+        (f>=0.8 ? ' <b>f が大きいので、古い C がほとんど減らずに右へ渡っている。</b>'
+                : ' <b>f が小さいので、古い C はすぐ薄れ、直近の入力に支配される。</b>');
+  }
+
   function drawLstm(prevC,prevH){
     var svg=document.getElementById('lstmSvg');svg.innerHTML='';
     // C が通る線（スマホ幅 380 に組み直し）
@@ -622,6 +718,7 @@ $c = h_T$
         (f>=0.8?'——高い f は過去の値の影響を長く引きずる。':(f<=0.3?'——低い f だと直近の入力にすぐ支配され、古い値はもう残っていない。':'。'));
     }
     drawDecayBars('lstmDecaySvg',f,'f^t の残存率(現在 f='+f.toFixed(2)+') — 1 に近いほど長く残る');
+    drawLov();
   }
   function stepLstm(){
     var prevC=C;
