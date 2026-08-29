@@ -210,6 +210,8 @@ RNN (再帰型ニューラルネット) は、前の時刻の <strong>隠れ状�
 <div class="lead">画像は一度に全体を見られるが、言葉は<b>順番</b>に来る。
 RNN は 1 語ずつ読み、そのつど <b>$h$（隠れ状態）</b>を更新して次へ渡す。
 $h$ は<b>ここまでに読んだ分の要約</b>で、中身は数のベクトル。
+<b>この図では書ける大きさに縮めて 2 次元にしているが、本物は数百〜数千次元</b>
+（2014 年の seq2seq は 1 層 1000 ユニットの LSTM を 4 層重ねている）。
 下の <b>A</b> がその更新をする部分 ―― <b>A の中身はニューラルネット</b>で、
 図の中に描いてある。<b>A は毎回まったく同じもの</b>を使い回す（重み共有）。</div>
 </details>
@@ -225,6 +227,21 @@ $h$ は<b>ここまでに読んだ分の要約</b>で、中身は数のベクト
 <div class="rnfig"><svg id="memSvg" viewBox="0 0 380 176"></svg></div>
 </details>
 <div class="readout" id="memOut"></div>
+
+<details class="foldbox" open><summary>補足</summary>
+<p style="margin-top:20px"><b>では、前の h は次の A にどう入るのか。</b>
+語のベクトルと<b>横に並べて</b>受け取り、それぞれに重みが掛かって足されるだけだ。
+下は、いま読んだ語の A の中で起きている足し算をそのまま並べたもの。
+<b>「語から来た分」と「前の h から来た分」</b>が、どちらがどれだけ効いたかが見える。</p>
+</details>
+<div class="chips" id="brkpick" style="justify-content:center">
+  <span class="chip on" data-bk="0">h¹ を作る足し算</span>
+  <span class="chip" data-bk="1">h² を作る足し算</span>
+</div>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="rnfig"><svg id="brkSvg" viewBox="0 0 380 250"></svg></div>
+</details>
+<div class="readout" id="brkOut"></div>
 <details class="foldbox"><summary>式と計算</summary>
 <div class="formula">
 $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
@@ -425,16 +442,16 @@ $c = h_T$
       ? 'まだ 1 語も読んでいない。「1 語すすむ」を押すと、左から順に A を通る。'
       : '<b>' + ovStep + ' 個の token</b>（' + SEQ.slice(0,ovStep).join(' / ') + '）を読んだ。'
         + 'いま渡されている <b>h' + ovStep + ' = ( ' + fmt(HS[ovStep-1][0]) + ', ' + fmt(HS[ovStep-1][1])
-        + ' )</b> ―― <b>2 個の数</b>で、読んだ語の数が増えても<b>この長さは変わらない</b>。'
+        + ' )</b> ―― 読んだ語の数が増えても<b>この長さは変わらない</b>。'
         + '出力 y' + ovStep + ' は次の語の予測で「' + NEXTW[ovStep-1] + '」。'
         + (ovStep>=SEQ.length
             ? ' A を ' + SEQ.length + ' 回通しただけで、ネットワークは 1 つ。'
             : '');
   }
   document.getElementById('ovStep').addEventListener('click',function(){
-    ovStep=Math.min(SEQ.length,ovStep+1); drawOverview(); drawMem(); });
+    ovStep=Math.min(SEQ.length,ovStep+1); drawOverview(); drawMem(); drawBreak(); });
   document.getElementById('ovReset').addEventListener('click',function(){
-    ovStep=0; drawOverview(); drawMem(); });
+    ovStep=0; drawOverview(); drawMem(); drawBreak(); });
 
   // ── (2) h に何がたまるか。読んだ語が h の中で積み上がるのを言葉で見せる
   function drawMem(){
@@ -464,7 +481,7 @@ $c = h_T$
     }
     sv.appendChild(el2('line',{x1:10,y1:110,x2:370,y2:110,stroke:'#E4E1D8'}));
     sv.appendChild(el2('text',{x:10,y:126,'font-size':9.5,fill:'#9A9488'},
-      '読んだ語は増えるが、h は 2 個の数のまま ―― ここに全部を詰め込む'));
+      '読んだ語は増えても h の長さは変わらない（本物は数百〜数千次元）'));
     var done=(ovStep>=n);
     sv.appendChild(el2('text',{x:10,y:150,'font-size':10,fill:done?'#1A1A1A':'#CFCBBE',
       'font-weight':done?700:400},'最後の h'+n+' から次の語を出す'));
@@ -480,7 +497,80 @@ $c = h_T$
             : ' 次の語を読むと、この 2 個の数が書き換わる。');
   }
 
-  drawOverview(); drawMem();
+  // ── 前の h が、次の A の足し算にどう入るか。ブロックと数字で示す。
+  //    語からの寄与と h からの寄与を分けて出すのが要点（読者の質問がここだった）。
+  var BK=0;
+  function drawBreak(){
+    var sv=document.getElementById('brkSvg'); sv.innerHTML='';
+    var t=Math.max(1,ovStep)-1, word=SEQ[t], x=XV[word];
+    var hp = t===0 ? [0,0] : HS[t-1];
+    var W=[[Wx[0][0],Wx[0][1],Wh[0][0],Wh[0][1]],
+           [Wx[1][0],Wx[1][1],Wh[1][0],Wh[1][1]]];
+    var vals=[x[0],x[1],hp[0],hp[1]];
+    var names=['語 x¹','語 x²','前の h¹','前の h²'];
+    var w=W[BK], zx=0, zh=0, terms=[];
+    for(var i=0;i<4;i++){ var c=w[i]*vals[i]; terms.push(c); if(i<2) zx+=c; else zh+=c; }
+    var z=zx+zh+Bb[BK], out=Math.tanh(z);
+    var head = ovStep===0 ? '（まだ読んでいない。1 語すすむと、ここに数が入る）'
+      : 't=' + (t+1) + '「' + word + '」の A の中で h' + (BK===0?'¹':'²') + ' が作られるまで';
+    sv.appendChild(el2('text',{x:10,y:15,'font-size':10.5,fill:'#1A1A1A','font-weight':700},head));
+    // 見出し行
+    var CX=[10,124,176,238], HY=36;
+    ['','入力','× 重み','= 寄与'].forEach(function(h2,k){
+      if(!h2) return;
+      sv.appendChild(el2('text',{x:CX[k],y:HY,'font-size':9,'text-anchor':'end',fill:'#9A9488'},h2));
+    });
+    sv.appendChild(el2('text',{x:302,y:HY,'font-size':9,'text-anchor':'middle',fill:'#9A9488'},'寄与の大きさ'));
+    sv.appendChild(el2('line',{x1:10,y1:42,x2:370,y2:42,stroke:'#E4E1D8'}));
+    var ZERO=302, SCALE=95;
+    function row(y,nm,v,wt,c,isH){
+      sv.appendChild(el2('text',{x:10,y:y,'font-size':9.5,fill:isH?ARC:'#1A1A1A',
+        'font-weight':isH?700:400},nm));
+      sv.appendChild(el2('text',{x:CX[1],y:y,'font-size':9.5,'text-anchor':'end',fill:'#565248'},fmt(v)));
+      sv.appendChild(el2('text',{x:CX[2],y:y,'font-size':9.5,'text-anchor':'end',fill:'#565248'},fmt(wt)));
+      sv.appendChild(el2('text',{x:CX[3],y:y,'font-size':9.5,'text-anchor':'end',fill:'#1A1A1A',
+        'font-weight':600},fmt(c)));
+      var bw=Math.min(60,Math.abs(c)*SCALE);
+      sv.appendChild(el2('rect',{x: c>=0?ZERO:ZERO-bw, y:y-8, width:Math.max(1.2,bw), height:9,
+        fill: isH? ARC : '#9A9488', opacity: isH?0.85:0.55}));
+    }
+    var ys=[60,78,96,114];
+    for(var r=0;r<4;r++) row(ys[r],names[r],vals[r],w[r],terms[r],r>=2);
+    row(132,'バイアス',1,Bb[BK],Bb[BK],false);
+    sv.appendChild(el2('line',{x1:ZERO,y1:48,x2:ZERO,y2:142,stroke:'#CFCBBE','stroke-width':0.8}));
+    sv.appendChild(el2('line',{x1:10,y1:146,x2:370,y2:146,stroke:'#E4E1D8'}));
+    // 合計と tanh
+    sv.appendChild(el2('text',{x:10,y:166,'font-size':10,fill:'#1A1A1A','font-weight':700},
+      '足すと z = ' + fmt(z)));
+    sv.appendChild(el2('text',{x:10,y:186,'font-size':10,fill:'#1A1A1A','font-weight':700},
+      'tanh(z) = h' + (BK===0?'¹':'²') + ' = ' + fmt(out) + '　→ これが次の A へ渡る'));
+    // 語 / h の内訳
+    sv.appendChild(el2('rect',{x:10,y:198,width:360,height:40,rx:5,fill:'#F4F2EC',stroke:'#E4E1D8'}));
+    sv.appendChild(el2('text',{x:20,y:214,'font-size':9.5,fill:'#565248'},
+      'いまの語から  ' + fmt(zx) + '　／　前の h から  ' + fmt(zh)));
+    sv.appendChild(el2('text',{x:20,y:230,'font-size':9.5,fill:ARC,'font-weight':700},
+      Math.abs(zh)>Math.abs(zx) ? '→ この成分は、いまの語より前の h の影響の方が大きい'
+                                : '→ この成分は、前の h よりいまの語の影響の方が大きい'));
+    document.getElementById('brkOut').innerHTML = ovStep===0
+      ? '「1 語すすむ」を押すと、その語の A の中の足し算がここに出る。'
+      : '前の h の 2 個の数は、<b>それぞれに重み（' + fmt(w[2]) + ' と ' + fmt(w[3]) +
+        '）が掛かって z に足し込まれる</b>。それだけで、特別な仕掛けは無い。<br>'+
+        'ここでは <b>語から ' + fmt(zx) + '、前の h から ' + fmt(zh) + '</b>。'+
+        'h を 1 増やすと h' + (BK===0?'¹':'²') + ' は ' +
+        fmt(w[2]*(1-out*out)) + ' 動く（重み × tanh の傾き）。<br>'+
+        '<b>この重みは毎時刻まったく同じもの</b>なので、古い h ほど同じ重みが何度も掛かる ―― '+
+        '次の節の勾配消失は、ここから来る。';
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-bk]'),function(c){
+    c.addEventListener('click',function(){
+      BK=+c.getAttribute('data-bk');
+      Array.prototype.forEach.call(document.querySelectorAll('.chip[data-bk]'),function(d){
+        d.classList.toggle('on', d===c); });
+      drawBreak();
+    });
+  });
+
+  drawOverview(); drawMem(); drawBreak();
 
 
   function drawDecayBars(svgId,base,label){
