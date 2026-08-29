@@ -259,20 +259,22 @@ Self-Attention そのものの中身は
 
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">全体のフロー</a></li><li><a href="#sec2">Embedding</a></li><li><a href="#sec3">なぜ12回くり返すのか</a></li><li><a href="#sec4">出力</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>全体のフロー</h2>
+<h2>全体のフロー — 実物の GPT-2 を一段ずつ進める</h2>
 <details class="foldbox" open><summary>説明</summary>
 <p>文が入ってから次の1語が出るまで、何をどの順で通るのか。よくある描き方に合わせて描いた。
-箱や⊕を選ぶと、そこで何が起きるかと、そこでのデータの<b>形</b>が読み上げに出る。</p>
+「▶ 1 段すすむ」を押すと、<b>実際に GPT-2 small に「Data visualization empowers users to」を読ませたときのデータ</b>が
+その段まで流れる。箱を直接押して段を選ぶこともできる。</p>
 </details>
 <div class="stepnav" id="steps">
-  <button id="s1prev" aria-label="前のブロック">&#9665;</button>
+  <button id="s1prev" aria-label="前の段">&#9665;</button>
   <span class="stepnow" id="s1now"></span>
-  <button id="s1next" aria-label="次のブロック">&#9655;</button>
+  <button id="s1next" aria-label="次の段">▶ 1 段すすむ</button>
 </div>
 <details class="foldbox" open><summary>構成図</summary>
 <div id="v1"></div>
 </details>
 <div class="readout" id="r1"></div>
+<div class="readout" id="rdata" style="margin-top:6px"></div>
 <details class="foldbox" open><summary>補足</summary>
 <p class="note">図の中の箱を直接押しても選べる。囲みが「同じ形のブロック」で、これを 12 回くり返す。
 Attention の中身は隣の図解が持つ――箱の中のリンクからそのまま移動できる。
@@ -382,8 +384,8 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
 
 <script>
 (function(){
-  var D={"tokens":["Data"," visualization"," em","powers"," users"," to"],"candidates":[{"token":" visualize","logit":-135.913},{"token":" create","logit":-136.684},{"token":" see","logit":-137.12},{"token":" make","logit":-137.647},{"token":" easily","logit":-137.666},{"token":" quickly","logit":-137.724},{"token":" explore","logit":-137.784},{"token":" find","logit":-138.048},{"token":" understand","logit":-138.293},{"token":" build","logit":-138.41},{"token":" better","logit":-138.453},{"token":" identify","logit":-138.487}],"prompt":"Data visualization empowers users to","dim":768,"heads":12,"headDim":64,"ffn":3072,"vocab":50257,"blocks":12,"embParams":"38,597,376"};
-  var STEPS1=[["input", "入力テキスト", "この例の文は 6 語。語数はいくつでもよく、以降の形の「6」がその数に変わるだけ。まだ数にはなっていない。", "6 語の文（この例）"], ["embed", "Input Embedding", "各語を、意味と位置を表す768個の数に変える。中身は次の節「Embedding」で追う。", "6 × 768"], ["attn", "Masked Multi-Head Self-Attention", "各語が他のどの語を参照するかを自分で決め、情報を混ぜ合わせる。自分より後ろの語は見えない（Masked）。12組を並列に走らせる（12ヘッド、1組64次元）。中身は figures_attention.html で見られる。", "6 × 768"], ["add1", "Add & Norm", "Attention の出力を、その手前の値に足し戻す（残差）。そのあと各語のベクトルの目盛りを揃える（層正規化）。捨てて作り直すのではなく、足し込む。", "6 × 768"], ["mlp", "MLP（Feed Forward）", "語ごとに独立して、いったん3072次元へ広げ、また768次元へ戻す。Attention で集めた情報を、ここで捏ねる。", "6 × 768"], ["add2", "Add & Norm", "MLP の出力を、その手前の値に足し戻し、また目盛りを揃える。", "6 × 768"], ["out", "出力（次の1語の確率）", "最後の語の768次元を、語彙50,257個ぶんの点数（logit）に変換し、softmax で確率にする。いちばん確からしい語が次の1語。中身は節「出力」で見る。", "50,257 語の確率"]];
+  var D={"tokens":["Data"," visualization"," em","powers"," users"," to"],"candidates":[{"token":" visualize","logit":-135.913},{"token":" create","logit":-136.684},{"token":" see","logit":-137.12},{"token":" make","logit":-137.647},{"token":" easily","logit":-137.666},{"token":" quickly","logit":-137.724},{"token":" explore","logit":-137.784},{"token":" find","logit":-138.048},{"token":" understand","logit":-138.293},{"token":" build","logit":-138.41},{"token":" better","logit":-138.453},{"token":" identify","logit":-138.487}],"prompt":"Data visualization empowers users to","attnLast":[0.2317,0.0026,0.04,0.0539,0.0216,0.6502],"dim":768,"heads":12,"headDim":64,"ffn":3072,"vocab":50257,"blocks":12,"embParams":"38,597,376"};
+  var STEPS1=[["input", "入力テキスト", "この例の文は 6 語。語数はいくつでもよく、以降の形の「6」がその数に変わるだけ。まだ数にはなっていない。", "6 語の文（この例）"], ["embed", "Input Embedding", "各語を、意味と位置を表す768個の数に変える。中身は次の節「Embedding」で追う。", "6 × 768"], ["attn", "Masked Multi-Head Self-Attention", "各語が他のどの語を参照するかを自分で決め、情報を混ぜ合わせる。自分より後ろの語は見えない（Masked）。12組を並列に走らせる（12ヘッド、1組64次元）。中身は「この中身を見る →」のリンクで開ける。", "6 × 768"], ["add1", "Add & Norm", "Attention の出力を、その手前の値に足し戻す（残差）。そのあと各語のベクトルの目盛りを揃える（層正規化）。捨てて作り直すのではなく、足し込む。", "6 × 768"], ["mlp", "MLP（Feed Forward）", "語ごとに独立して、いったん3072次元へ広げ、また768次元へ戻す。Attention で集めた情報を、ここで捏ねる。", "6 × 768"], ["add2", "Add & Norm", "MLP の出力を、その手前の値に足し戻し、また目盛りを揃える。", "6 × 768"], ["out", "出力（次の1語の確率）", "最後の語の768次元を、語彙50,257個ぶんの点数（logit）に変換し、softmax で確率にする。いちばん確からしい語が次の1語。中身は節「出力」で見る。", "50,257 語の確率"]];
   var $=function(s){return document.querySelector(s)};
   var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
   function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -399,6 +401,52 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
     draw1();
   };
   function sel(k){ return STEPS1[cur][0]===k; }
+  function reached(k){ return stepIdx(k)<=cur; }
+  function fmtP(v){ return (v*100).toFixed(0)+'%'; }
+  function dataBand(){
+    var k=STEPS1[cur][0], h='';
+    function bars(pairs,color){
+      var m=0; pairs.forEach(function(p){ m=Math.max(m,p[1]); });
+      var out='<div style="display:flex;flex-direction:column;gap:3px;margin-top:6px">';
+      pairs.forEach(function(p){
+        out+='<div style="display:flex;align-items:center;gap:8px;font-size:12px">'+
+          '<span style="width:86px;text-align:right;color:#565248">'+esc(p[0])+'</span>'+
+          '<span style="flex:1;background:#F4F2EC;border-radius:3px;height:12px;overflow:hidden">'+
+          '<span style="display:block;height:100%;width:'+(p[1]/m*100).toFixed(1)+'%;background:'+color+'"></span></span>'+
+          '<span style="width:44px;font-variant-numeric:tabular-nums;color:#1A1A1A">'+p[2]+'</span></div>';
+      });
+      return out+'</div>';
+    }
+    if(k==='input'){
+      h='<b>いま流れているデータ:</b> 生の文字列<br>'+
+        '<span style="font-family:ui-monospace,Consolas,monospace">「'+esc(D.prompt)+'」</span>';
+    } else if(k==='embed'){
+      h='<b>いま流れているデータ:</b> 実際のトークン '+N+' 個 → それぞれ '+DIM+' 個の数へ<br>'+
+        D.tokens.map(function(t){return '<span class="tag" style="margin:3px 4px 0 0">'+esc(t)+'</span>';}).join('')+
+        '<br><span style="font-size:12px;color:#9A9488">形: '+N+' × '+DIM+'（この分割は GPT-2 の実測）</span>';
+    } else if(k==='attn'){
+      var pairs=D.tokens.map(function(t,j){ return [t, D.attnLast[j], fmtP(D.attnLast[j])]; });
+      h='<b>いま流れているデータ:</b> 最後の語「'+esc(D.tokens[N-1].trim())+'」が各語を見た重み'+
+        '（ブロック1・12ヘッド平均の<b>実測</b>）'+bars(pairs,'#6E7BA8')+
+        '<span style="font-size:12px;color:#9A9488">この行き先と強さをモデル自身が決める。計算の中身は下のリンクで開ける</span>';
+    } else if(k==='add1'||k==='add2'){
+      h='<b>いま流れているデータ:</b> 形は '+N+' × '+DIM+' のまま。'+
+        '直前の出力を<b>元の値に足し戻して</b>目盛りを揃えた（作り直していない）。';
+    } else if(k==='mlp'){
+      h='<b>いま流れているデータ:</b> 語ごとに '+DIM+' → '+FFN+' → '+DIM+' と通した。形は '+N+' × '+DIM+' のまま。';
+    } else if(k==='out'){
+      var mx=-1e9; D.candidates.forEach(function(c){ mx=Math.max(mx,c.logit); });
+      var exps=D.candidates.map(function(c){ return Math.exp(c.logit-mx); });
+      var tot=0; exps.forEach(function(e){ tot+=e; });
+      var pairs=D.candidates.slice(0,5).map(function(c,i){
+        return [c.token, exps[i]/tot, (exps[i]/tot*100).toFixed(1)+'%']; });
+      h='<b>出てきたデータ:</b> 次の 1 語の候補（<b>実測 logit</b> から計算した確率・上位5）'+
+        bars(pairs,'#1A1A1A')+
+        '<span style="font-size:12px;color:#9A9488">1 位の「'+esc(D.candidates[0].token.trim())+
+        '」が次の語になる。％は実測上位12語内での比率</span>';
+    }
+    $('#rdata').innerHTML=h;
+  }
   function stepIdx(k){ for(var i=0;i<STEPS1.length;i++) if(STEPS1[i][0]===k) return i; return -1; }
   function mkBox(key,x,y,w,h,lines,onSel,fs){
     var g='<g style="cursor:pointer" onclick="__selStep1(&#39;'+key+'&#39;)">';
@@ -447,8 +495,8 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
            ' L'+(xC-r-15)+' '+(yTo+4.5)+'" fill="none" stroke="#6E7BA8" stroke-width="1.8"/>';
   }
   function draw1(){
-    var W=780, BW=260, BX=250, xC=BX+BW/2;   // 左は残差の迂回線ぶん、右は注記ぶんの余白
-    var RX=BX-52;                            // 迂回線の縦位置。上下で同じにする
+    var W=380, BW=230, BX=76, xC=BX+BW/2;    // スマホ幅。左は残差の迂回線ぶんの余白
+    var RX=BX-34;                            // 迂回線の縦位置。上下で同じにする
     var yInput=20, hBox=42;
     var yEmbed=88;
     var yAttn=176, hAttn=58;
@@ -509,6 +557,7 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
     $('#s1now').textContent=(cur+1)+' / '+STEPS1.length+'　'+st[1];
     $('#s1prev').disabled=(cur===0);
     $('#s1next').disabled=(cur===STEPS1.length-1);
+    dataBand();
   }
   $('#s1prev').onclick=function(){ if(cur>0){ cur--; draw1(); } };
   $('#s1next').onclick=function(){ if(cur<STEPS1.length-1){ cur++; draw1(); } };

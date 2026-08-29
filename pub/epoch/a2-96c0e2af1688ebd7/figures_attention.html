@@ -254,6 +254,33 @@ table{display:block;overflow-x:auto;max-width:100%}
 <span style="color:var(--ink-sub)">（データ可視化は、ユーザーが〜することを可能にする）</span></div>
 </div>
 
+<div style="max-width:560px;margin:0 auto 6px">
+<svg viewBox="0 0 380 96" style="width:100%;height:auto;display:block">
+  <text x="10" y="14" style="font:600 10px sans-serif" fill="#9A9488">いま開いているのは、Transformer 全体のこの箱</text>
+  <g style="font:600 8.5px sans-serif">
+    <rect x="10" y="42" width="62" height="22" rx="4" fill="#fff" stroke="#b9b9b2"/>
+    <text x="41" y="56" text-anchor="middle" fill="#565248">入力</text>
+    <rect x="80" y="42" width="72" height="22" rx="4" fill="#fff" stroke="#b9b9b2"/>
+    <text x="116" y="56" text-anchor="middle" fill="#565248">Embedding</text>
+    <rect x="160" y="30" width="120" height="46" rx="6" fill="none" stroke="#6E7BA8" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="220" y="26" text-anchor="middle" fill="#6E7BA8">× 12</text>
+    <rect x="166" y="36" width="72" height="16" rx="3" fill="#6E7BA8"/>
+    <text x="202" y="47" text-anchor="middle" fill="#fff">Attention</text>
+    <rect x="166" y="56" width="72" height="14" rx="3" fill="#fff" stroke="#b9b9b2"/>
+    <text x="202" y="66" text-anchor="middle" fill="#565248">MLP</text>
+    <rect x="288" y="42" width="82" height="22" rx="4" fill="#fff" stroke="#b9b9b2"/>
+    <text x="329" y="52" text-anchor="middle" fill="#565248">次の 1 語</text>
+    <text x="329" y="61" text-anchor="middle" fill="#565248">の確率</text>
+    <line x1="72" y1="53" x2="80" y2="53" stroke="#b9b9b2" stroke-width="1.2"/>
+    <line x1="152" y1="53" x2="160" y2="53" stroke="#b9b9b2" stroke-width="1.2"/>
+    <line x1="280" y1="53" x2="288" y2="53" stroke="#b9b9b2" stroke-width="1.2"/>
+  </g>
+  <text x="10" y="90" style="font:9px sans-serif" fill="#9A9488">塗ってある Attention の中身を、この図解で開く。全体の流れは Transformer の図解にある</text>
+</svg>
+<p style="text-align:center;font-size:12.5px;margin:2px 0 0">
+<a href="figures_transformer.html">← Transformer の全体像へ</a></p>
+</div>
+
 <nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">クエリ・キー・バリュー（Q・K・V）</a></li><li><a href="#sec2">注意の重みの計算</a></li><li><a href="#sec3">マスク処理</a></li><li><a href="#sec4">マルチヘッド</a></li><li><a href="#sec5">出力の合成</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>クエリ・キー・バリュー（Q・K・V） — 検索にたとえた 3 つの役割</h2>
