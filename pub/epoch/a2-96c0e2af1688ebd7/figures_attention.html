@@ -238,7 +238,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 </style><meta name="robots" content="noindex,nofollow"></head>
 <body>
 <div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; Self-Attention のしくみ</div>
-<div class="fig-topnav"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene8" data-t="巻末解説に戻る（Scene 8「注意こそ、すべて」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_alphago.html" data-t="一つ前の図解へ（AlphaGo・MCTS）" aria-label="一つ前の図解へ（AlphaGo・MCTS）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_transformer.html" data-t="一つ後の図解へ（Transformer）" aria-label="一つ後の図解へ（Transformer）">&#9655;</a></nav></div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene8" data-t="巻末解説に戻る（Scene 8「注意こそ、すべて」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_transformer.html" data-t="一つ前の図解へ（Transformer）" aria-label="一つ前の図解へ（Transformer）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_detect.html" data-t="一つ後の図解へ（検出と領域分け）" aria-label="一つ後の図解へ（検出と領域分け）">&#9655;</a></nav></div>
 <div class="intro">
 <div class="eyebrow">ARC 2 ／ SCENE 8 — 注意こそ、すべて</div>
 <h1>Self-Attention のしくみを、本物の数値で見る</h1>
@@ -254,28 +254,34 @@ table{display:block;overflow-x:auto;max-width:100%}
 <span style="color:var(--ink-sub)">（データ可視化は、ユーザーが〜することを可能にする）</span></div>
 </div>
 
-<div style="max-width:560px;margin:0 auto 6px">
-<svg viewBox="0 0 380 96" style="width:100%;height:auto;display:block">
-  <text x="10" y="14" style="font:600 10px sans-serif" fill="#9A9488">いま開いているのは、Transformer 全体のこの箱</text>
-  <g style="font:600 8.5px sans-serif">
-    <rect x="10" y="42" width="62" height="22" rx="4" fill="#fff" stroke="#b9b9b2"/>
-    <text x="41" y="56" text-anchor="middle" fill="#565248">入力</text>
-    <rect x="80" y="42" width="72" height="22" rx="4" fill="#fff" stroke="#b9b9b2"/>
-    <text x="116" y="56" text-anchor="middle" fill="#565248">Embedding</text>
-    <rect x="160" y="30" width="120" height="46" rx="6" fill="none" stroke="#6E7BA8" stroke-width="1.2" stroke-dasharray="4 3"/>
-    <text x="220" y="26" text-anchor="middle" fill="#6E7BA8">× 12</text>
-    <rect x="166" y="36" width="72" height="16" rx="3" fill="#6E7BA8"/>
-    <text x="202" y="47" text-anchor="middle" fill="#fff">Attention</text>
-    <rect x="166" y="56" width="72" height="14" rx="3" fill="#fff" stroke="#b9b9b2"/>
-    <text x="202" y="66" text-anchor="middle" fill="#565248">MLP</text>
-    <rect x="288" y="42" width="82" height="22" rx="4" fill="#fff" stroke="#b9b9b2"/>
-    <text x="329" y="52" text-anchor="middle" fill="#565248">次の 1 語</text>
-    <text x="329" y="61" text-anchor="middle" fill="#565248">の確率</text>
-    <line x1="72" y1="53" x2="80" y2="53" stroke="#b9b9b2" stroke-width="1.2"/>
-    <line x1="152" y1="53" x2="160" y2="53" stroke="#b9b9b2" stroke-width="1.2"/>
-    <line x1="280" y1="53" x2="288" y2="53" stroke="#b9b9b2" stroke-width="1.2"/>
+<div style="max-width:340px;margin:0 auto 6px">
+<svg viewBox="0 0 380 268" style="width:100%;height:auto;display:block">
+  <text x="190" y="14" text-anchor="middle" style="font:600 10.5px sans-serif" fill="#565248">いま開いているのは、Transformer 全体のこの箱</text>
+  <g style="font:600 9.5px sans-serif">
+    <rect x="115" y="24" width="150" height="24" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/>
+    <text x="190" y="40" text-anchor="middle" fill="#1a1a1a">入力テキスト</text>
+    <line x1="190" y1="48" x2="190" y2="60" stroke="#b9b9b2" stroke-width="1.4"/>
+    <rect x="115" y="62" width="150" height="24" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/>
+    <text x="190" y="78" text-anchor="middle" fill="#1a1a1a">Input Embedding</text>
+    <line x1="190" y1="86" x2="190" y2="98" stroke="#b9b9b2" stroke-width="1.4"/>
+    <rect x="96" y="106" width="188" height="9" rx="7" fill="none" stroke="#6E7BA8" stroke-width="1" opacity="0.45" transform="translate(8,8)"/>
+    <rect x="96" y="102" width="188" height="106" rx="10" fill="none" stroke="#6E7BA8" stroke-width="1.3"/>
+    <text x="292" y="112" style="font:600 9px sans-serif" fill="#6E7BA8">× 12</text>
+    <rect x="112" y="112" width="156" height="30" rx="6" fill="#6E7BA8"/>
+    <text x="190" y="126" text-anchor="middle" fill="#fff" style="font-size:8.6px">Masked Multi-Head</text>
+    <text x="190" y="137" text-anchor="middle" fill="#fff" style="font-size:8.6px">Self-Attention</text>
+    <line x1="190" y1="142" x2="190" y2="152" stroke="#b9b9b2" stroke-width="1.4"/>
+    <circle cx="190" cy="158" r="6" fill="#fff" stroke="#6E7BA8" stroke-width="1.4"/>
+    <path d="M187 158 h6 M190 155 v6" stroke="#6E7BA8" stroke-width="1.2"/>
+    <line x1="190" y1="164" x2="190" y2="172" stroke="#b9b9b2" stroke-width="1.4"/>
+    <rect x="112" y="174" width="156" height="22" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1.1"/>
+    <text x="190" y="189" text-anchor="middle" fill="#1a1a1a">MLP（Feed Forward）</text>
+    <line x1="190" y1="208" x2="190" y2="222" stroke="#b9b9b2" stroke-width="1.4"/>
+    <rect x="115" y="224" width="150" height="26" rx="6" fill="#fff" stroke="#1a1a1a" stroke-width="1.2"/>
+    <text x="190" y="236" text-anchor="middle" fill="#1a1a1a" style="font-size:8.8px">出力（次の1語の確率）</text>
+    <text x="190" y="246" text-anchor="middle" fill="#8c8880" style="font-size:8px">Linear &amp; Softmax</text>
   </g>
-  <text x="10" y="90" style="font:9px sans-serif" fill="#9A9488">塗ってある Attention の中身を、この図解で開く。全体の流れは Transformer の図解にある</text>
+  <text x="190" y="264" text-anchor="middle" style="font:9px sans-serif" fill="#9A9488">塗ってある箱の中身を、この図解で開く</text>
 </svg>
 <p style="text-align:center;font-size:12.5px;margin:2px 0 0">
 <a href="figures_transformer.html">← Transformer の全体像へ</a></p>
@@ -427,7 +433,7 @@ GPT-2 の V の実数値はこの図解のデータに含まれていない。</
 </details>
 </div><p class="src-note">数値は <b>GPT-2 small</b>（12 層 × 12 ヘッド）の第 1 ブロックの実測値。Transformer Explainer（Polo Club of Data Science, Georgia Tech / MIT License）が公開している事前計算データから、1 ブロック分だけを取り出して使っている。</p>
 <div class="epoch-nb"><div class="k">④ 書く — 購入者向け</div><h3>Self-Attention を、自分の文で見る</h3><p>ここは実測データを焼き込んでいるので文が 1 つに固定されている。自分で書いた文を GPT-2 に通し、4 段を手で組んで、この図の数値を作り直せる。</p><p style="font-size:12px;margin:-6px 0 12px">落として <a href="https://colab.research.google.com/">Colab</a> に上げると動きます（アップロード → ノートブックを開く）。</p><a class="go" href="notebooks/attention.ipynb">ノートブックを取得 →</a></div>
-<div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene8" data-t="巻末解説に戻る（Scene 8「注意こそ、すべて」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_alphago.html" data-t="一つ前の図解へ（AlphaGo・MCTS）" aria-label="一つ前の図解へ（AlphaGo・MCTS）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_transformer.html" data-t="一つ後の図解へ（Transformer）" aria-label="一つ後の図解へ（Transformer）">&#9655;</a></nav></div>
+<div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene8" data-t="巻末解説に戻る（Scene 8「注意こそ、すべて」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_transformer.html" data-t="一つ前の図解へ（Transformer）" aria-label="一つ前の図解へ（Transformer）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_detect.html" data-t="一つ後の図解へ（検出と領域分け）" aria-label="一つ後の図解へ（検出と領域分け）">&#9655;</a></nav></div>
 
 <script>
 (function(){
