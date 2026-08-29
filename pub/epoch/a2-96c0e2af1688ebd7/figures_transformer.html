@@ -142,6 +142,9 @@ svg .stackseg{stroke:#fff;stroke-width:1}
 svg .stackseg.base{fill:#cfccc4}
 svg .stackseg.attn{fill:rgba(110,123,168,.85)}
 svg .stackseg.mlp{fill:rgba(110,123,168,.38)}
+/* 全体図はスマホで端まで使う（読者要望: 横幅をもっと使う） */
+.tfw svg{width:100%;max-width:520px;height:auto;display:block;margin:8px auto}
+@media(max-width:520px){.tfw{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px)}}
 .readout{background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13.5px;
  color:var(--ink-sub);margin-top:10px}
 .readout b{color:var(--ink)}
@@ -270,12 +273,10 @@ Self-Attention そのものの中身は
   <button id="s1next" aria-label="次の段">&#9655;</button>
   <span class="stepnow" id="s1now"></span>
 </div>
-<details class="foldbox" open><summary>構成図</summary>
-<div id="v1"></div>
-</details>
+<div id="v1" class="tfw"></div>
 <div class="readout" id="r1"></div>
 <div class="readout" id="rdata" style="margin-top:6px"></div>
-<details class="foldbox" open><summary>補足</summary>
+<details class="foldbox" open><summary>説明</summary>
 <p class="note">図の中の箱を直接押しても選べる。囲みが「同じ形のブロック」で、これを 12 回くり返す。
 Attention の中身は隣の図解が持つ――箱の中のリンクからそのまま移動できる。
 なぜ 12 回なのかは、次々節「なぜ12回くり返すのか」で直接答える。</p>
@@ -452,8 +453,14 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
   function tclip(t,n){ t=t.trim(); return t.length>n? t.slice(0,n-1)+'…' : t; }
   function drawBig(){
     // 横長 1 枚。左からトークン列 → Embedding → Q×K 行列 → MLP → 出力（Explainer と同じ流れ）
-    var W=380, H=232, g='', dimC='#d8d4cb', ink='#1a1a1a', arc='#6E7BA8', mut='#9A9488';
+    var W=430, H=232, g='', dimC='#d8d4cb', ink='#1a1a1a', arc='#6E7BA8', mut='#9A9488';
     function on(k){ return reachedIdx(k); }
+    var flowY=0;                 // 後で行の中央に設定（y0 はこの時点で未定義）
+    function stepArrow(x1,x2,onn){
+      g+='<line x1="'+x1+'" y1="'+flowY+'" x2="'+(x2-6)+'" y2="'+flowY+'" stroke="'+(onn?arc:dimC)+
+         '" stroke-width="3" stroke-linecap="round"/>'+
+         '<path d="M'+(x2-8)+' '+(flowY-5)+' L'+x2+' '+flowY+' L'+(x2-8)+' '+(flowY+5)+' Z" fill="'+(onn?arc:dimC)+'"/>';
+    }
     function hit(k,x,y,w,h){
       g+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+
         '" fill="transparent" style="cursor:pointer" onclick="__selStep1(&#39;'+k+'&#39;)"/>';
@@ -483,26 +490,26 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
 
     /* Embedding（帯 3 個 + ×768） */
     var o2=on('embed');
-    g+='<text x="70" y="52" style="font:600 8px sans-serif" fill="'+(o2?'#565248':dimC)+'">Embedding</text>';
+    g+='<text x="84" y="52" style="font:600 8px sans-serif" fill="'+(o2?'#565248':dimC)+'">Embedding</text>';
     for(var i=0;i<N;i++){
       var ey=rowY(i);
       for(var c2=0;c2<3;c2++){
         var op=o2? (0.25+0.5*Math.abs(Math.sin((i*7+c2)*1.7))) : 0.12;
-        g+='<rect x="'+(70+c2*13)+'" y="'+(ey-8)+'" width="12" height="15" rx="1.5" fill="rgba(110,123,168,'+op.toFixed(2)+')"/>';
+        g+='<rect x="'+(84+c2*13)+'" y="'+(ey-8)+'" width="12" height="15" rx="1.5" fill="rgba(110,123,168,'+op.toFixed(2)+')"/>';
       }
-      g+='<text x="110" y="'+(ey+3)+'" style="font:7px sans-serif" fill="'+(o2?mut:dimC)+'">×'+DIM+'</text>';
+      g+='<text x="124" y="'+(ey+3)+'" style="font:7px sans-serif" fill="'+(o2?mut:dimC)+'">×'+DIM+'</text>';
     }
-    selMark('embed',68,42,64,rowY(N-1)-30); hit('embed',68,42,64,rowY(N-1)-30);
+    selMark('embed',82,42,64,rowY(N-1)-30); hit('embed',82,42,64,rowY(N-1)-30);
 
     /* ×12 の囲み（attention + MLP） */
-    var bx0=132, bx1=310;
+    var bx0=152, bx1=344;
     g+='<rect x="'+bx0+'" y="24" width="'+(bx1-bx0)+'" height="'+(H-40)+'" rx="9" fill="none" stroke="'+arc+'" stroke-width="1.2"/>';
     g+='<rect x="'+(bx0+4)+'" y="28" width="'+(bx1-bx0)+'" height="'+(H-40)+'" rx="9" fill="none" stroke="'+arc+'" stroke-width="0.8" opacity="0.35"/>';
     g+='<text x="'+(bx1-2)+'" y="'+(H-20)+'" text-anchor="end" style="font:700 8.5px sans-serif" fill="'+arc+'">× 12</text>';
 
     /* Self-Attention 行列 */
     var o3=on('attn');
-    var mx0=140, cs=16;
+    var mx0=162, cs=17;
     g+='<text x="'+(mx0+cs*N/2)+'" y="20" text-anchor="middle" style="font:600 8px sans-serif" fill="'+(o3?'#565248':dimC)+'">Self-Attention</text>';
     for(var j=0;j<N;j++){
       g+='<text x="'+(mx0+j*cs+cs/2)+'" y="'+(y0-14)+'" text-anchor="middle" style="font:6px sans-serif" fill="'+
@@ -533,7 +540,7 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
     selMark('attn',mx0-4,y0-14,N*cs+20,N*rowH+6); hit('attn',mx0-4,y0-14,N*cs+20,N*rowH+6);
 
     /* ⊕（残差）×2 は行列と MLP の間に縦に小さく */
-    var px=vx+16;
+    var px=vx+20;
     ['add1','add2'].forEach(function(kk,ii){
       var py=y0+34+ii*56, onn=on(kk);
       g+='<circle cx="'+px+'" cy="'+py+'" r="5.5" fill="#fff" stroke="'+(onn?arc:dimC)+'" stroke-width="1.4"/>'+
@@ -545,20 +552,20 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
 
     /* MLP（いつもの NN の絵・縦向き） */
     var o5=on('mlp');
-    var LXs=[px+12,px+27,px+42], NCs=[3,5,3], mcy=y0+ (N-1)*rowH/2;
-    g+='<text x="'+(px+27)+'" y="20" text-anchor="middle" style="font:600 8px sans-serif" fill="'+(o5?'#565248':dimC)+'">MLP</text>';
+    var LXs=[px+14,px+31,px+48], NCs=[3,5,3], mcy=y0+ (N-1)*rowH/2;
+    g+='<text x="'+(px+31)+'" y="20" text-anchor="middle" style="font:600 8px sans-serif" fill="'+(o5?'#565248':dimC)+'">MLP</text>';
     for(var c3=0;c3<2;c3++)
       for(var p1=0;p1<NCs[c3];p1++) for(var p2=0;p2<NCs[c3+1];p2++)
         g+='<line x1="'+(LXs[c3]+3)+'" y1="'+(mcy+(p1-(NCs[c3]-1)/2)*18)+'" x2="'+(LXs[c3+1]-3)+'" y2="'+(mcy+(p2-(NCs[c3+1]-1)/2)*18)+
            '" stroke="'+(o5?'rgba(110,123,168,0.5)':'#EDEBE4')+'" stroke-width="0.6"/>';
     for(var c4=0;c4<3;c4++) for(var p3=0;p3<NCs[c4];p3++)
       g+='<circle cx="'+LXs[c4]+'" cy="'+(mcy+(p3-(NCs[c4]-1)/2)*18)+'" r="3" fill="#fff" stroke="'+(o5?ink:dimC)+'" stroke-width="1"/>';
-    g+='<text x="'+(px+27)+'" y="'+(mcy+52)+'" text-anchor="middle" style="font:6.5px sans-serif" fill="'+(o5?mut:dimC)+'">'+DIM+'→'+FFN+'→'+DIM+'</text>';
-    selMark('mlp',px+6,mcy-46,44,92); hit('mlp',px+6,mcy-46,44,92);
+    g+='<text x="'+(px+31)+'" y="'+(mcy+52)+'" text-anchor="middle" style="font:6.5px sans-serif" fill="'+(o5?mut:dimC)+'">'+DIM+'→'+FFN+'→'+DIM+'</text>';
+    selMark('mlp',px+8,mcy-46,50,92); hit('mlp',px+8,mcy-46,50,92);
 
     /* 出力（確率降順） */
     var o7=on('out');
-    var ox0=318;
+    var ox0=366;
     g+='<text x="'+ox0+'" y="20" style="font:600 8px sans-serif" fill="'+(o7?'#565248':dimC)+'">次の 1 語</text>';
     var mxL=-1e9; D.candidates.forEach(function(c){ mxL=Math.max(mxL,c.logit); });
     var exps=D.candidates.map(function(c){ return Math.exp(c.logit-mxL); });
@@ -570,8 +577,14 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
       g+='<rect x="'+ox0+'" y="'+(by+11)+'" width="'+(38*pv/(exps[0]/tot)).toFixed(1)+'" height="6" rx="1.5" fill="'+(o7?(ci===0?arc:'rgba(110,123,168,0.45)'):dimC)+'"/>';
       g+='<text x="'+(ox0+40)+'" y="'+(by+17)+'" style="font:6.3px sans-serif;font-variant-numeric:tabular-nums" fill="'+(o7?ink:dimC)+'">'+(pv*100).toFixed(1)+'%</text>';
     }
-    selMark('out',ox0-3,24,62,200); hit('out',ox0-3,24,62,200);
+    selMark('out',ox0-3,24,64,200); hit('out',ox0-3,24,64,200);
 
+    /* 工程をつなぐ太い矢印（読者要望: 区切りが分かるように） */
+    flowY=y0+(N-1)*rowH/2;
+    stepArrow(66,82,on('embed'));          // トークン → Embedding
+    stepArrow(146,160,on('attn'));         // Embedding → 行列
+    stepArrow(vx+12,px-8,on('add1'));      // V → ⊕
+    stepArrow(px+58,ox0-6,on('out'));      // MLP → 出力
     g+='<text x="6" y="'+(H-4)+'" style="font:7.5px sans-serif" fill="'+mut+'">数字＝実測（GPT-2 small・注意重み%はブロック1の12ヘッド平均・確率は実測logit）。斜線＝マスク</text>';
     return {svg:svg(W,H,g)};
   }
