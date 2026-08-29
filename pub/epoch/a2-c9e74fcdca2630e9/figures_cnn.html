@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- epoch-meta:start 共有されたときのカード。単一出典 = outputs/publish/epoch/epoch_meta.py -->
+<meta name="description" content="畳み込みとプーリング EPOCH Arc 2 ・ Scene 2「機械に、目を」 畳み込みとプーリング — 機械が「見る」ための発明 普通のニューラルネットは画像を「ただの数字の列」として扱うため、少しずれただけで別物に…">
+<meta property="og:title" content="畳み込みとプーリング — EPOCH Arc 2 図解">
+<meta property="og:description" content="畳み込みとプーリング EPOCH Arc 2 ・ Scene 2「機械に、目を」 畳み込みとプーリング — 機械が「見る」ための発明 普通のニューラルネットは画像を「ただの数字の列」として扱うため、少しずれただけで別物に…">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="EPOCH — 時代の前夜">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:image" content="https://manga-epoch.github.io/viewer/og/arc2.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://manga-epoch.github.io/viewer/og/arc2.jpg">
+<!-- epoch-meta:end -->
+<title>畳み込みとプーリング — EPOCH Arc 2 図解</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
+<script>
+function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+</script>
+<style>
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.9;margin:0;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+.fig-crumb{max-width:860px;margin:18px auto 0;padding:0 20px;font-size:12.5px;color:var(--ink-muted)}
+.fig-crumb a{color:var(--link);text-decoration:underline}
+.fig-crumb a:hover{color:var(--ink)}
+.intro{max-width:760px;margin:40px auto 8px;padding:0 20px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub);margin-bottom:12px}
+.intro h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:0 0 12px}
+.intro p{color:var(--ink-sub);font-size:15.5px;line-height:1.9}
+.intro strong{color:var(--ink)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;max-width:880px;margin:26px auto;padding:24px 22px}
+.fig-stage h2{font-size:1.15rem;font-weight:700;margin:6px 0 4px;letter-spacing:-.01em}
+.fig-stage h2::before{content:"";display:inline-block;width:22px;height:3px;background:var(--arc);border-radius:2px;margin-right:10px;vertical-align:middle}
+.fig-stage .lead{color:var(--ink-sub);font-size:14px;margin:2px 0 18px;line-height:1.8}
+.fig-stage h3{font-size:1.0rem;font-weight:700;margin:26px 0 8px}
+.fig-stage p{font-size:14.5px;color:#2c2924}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrl{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink-sub);min-width:120px}
+.ctrl label{font-weight:700;color:var(--ink);font-size:12.5px}
+.ctrl .val{font-variant-numeric:tabular-nums;color:var(--link);font-weight:700}
+input[type=range]{accent-color:var(--arc);width:100%}
+.btn{background:var(--ink);color:var(--bg);border:none;border-radius:6px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.9}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.btn.ghost.on{border-color:var(--arc);color:var(--link);background:rgba(var(--arcrgba),.08)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1px solid var(--border);background:#fff;border-radius:18px;padding:6px 14px;font-size:12.5px;color:var(--ink-sub);cursor:pointer}
+.chip.on{border-color:var(--arc);background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+.grid-wrap{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;justify-content:center;margin:10px 0}
+.gcap{text-align:center;font-size:12px;color:var(--ink-muted);margin-top:8px}
+.formula{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:15px;text-align:center}
+.note{font-size:13px;color:var(--ink-sub);line-height:1.8}
+.readout{font-family:"SFMono-Regular",Menlo,monospace;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin:10px 0;white-space:pre-wrap}
+.kv{display:flex;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--ink-sub)}
+.kv b{color:var(--ink)}
+table.mini{border-collapse:collapse;font-size:13.5px;margin:6px auto}
+table.mini th,table.mini td{border:1px solid var(--border);padding:7px 13px;text-align:center}
+table.mini th{background:var(--surface);font-weight:700}
+table.mini td.hl{background:rgba(var(--arcrgba),.1);color:var(--link);font-weight:700}
+svg text{font-family:"Inter","Noto Sans JP",sans-serif}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-sub);justify-content:center;margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.back-link{max-width:820px;margin:36px auto 0;padding:0 20px;text-align:center}
+.back-link a{color:var(--ink);text-decoration:none;padding:11px 22px;background:#fff;border:1px solid #CFCBBE;border-radius:6px;display:inline-block;font-weight:600;font-size:14px}
+.back-link a:hover{background:var(--surface)}
+/* ※ ここでいちばん大事なのは「解説の**押した場所**へ戻ること」（読者の指摘）。
+   だから解説へ戻るだけを語で大きく左に置き、前後の図解と一覧は
+   ◁ □ ▷ のアイコンにして右へ寄せる（語はホバーで出す）。 */
+/* KaTeX が読み上げ用に置く MathML は隠しているが、overflow が効かず
+   中身がページ幅を押し広げることがある（スマホで横スクロールが出る）。
+   見えないものが幅を作らないよう塞ぐ。 */
+.katex-mathml{overflow:hidden}
+/* 長い別行立ての数式は、ページごと横スクロールさせず、その枠の中で流す */
+.katex-display{overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.katex-display>.katex{white-space:nowrap}
+.fig-topnav{max-width:820px;margin:14px auto 0;padding:0 20px}
+.fig-pager{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.fig-pager a{text-decoration:none;font-weight:600;color:var(--ink);line-height:1}
+.fig-pager .fp-comm{margin-right:auto;border-color:var(--arc);color:var(--link);
+ background:rgba(var(--arcrgba),.08);font-size:18px}
+.fig-pager .fp-comm:hover{background:rgba(var(--arcrgba),.16);color:var(--link)}
+.fig-pager .fp-ico{flex:none;position:relative;width:40px;height:40px;border-radius:9px;
+ border:1px solid var(--border);background:#fff;display:flex;align-items:center;
+ justify-content:center;font-size:16px;color:var(--ink-sub)}
+.fig-pager .fp-ico:hover{background:var(--surface);color:var(--ink)}
+.fig-pager .fp-ico[aria-disabled="true"]{opacity:.3;pointer-events:none}
+/* ホバーで語を出す（触ることしか分からないアイコンにしない） */
+.fig-pager .fp-ico::after{content:attr(data-t);position:absolute;bottom:calc(100% + 6px);
+ left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:11.5px;
+ font-weight:600;padding:5px 10px;border-radius:5px;line-height:1.6;
+ white-space:normal;width:max-content;max-width:min(260px,58vw);text-align:center;
+ pointer-events:none;z-index:5;display:none}
+.fig-pager .fp-ico:hover::after,.fig-pager .fp-ico:focus-visible::after{display:block}
+.fig-pager .fp-comm::after{left:0;transform:none}
+.fig-pager .fp-ico:last-child::after{left:auto;right:0;transform:none}
+.back-link .fig-pager .fp-ico::after{bottom:auto;top:calc(100% + 6px)}
+
+.fig-grid{max-width:840px;margin:28px auto;padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fig-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .15s,border-color .15s,box-shadow .15s}
+.fig-card:hover{transform:translateY(-2px);border-color:var(--arc);box-shadow:0 8px 24px rgba(26,26,26,.08)}
+.fig-card a{display:block;padding:20px 22px;text-decoration:none;color:inherit}
+.fig-card h3{font-size:16px;font-weight:700;margin:0 0 6px}
+.fig-card h3 small{color:var(--ink-muted);font-size:11px;font-weight:400;margin-left:6px}
+.fig-card p{font-size:13px;line-height:1.7;color:var(--ink-sub);margin:0 0 8px}
+.fig-tag{display:inline-block;background:var(--surface);color:var(--ink-sub);border:1px solid var(--border);padding:2px 8px;border-radius:10px;font-size:11px;margin-right:4px;margin-top:4px}
+@media(max-width:620px){.fig-grid{grid-template-columns:1fr}.grid-wrap{gap:18px}}
+</style>
+<style>
+.epoch-legal-footer{max-width:860px;margin:56px auto 0;padding:18px 20px 28px;border-top:1px solid #E4E1D8;
+ font-size:12px;line-height:1.9;color:#6b665c;font-family:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN",sans-serif}
+.epoch-legal-footer p{margin:0 0 6px}
+.epoch-legal-footer nav{margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.epoch-legal-footer a{color:#3f6178;text-decoration:none}
+.epoch-legal-footer a:hover{text-decoration:underline}
+</style><style class="epoch-theme">
+:root{--bg:#FAFAF7;--surface:#F4F2EC;--surface-sunk:#EFEDE6;--border:#E4E1D8;--border-strong:#CFCBBE;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--link:#3f6178;--ok:#15803d;--bad:#b4493f;--font-sans:"Inter","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;--font-serif:"Times New Roman","Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif;--radius:6px;--radius-lg:12px;--arc:#6E7BA8;--arcrgba:110,123,168}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-sans);
+ line-height:1.9;letter-spacing:.02em;padding-bottom:72px;-webkit-font-smoothing:antialiased}
+a{color:var(--link)}
+h1{font-size:clamp(1.6rem,4vw,2.05rem);font-weight:700;letter-spacing:-.02em;line-height:1.3}
+h2{font-size:1.15rem;font-weight:700;line-height:1.4}
+h3{font-size:1.02rem;font-weight:700;line-height:1.5}
+p,li{font-size:15px}
+.intro{max-width:760px;margin:0 auto;padding:34px 20px 6px}
+.intro .eyebrow{font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-sub)}
+.fig-crumb{font-size:12.5px;color:var(--ink-muted)}
+.fig-stage{background:#fff;border:1px solid var(--border);border-radius:14px;
+ max-width:880px;margin:22px auto;padding:24px 22px}
+.fig-stage h2::before{content:"";display:block;width:22px;height:3px;background:var(--arc);
+ border-radius:2px;margin-bottom:10px}
+.ctrls{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.ctrls label{font-size:13px;color:var(--ink-sub);font-weight:600}
+input[type=range]{accent-color:var(--arc)}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:var(--radius);
+ padding:9px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.chip{border-radius:18px;border:1px solid var(--border);background:#fff;
+ padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.chip[aria-pressed=true],.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+/* 旧テンプレ由来の器。行間と書体が散らばっていたので土台へ寄せる */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+ padding:20px;margin:16px 0;line-height:1.9;font-family:var(--font-sans)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;
+ background:var(--surface);border-radius:10px;padding:14px 18px;margin:14px 0}
+.formula{background:var(--surface-sunk);border:1px solid var(--border);border-radius:8px;padding:14px}
+.val{color:var(--arc);font-weight:700}
+.pro{background:#e7f4ea;border:1px solid var(--ok);border-radius:8px;padding:12px 14px}
+.con{background:#f7efef;border:1px solid var(--bad);border-radius:8px;padding:12px 14px}
+.achieved,.challenge{background:var(--surface);border:1px solid var(--border);
+ border-radius:8px;padding:12px 14px}
+
+.katex-mathml{overflow:hidden!important;max-width:1px!important}
+.katex-display{overflow-x:auto;overflow-y:hidden;padding:2px 0}
+.katex-display>.katex{white-space:nowrap}
+.formula,.readout,.wv-eq{overflow-x:auto}
+code,a{overflow-wrap:anywhere}
+pre{max-width:100%;overflow-x:auto}
+table{display:block;overflow-x:auto;max-width:100%}
+</style><style class="epoch-theme-nb">
+.epoch-nb{max-width:820px;margin:40px auto 0;padding:20px 22px;background:var(--surface,#F4F2EC);
+ border:1px solid var(--border,#E4E1D8);border-radius:12px}
+.epoch-nb .k{font-size:11.5px;font-weight:700;letter-spacing:.14em;color:var(--ink-sub,#565248)}
+.epoch-nb h3{font-size:16px;margin:6px 0 6px}
+.epoch-nb p{font-size:13.5px;color:var(--ink-sub,#565248);margin:0 0 14px;line-height:1.85}
+.epoch-nb a.go{display:inline-block;padding:9px 17px;background:var(--ink,#1A1A1A);
+ color:var(--bg,#FAFAF7);border-radius:8px;text-decoration:none;font-weight:700;font-size:13px}
+.epoch-nb a.go:hover{opacity:.82}
+</style><style class="epoch-theme-fold">
+.foldbox{margin:0 0 2px;border:0}
+.foldbox>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:7px;
+ font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--ink-muted);
+ padding:5px 2px;user-select:none}
+.foldbox>summary::-webkit-details-marker{display:none}
+.foldbox>summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
+ border-top:4px solid transparent;border-bottom:4px solid transparent;
+ transition:transform .15s ease;flex:none}
+.foldbox[open]>summary::before{transform:rotate(90deg)}
+.foldbox>summary:hover{color:var(--ink)}
+.foldbox>summary::after{content:"";flex:1;height:1px;background:var(--border)}
+</style><style class="epoch-theme-toc">
+.fig-toc{max-width:880px;margin:18px auto 4px;padding:14px 18px;background:var(--surface);
+ border:1px solid var(--border);border-radius:12px}
+.fig-toc .ft-label{font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--ink-muted);
+ text-transform:uppercase;display:block;margin-bottom:8px}
+.fig-toc ol{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px 10px}
+.fig-toc a{display:inline-block;padding:6px 13px;background:#fff;border:1px solid var(--border);
+ border-radius:16px;font-size:13px;text-decoration:none;color:var(--ink)}
+.fig-toc a:hover{border-color:var(--arc)}
+.fig-stage{scroll-margin-top:16px}
+</style><meta name="robots" content="noindex,nofollow"></head>
+<body>
+<div class="fig-crumb"><a href="figures.html">図解一覧</a> &nbsp;›&nbsp; 畳み込みとプーリング</div>
+<div class="fig-topnav"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene2" data-t="巻末解説に戻る（Scene 2「機械に、目を」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_classic.html" data-t="一つ前の図解へ（深層学習の前）" aria-label="一つ前の図解へ（深層学習の前）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_imagenet.html" data-t="一つ後の図解へ（ImageNet 誤り率）" aria-label="一つ後の図解へ（ImageNet 誤り率）">&#9655;</a></nav></div>
+<div class="intro">
+<div class="eyebrow">EPOCH Arc 2 ・ Scene 2「機械に、目を」</div>
+<h1>畳み込みとプーリング — 機械が「見る」ための発明</h1>
+<p>普通のニューラルネットは画像を「ただの数字の列」として扱うため、少しずれただけで別物になってしまう。
+CNN (畳み込みニューラルネット) は <strong>小さなフィルタ (カーネル) を画像の上で滑らせ</strong>、
+「この局所領域にエッジ・模様があるか?」をスキャンする。同じフィルタを全域で使い回す <strong>重み共有</strong>が、
+パラメータ数を劇的に減らし、位置がずれても同じ特徴を捉える <strong>並進不変性</strong>を生む。
+まず下の流れ図で全体を掴んでから、畳み込み → プーリングの順にドット絵で動かす。</p>
+</div>
+
+
+<div class="nnfig mynet" style="margin-top:14px">
+<svg viewBox="0 0 380 124" width="380" height="124" style="width:100%;max-width:480px;height:auto;display:block;margin:0 auto">
+<rect x="6" y="20" width="62" height="72" rx="9" fill="#fff" stroke="var(--border)" stroke-width="1.2"/><text x="37.0" y="34" font-size="10" text-anchor="middle" fill="#9A9488">画像</text><rect x="23" y="42" width="6" height="6" fill="#57534a"/><rect x="44" y="42" width="6" height="6" fill="#57534a"/><rect x="23" y="49" width="6" height="6" fill="#57534a"/><rect x="30" y="49" width="6" height="6" fill="#57534a"/><rect x="37" y="49" width="6" height="6" fill="#57534a"/><rect x="44" y="49" width="6" height="6" fill="#57534a"/><rect x="23" y="56" width="6" height="6" fill="#57534a"/><rect x="44" y="56" width="6" height="6" fill="#57534a"/><rect x="16" y="63" width="6" height="6" fill="#57534a"/><rect x="23" y="63" width="6" height="6" fill="#57534a"/><rect x="30" y="63" width="6" height="6" fill="#57534a"/><rect x="37" y="63" width="6" height="6" fill="#57534a"/><rect x="44" y="63" width="6" height="6" fill="#57534a"/><rect x="51" y="63" width="6" height="6" fill="#57534a"/><rect x="23" y="70" width="6" height="6" fill="#57534a"/><rect x="44" y="70" width="6" height="6" fill="#57534a"/>
+<text x="37" y="106" font-size="9" text-anchor="middle" fill="#9A9488">24×24</text>
+<rect x="112" y="20" width="70" height="72" rx="9" fill="#fff" stroke="var(--border)" stroke-width="1.2"/><text x="147.0" y="34" font-size="10" text-anchor="middle" fill="#9A9488">特徴の地図</text><rect x="133" y="42" width="6" height="6" fill="rgba(110,123,168,.85)"/><rect x="133" y="49" width="6" height="6" fill="rgba(110,123,168,.85)"/><rect x="133" y="56" width="6" height="6" fill="rgba(110,123,168,.85)"/><rect x="133" y="63" width="6" height="6" fill="rgba(110,123,168,.85)"/><rect x="133" y="70" width="6" height="6" fill="rgba(110,123,168,.85)"/><rect x="154" y="42" width="6" height="6" fill="rgba(180,73,63,.8)"/><rect x="154" y="49" width="6" height="6" fill="rgba(180,73,63,.8)"/><rect x="154" y="56" width="6" height="6" fill="rgba(180,73,63,.8)"/><rect x="154" y="63" width="6" height="6" fill="rgba(180,73,63,.8)"/><rect x="154" y="70" width="6" height="6" fill="rgba(180,73,63,.8)"/>
+<text x="147" y="106" font-size="9" text-anchor="middle" fill="#9A9488">22×22（ほぼ同じ大きさ）</text>
+<rect x="228" y="20" width="56" height="72" rx="9" fill="#fff" stroke="var(--border)" stroke-width="1.2"/><text x="256.0" y="34" font-size="10" text-anchor="middle" fill="#9A9488">縮図</text><rect x="242" y="46" width="9" height="9" fill="rgba(110,123,168,.85)"/><rect x="242" y="56" width="9" height="9" fill="rgba(110,123,168,.85)"/><rect x="242" y="66" width="9" height="9" fill="rgba(110,123,168,.85)"/><rect x="262" y="46" width="9" height="9" fill="rgba(180,73,63,.8)"/><rect x="262" y="56" width="9" height="9" fill="rgba(180,73,63,.8)"/><rect x="262" y="66" width="9" height="9" fill="rgba(180,73,63,.8)"/>
+<text x="256" y="106" font-size="9" text-anchor="middle" fill="#9A9488">11×11（面積 1/4）</text>
+<rect x="316" y="20" width="58" height="72" rx="9" fill="#fff" stroke="var(--border)" stroke-width="1.2"/><text x="345.0" y="34" font-size="10" text-anchor="middle" fill="#9A9488">判定</text>
+<text x="345" y="66" font-size="14" text-anchor="middle" fill="#1A1A1A" font-weight="700">ねこ</text>
+<text x="345" y="106" font-size="9" text-anchor="middle" fill="#9A9488">くり返した先</text>
+<line x1="68" y1="56" x2="105" y2="56" stroke="#b9c0d8" stroke-width="1.8"/><path d="M105 52 L112 56 L105 60 Z" fill="#b9c0d8"/><text x="90.0" y="72" font-size="9" text-anchor="middle" fill="#565248" stroke="#FAFAF7" stroke-width="3" paint-order="stroke">畳み込み</text>
+<line x1="182" y1="56" x2="221" y2="56" stroke="#b9c0d8" stroke-width="1.8"/><path d="M221 52 L228 56 L221 60 Z" fill="#b9c0d8"/><text x="205.0" y="72" font-size="8" text-anchor="middle" fill="#565248" stroke="#FAFAF7" stroke-width="3" paint-order="stroke">ReLU＋プーリング</text>
+<line x1="284" y1="56" x2="309" y2="56" stroke="#b9c0d8" stroke-width="1.8"/><path d="M309 52 L316 56 L309 60 Z" fill="#b9c0d8"/><text x="300.0" y="72" font-size="8" text-anchor="middle" fill="#565248" stroke="#FAFAF7" stroke-width="3" paint-order="stroke">くり返す</text>
+</svg>
+<p class="fig-legend" style="max-width:560px;margin-left:auto;margin-right:auto">全体の流れ:
+<b>畳み込み</b>は特徴を取り出す ―― パターンの有無を場所ごとに調べるので、大きさはほぼ保つ（減らすのは<b>重みの数</b>: 3×3 の 9 個を全域で使い回す）。
+<b>縮めるのはプーリング</b>で、この組をくり返して小さく・濃い要約にしてから判定する。</p>
+</div>
+
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">畳み込み演算</a></li><li><a href="#sec2">プーリング</a></li></ol></nav>
+<div class="fig-stage" id="sec1">
+<h2>畳み込み演算 — カーネルを滑らせて特徴を取り出す</h2>
+<details class="foldbox" open><summary>説明</summary>
+<div class="lead">入力はドット絵（24×24・濃さ 0〜9）。絵とフィルタを選ぶと、3×3 を滑らせて内積を取った<strong>特徴マップ</strong>が現れる ―― 機械が最初に「見る」のはこの反応の地図で、絵そのものではない。<strong>出力のセルをタップするとその位置の計算</strong>が下に出る。入力のセルはタップで濃さが一段変わる。</div>
+</details>
+
+<div class="chips" id="sprites">
+<span class="chip on" data-s="cat">ねこ</span>
+<span class="chip" data-s="heart">ハート</span>
+<span class="chip" data-s="person">ひと</span>
+</div>
+<div class="chips" id="kernels">
+<span class="chip on" data-k="edgev">縦エッジ検出</span>
+<span class="chip" data-k="edgeh">横エッジ検出</span>
+<span class="chip" data-k="lap">輪郭 (ラプラシアン)</span>
+<span class="chip" data-k="sharp">シャープ</span>
+<span class="chip" data-k="blur">ぼかし (平均)</span>
+</div>
+<div class="chips" id="pads">
+<span class="chip on" data-p="0">パディングなし</span>
+<span class="chip" data-p="1">パディング 1</span>
+<span class="chip" data-p="2">パディング 2</span>
+</div>
+<details class="foldbox" open><summary>説明</summary>
+<div class="note" id="padNote" style="margin:2px 0 8px"></div>
+</details>
+
+<details class="foldbox" open><summary>構成図</summary>
+<div class="grid-wrap">
+  <div>
+    <svg id="inGrid" width="314" height="314" viewBox="0 0 314 314"></svg>
+    <div class="gcap">入力 24×24（数字＝濃さ 0〜9・タップで一段変わる）</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:84px">
+    <svg id="kerGrid" width="120" height="120" viewBox="0 0 120 120"></svg>
+    <div class="gcap">フィルタ 3×3</div>
+  </div>
+  <div>
+    <svg id="outGrid" width="262" height="262" viewBox="0 0 262 262"></svg>
+    <div class="gcap" id="outCap">特徴マップ 22×22（= 24−3+1・タップで計算を表示）</div>
+  </div>
+</div>
+<div class="legend">
+  <span><i style="background:rgba(110,123,168,.8)"></i>青 = 正の反応</span>
+  <span><i style="background:rgba(180,73,63,.8)"></i>赤 = 負の反応</span>
+  <span><i style="background:#fff;border:1px solid #E4E1D8"></i>白 = 反応なし</span>
+</div>
+</details>
+
+<div class="ctrls">
+  <button class="btn" id="slideBtn">▶ スライド (畳み込みを再生)</button>
+  <button class="btn ghost" id="clearBtn">クリア</button>
+</div>
+<div class="readout" id="calc">出力のセルをタップすると、その位置の計算がここに出る。</div>
+
+<details class="foldbox"><summary>式と計算</summary>
+<div class="formula">
+$\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
+<div class="note" style="margin-top:8px">特徴マップの各セル = フィルタ重み $w$ と、その位置の入力パッチ $x$ の<strong>内積</strong>。フィルタは画像全体で<strong>共有</strong>される (= 9 個の重みだけ)。</div>
+</div>
+</details>
+
+<h3>全結合との違い — 重み共有と局所性</h3>
+<details class="foldbox" open><summary>構成図</summary>
+<table class="mini">
+<tr><th></th><th>全結合 NN</th><th>CNN</th></tr>
+<tr><td>1000×1000 画像→1000 隠れ</td><td class="hl">約 10 億 パラメータ</td><td class="hl">フィルタ数×9 程度</td></tr>
+<tr><td>少しの平行移動</td><td>別の入力に見える</td><td>同じ特徴を検出 (不変)</td></tr>
+<tr><td>局所のパターン</td><td>明示的に扱えない</td><td>フィルタが直接捉える</td></tr>
+</table>
+</details>
+<details class="foldbox" open><summary>補足</summary>
+<p class="note">Hubel &amp; Wiesel (1959) が猫の視覚野で見つけた「単純細胞→複雑細胞」の階層を、福島邦彦のネオコグニトロン (1980) が模し、LeCun の LeNet (1989/1998) が誤差逆伝播で学習可能にした ―― それが今日の CNN。</p>
+</details>
+</div>
+
+<div class="fig-stage" id="sec2">
+<h2>プーリング — 窓ごとの代表値で縮める</h2>
+<details class="foldbox" open><summary>説明</summary>
+<div class="lead">プーリングの目的は<strong>要約</strong>: 2×2 の窓ごとに最大値だけを残して面積を 1/4 にする。細部は捨てるが「どこに何があるか」の配置は残る ―― 右下の縮図でまだ絵が分かることがその証拠。<strong>有無の違いは「ずらす」で見る</strong>: 左＝プーリング無しの世界（特徴マップのまま）、右下＝有りの世界。絵を右へ 1 マスずらすと、値が変わったセルに<strong>琥珀の枠</strong>が付く。琥珀の数も、変化の量（下の %）も、縮図側の方が小さい ―― これがプーリングの効果。実物の CNN の並びどおり、負の反応を 0 にする ReLU を通してから縮めている。</div>
+</details>
+
+<div class="ctrls">
+  <button class="btn" id="shiftBtn">▶ 入力を右へ 1 マスずらす</button>
+</div>
+
+<details class="foldbox" open><summary>構成図</summary>
+<div class="grid-wrap">
+  <div>
+    <svg id="poolInSvg" width="202" height="202" viewBox="0 0 202 202"></svg>
+    <div class="gcap" id="poolInCap">特徴マップ・枠 = 2×2 の窓</div>
+  </div>
+  <div>
+    <svg id="poolOutSvg" width="152" height="152" viewBox="0 0 152 152"></svg>
+    <div class="gcap" id="poolOutCap">プーリング後（縮図）</div>
+  </div>
+</div>
+</details>
+
+<div class="readout" id="poolOut"></div>
+
+<details class="foldbox"><summary>式と計算</summary>
+<div class="formula">
+$\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
+<div class="note" style="margin-top:8px">窓の中の<strong>どこ</strong>に最大値があっても、同じ窓の中にある限り出力は同じ ―― これが位置ズレへの鈍さの源。average プーリング（窓の平均）は全セルが結果に効くため、1 セルの変化がそのまま薄く混ざり、max ほど鈍くならない。</div>
+</div>
+</details>
+</div>
+
+<div class="epoch-nb"><div class="k">④ 書く — 購入者向け</div><h3>畳み込みを、自分の画像で動かす</h3><p>畳み込み・ReLU・プーリングを for ループで書き、自分の写真に掛ける。「プーリングは位置ずれに強い」がどこまで本当かも測れる。</p><p style="font-size:12px;margin:-6px 0 12px">落として <a href="https://colab.research.google.com/">Colab</a> に上げると動きます（アップロード → ノートブックを開く）。</p><a class="go" href="notebooks/cnn_on_your_image.ipynb">ノートブックを取得 →</a></div>
+<div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene2" data-t="巻末解説に戻る（Scene 2「機械に、目を」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_classic.html" data-t="一つ前の図解へ（深層学習の前）" aria-label="一つ前の図解へ（深層学習の前）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_imagenet.html" data-t="一つ後の図解へ（ImageNet 誤り率）" aria-label="一つ後の図解へ（ImageNet 誤り率）">&#9655;</a></nav></div>
+
+<script>
+(function(){
+  var ARC="#6E7BA8";
+  var N=24, K=3, PAD=0;
+  function M(){ return N-K+1+2*PAD; }
+  var curK="edgev";
+  var KERNELS={
+    edgev:[[-1,0,1],[-1,0,1],[-1,0,1]],
+    edgeh:[[-1,-1,-1],[0,0,0],[1,1,1]],
+    lap:[[0,-1,0],[-1,4,-1],[0,-1,0]],
+    sharp:[[0,-1,0],[-1,5,-1],[0,-1,0]],
+    blur:[[1,1,1],[1,1,1],[1,1,1]]  // 使用時に /9
+  };
+  var KDESC={
+    edgev:"縦線の左右で強く反応する (横方向の明暗差=縦エッジを検出)",
+    edgeh:"横線の上下で強く反応する (縦方向の明暗差=横エッジを検出)",
+    lap:"孤立点や輪郭で強く反応する (周囲との差を検出)",
+    sharp:"中心と周囲の差を強調し、輪郭が際立つ",
+    blur:"周囲を均すため反応の差が小さくなる (輪郭がぼやける)"
+  };
+  /* 24×24 のドット絵（オリジナル絵柄・数字 0-9 が濃さ）。
+     ※ 実在ゲームのドット絵は権利があるため使わない。粗さと雰囲気だけ寄せた自作 */
+  var SPRITES={
+    cat:  ["000000900000000009000000",
+           "000009990000000099900000",
+           "000099799000000997990000",
+           "000099799000000997990000",
+           "000099999666666999997000",
+           "000666666666666666667000",
+           "000666666666666666667000",
+           "000666699666666996667000",
+           "000666699666666996667000",
+           "000666666666666666667000",
+           "000666666668866666667000",
+           "000666666686686666667000",
+           "000066666666666666667000",
+           "000006666666666666700000",
+           "000006666666666666700000",
+           "000008886666666688800000",
+           "000006666666666666788800",
+           "000008886666666688808800",
+           "000006666666666666708800",
+           "000008886666666688808800",
+           "000006666666666666708800",
+           "000006666666666666708800",
+           "000000777770077777000000",
+           "000000777770077777000000"],
+    heart:["000000000000000000000000",
+           "000099999000000999990000",
+           "000977777999999777779000",
+           "009777777777777777777900",
+           "097777747777777777777790",
+           "097777444777777777777790",
+           "097777444777777777777790",
+           "097777777777777777777790",
+           "097777777777777777777790",
+           "097777777777777777777790",
+           "009777777777777777777900",
+           "009777777777777777777900",
+           "000977777777777777779000",
+           "000097777777777777790000",
+           "000009777777777777900000",
+           "000000997777777799000000",
+           "000000009977779900000000",
+           "000000000099990000000000",
+           "000000000000000000000000",
+           "000000000000000000000000",
+           "000000000000000000000000",
+           "000000000000000000000000",
+           "000000000000000000000000",
+           "000000000000000000000000"],
+    person:["000000009999999900000000",
+           "000000009999999900000000",
+           "000000009999999900000000",
+           "000000006666666700000000",
+           "000000006696696700000000",
+           "000000006666666700000000",
+           "000000006667766700000000",
+           "000000006688886700000000",
+           "000055555555555655560000",
+           "000055555555555655560000",
+           "000055555555555655560009",
+           "000066665555555666670098",
+           "000066665555555666670980",
+           "000066665555555666679800",
+           "000066665555555666698000",
+           "000066665555555666970000",
+           "000000004443344500000000",
+           "000000004443344500000000",
+           "000000004443344500000000",
+           "000000004443344500000000",
+           "000000004443344500000000",
+           "000000004443344500000000",
+           "000000008880088800000000",
+           "000000008880088800000000"]
+  };
+  var img=[];
+  function loadSprite(id){
+    var sp=SPRITES[id];
+    for(var r=0;r<N;r++){img[r]=[];for(var c=0;c<N;c++)img[r][c]=+sp[r].charAt(c);}
+  }
+  loadSprite("cat");
+  var SVGNS="http://www.w3.org/2000/svg";
+  function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+  function gray(v){v=Math.max(0,Math.min(1,v));var g=Math.round(255-v*215);return"rgb("+g+","+g+","+g+")";}
+  function outColor(v,amax){
+    if(amax<1e-9||Math.abs(v)<1e-9) return "#fff";
+    var t=Math.min(1,Math.abs(v)/amax)*0.85;
+    return v>0 ? "rgba(110,123,168,"+t.toFixed(2)+")" : "rgba(180,73,63,"+t.toFixed(2)+")";
+  }
+  function px(g,r,c){ return (r<0||c<0||r>=N||c>=N)?0:g[r][c]; }   /* パディング=外は 0 */
+  function drawInput(hi){
+    var s=document.getElementById("inGrid");s.innerHTML="";var cell=13;
+    for(var r=0;r<N;r++)for(var c=0;c<N;c++){
+      var v=img[r][c];
+      var rect=el("rect",{x:c*cell+1,y:r*cell+1,width:cell-0.6,height:cell-0.6,
+        fill:gray(v/9), stroke:"#EDEAE2","stroke-width":0.5});
+      rect.style.cursor="pointer";
+      (function(rr,cc){rect.addEventListener("click",function(){
+        img[rr][cc]=(img[rr][cc]+3)%12; drawAll();});})(r,c);
+      s.appendChild(rect);
+      var t=el("text",{x:c*cell+cell/2+0.5,y:r*cell+cell/2+3,"text-anchor":"middle",
+        "font-size":6.5,fill:v>=6?"#fff":"#8a857b"});
+      t.textContent=v; t.style.pointerEvents="none";
+      s.appendChild(t);
+    }
+    if(hi){ /* 受容野。パディング付きでは絵の外（0 の縁）へはみ出して描く */
+      s.appendChild(el("rect",{x:(hi[1]-PAD)*cell+1,y:(hi[0]-PAD)*cell+1,
+        width:cell*K,height:cell*K,rx:2,
+        fill:"rgba(232,180,76,.20)",stroke:"#E8B44C","stroke-width":2.4}));
+    }
+  }
+  function drawKernel(){
+    var s=document.getElementById("kerGrid");s.innerHTML="";var cell=120/K, k=KERNELS[curK];
+    for(var r=0;r<K;r++)for(var c=0;c<K;c++){
+      s.appendChild(el("rect",{x:c*cell+1,y:r*cell+1,width:cell-2,height:cell-2,rx:3,fill:"#fff",stroke:"#E4E1D8"}));
+      var t=el("text",{x:c*cell+cell/2,y:r*cell+cell/2+5,"text-anchor":"middle","font-size":16,
+        fill:k[r][c]<0?"#b4493f":(k[r][c]>0?ARC:"#9A9488"),"font-weight":700});
+      t.textContent=(curK==="blur")?"⅑":k[r][c];s.appendChild(t);
+    }
+  }
+  function conv(src){
+    src=src||img;
+    var m=M(), k=KERNELS[curK], div=(curK==="blur")?9:1, out=[], amax=0;
+    for(var i=0;i<m;i++){out[i]=[];for(var j=0;j<m;j++){
+      var sum=0;for(var u=0;u<K;u++)for(var v=0;v<K;v++)sum+=k[u][v]*px(src,i+u-PAD,j+v-PAD);
+      sum/=div;out[i][j]=sum;if(Math.abs(sum)>amax)amax=Math.abs(sum);}}
+    return {out:out,amax:amax,m:m};
+  }
+  function fmt(v){ return (Math.abs(v-Math.round(v))<1e-9)?String(Math.round(v)):v.toFixed(1); }
+  function drawOutput(hi){
+    var c=conv(),m=c.m,s=document.getElementById("outGrid");s.innerHTML="";
+    var cell=(m<=24)?13:12, W=m*cell+2;
+    s.setAttribute("width",W); s.setAttribute("height",W); s.setAttribute("viewBox","0 0 "+W+" "+W);
+    for(var i=0;i<m;i++)for(var j=0;j<m;j++){
+      var v=c.out[i][j];
+      var rect=el("rect",{x:j*cell+1,y:i*cell+1,width:cell-0.6,height:cell-0.6,
+        fill:outColor(v,c.amax),stroke:"#EDEAE2","stroke-width":0.5});
+      rect.style.cursor="pointer";
+      s.appendChild(rect);
+      var t2=Math.min(1,Math.abs(v)/(c.amax||1));
+      var tx=el("text",{x:j*cell+cell/2+0.5,y:i*cell+cell/2+2.6,"text-anchor":"middle",
+        "font-size":6,fill:t2>0.55?"#fff":(v<0?"#8a3a33":"#8a857b")});
+      tx.textContent=fmt(v); tx.style.pointerEvents="none";
+      s.appendChild(tx);
+      (function(ii,jj){rect.addEventListener("click",function(){
+        drawAll([ii,jj]); calcText(ii,jj);});})(i,j);
+    }
+    if(hi){s.appendChild(el("rect",{x:hi[1]*cell+1,y:hi[0]*cell+1,width:cell,height:cell,
+      fill:"none",stroke:"#E8B44C","stroke-width":2.4}));}
+    document.getElementById("outCap").textContent=
+      "特徴マップ "+m+"×"+m+"（= 24−3+1"+(PAD?("+2×"+PAD):"")+"・タップで計算を表示）";
+    var note=document.getElementById("padNote");
+    if(note){
+      var after10 = N + 2*(PAD-1)*10;      /* 3×3 を 10 層: 1 層ごとに 2(1−PAD) 縮む */
+      note.textContent = PAD===1
+        ? "縁 1 周 → 出力は 24×24 のまま。何層重ねても絵が痩せず、端の画素も窓の中心になれる。"
+        : (PAD===0
+          ? "パディングなし → 1 層ごとに 2 ずつ痩せる。この 3×3 を 10 層重ねると 24×24 → "+(24-20)+"×"+(24-20)+"。端の画素は一度も窓の中心になれない。"
+          : "縁 2 周 → 出力が 26×26 に膨らむ。0 の縁とぶつかる場所に枠状の反応が出る（端の副作用も見える）。");
+    }
+  }
+  function calcText(r,c){
+    var k=KERNELS[curK],div=(curK==="blur")?9:1,parts=[],sum=0;
+    for(var u=0;u<K;u++)for(var v=0;v<K;v++){var w=k[u][v],x=px(img,r+u-PAD,c+v-PAD);sum+=w*x;
+      if(w!==0&&x!==0)parts.push((w<0?"(":"")+w+(w<0?")":"")+"×"+x);}
+    sum/=div;
+    document.getElementById("calc").textContent=
+      "出力 ("+r+","+c+")  =  Σ w·x  =  "+(parts.length?parts.join(" + "):"0（受容野が全部 0）")+(div>1?"  ÷9":"")+"  =  "+fmt(sum);
+  }
+  function drawAll(hi){drawInput(hi);drawKernel();drawOutput(hi);drawPool();}
+  document.querySelectorAll("#sprites .chip[data-s]").forEach(function(ch){
+    ch.addEventListener("click",function(){
+      document.querySelectorAll("#sprites .chip[data-s]").forEach(function(x){x.classList.remove("on");});
+      ch.classList.add("on"); loadSprite(ch.getAttribute("data-s")); drawAll();
+      document.getElementById("calc").textContent="出力のセルをタップすると、その位置の計算がここに出る。";
+    });
+  });
+  document.querySelectorAll("#pads .chip").forEach(function(ch){
+    ch.addEventListener("click",function(){
+      document.querySelectorAll("#pads .chip").forEach(function(x){x.classList.remove("on");});
+      ch.classList.add("on"); PAD=+ch.getAttribute("data-p"); drawAll();
+    });
+  });
+  document.querySelectorAll("#kernels .chip").forEach(function(ch){
+    ch.addEventListener("click",function(){
+      document.querySelectorAll("#kernels .chip").forEach(function(x){x.classList.remove("on");});
+      ch.classList.add("on");curK=ch.getAttribute("data-k");drawAll();
+      document.getElementById("calc").textContent="フィルタ「"+ch.textContent+"」 ―― "+KDESC[curK];
+    });
+  });
+  var slideIv=null;
+  document.getElementById("slideBtn").addEventListener("click",function(){
+    var btn=this;
+    if(slideIv){clearInterval(slideIv);slideIv=null;btn.textContent="▶ スライド (畳み込みを再生)";drawAll();return;}
+    var m=M(),seq=[];for(var i=0;i<m;i++)for(var j=0;j<m;j++)seq.push([i,j]);
+    var t=0;btn.textContent="■ 停止";
+    slideIv=setInterval(function(){
+      if(t>=seq.length){clearInterval(slideIv);slideIv=null;
+        btn.textContent="▶ スライド (畳み込みを再生)";drawAll();return;}
+      var p=seq[t++];drawAll(p);calcText(p[0],p[1]);
+    },22);
+  });
+  document.getElementById("clearBtn").addEventListener("click",function(){
+    for(var r=0;r<N;r++)for(var c=0;c<N;c++)img[r][c]=0;drawAll();
+    document.getElementById("calc").textContent="全部 0 にした。セルをタップして描ける（タップで 0→3→6→9）。";
+  });
+
+  // ── プーリング節: 上と同じ絵・同じフィルタの特徴マップをそのまま縮める ──
+  var poolShifted=false;
+  function shiftImg(g){          /* 右へ 1 マス */
+    var out=[];
+    for(var r=0;r<N;r++){out[r]=[];for(var c=0;c<N;c++)out[r][c]=(c>0)?g[r][c-1]:0;}
+    return out;
+  }
+  function relu(o){               /* 実物どおり: プーリングの前に負の反応を 0 に */
+    return o.map(function(row){ return row.map(function(v){ return v>0?v:0; }); });
+  }
+  function poolOf(o,m){
+    var P=Math.floor(m/2),out=[];
+    for(var i=0;i<P;i++){out[i]=[];for(var j=0;j<P;j++){
+      var mx=-1e9;for(var a=0;a<2;a++)for(var b=0;b<2;b++)mx=Math.max(mx,o[i*2+a][j*2+b]);
+      out[i][j]=mx;
+    }}
+    return out;
+  }
+  function drawPool(){
+    var b0=conv(img), s0=conv(shiftImg(img));
+    var base={out:relu(b0.out),m:b0.m}, shf={out:relu(s0.out),m:s0.m};
+    base.amax=0; base.out.forEach(function(r){r.forEach(function(v){if(v>base.amax)base.amax=v;});});
+    shf.amax=base.amax;
+    var m=base.m, use=poolShifted?shf:base;
+    var pooled=poolOf(use.out,m), P=pooled.length;
+    var pb=poolOf(base.out,m), pa=poolOf(shf.out,m);
+    var s=document.getElementById("poolInSvg");s.innerHTML="";
+    var cell=(m<=24)?13:12, W=m*cell+2;
+    s.setAttribute("width",W); s.setAttribute("height",W); s.setAttribute("viewBox","0 0 "+W+" "+W);
+    for(var r=0;r<m;r++)for(var c=0;c<m;c++){
+      var used=(r<P*2&&c<P*2);
+      var rect=el("rect",{x:c*cell+1,y:r*cell+1,width:cell-0.6,height:cell-0.6,
+        fill:used?outColor(use.out[r][c],use.amax):"#F4F2EC",stroke:"#F0EDE6","stroke-width":0.4});
+      if(!used)rect.setAttribute("opacity","0.5");
+      s.appendChild(rect);
+      if(used){
+        var tv=use.out[r][c], tt=Math.min(1,Math.abs(tv)/(use.amax||1));
+        var tx2=el("text",{x:c*cell+cell/2+0.5,y:r*cell+cell/2+2.6,"text-anchor":"middle",
+          "font-size":6,fill:tt>0.55?"#fff":"#8a857b"});
+        tx2.textContent=fmt(tv); tx2.style.pointerEvents="none";
+        s.appendChild(tx2);
+      }
+    }
+    for(var wi=0;wi<P;wi++)for(var wj=0;wj<P;wj++)
+      s.appendChild(el("rect",{x:wj*2*cell+1,y:wi*2*cell+1,width:cell*2,height:cell*2,
+        fill:"none",stroke:ARC,"stroke-width":0.7,opacity:0.5}));
+    if(poolShifted){                 /* ずらしで値が変わったセル＝琥珀 */
+      for(var rD=0;rD<m;rD++)for(var cD=0;cD<m;cD++)
+        if(Math.abs(base.out[rD][cD]-shf.out[rD][cD])>1e-9)
+          s.appendChild(el("rect",{x:cD*cell+1,y:rD*cell+1,width:cell-0.6,height:cell-0.6,
+            fill:"none",stroke:"#E8B44C","stroke-width":1}));
+    }
+    var so=document.getElementById("poolOutSvg");so.innerHTML="";
+    var oc=24, OW=P*oc+2;
+    so.setAttribute("width",OW); so.setAttribute("height",OW); so.setAttribute("viewBox","0 0 "+OW+" "+OW);
+    var pmax=0;for(var i2=0;i2<P;i2++)for(var j2=0;j2<P;j2++)pmax=Math.max(pmax,Math.abs(pooled[i2][j2]));
+    for(var i=0;i<P;i++)for(var j=0;j<P;j++){
+      so.appendChild(el("rect",{x:j*oc+1,y:i*oc+1,width:oc-1,height:oc-1,rx:2,
+        fill:outColor(pooled[i][j],pmax),stroke:"#E4E1D8","stroke-width":0.6}));
+      var t2=Math.min(1,Math.abs(pooled[i][j])/(pmax||1));
+      var ot=el("text",{x:j*oc+oc/2,y:i*oc+oc/2+3.5,"text-anchor":"middle","font-size":9,
+        fill:t2>0.55?"#fff":"#57534a"});
+      ot.textContent=fmt(pooled[i][j]);so.appendChild(ot);
+    }
+    if(poolShifted){
+      for(var iD=0;iD<P;iD++)for(var jD=0;jD<P;jD++)
+        if(Math.abs(pb[iD][jD]-pa[iD][jD])>1e-9)
+          so.appendChild(el("rect",{x:jD*oc+1,y:iD*oc+1,width:oc-1,height:oc-1,rx:2,
+            fill:"none",stroke:"#E8B44C","stroke-width":1.6}));
+    }
+    var poc=document.getElementById("poolOutCap");
+    if(poc) poc.textContent="プーリング後 "+P+"×"+P+"（縮図）"+(poolShifted?"・琥珀＝変わったセル":"");
+    document.getElementById("poolInCap").textContent=
+      "特徴マップ（ReLU 後）"+m+"×"+m+"（"+(poolShifted?"絵を右へ 1 マスずらした後":"ずらす前")+"）・枠 = 2×2 の窓";
+    var dF=0,sF=0,dP=0,sP=0;
+    for(var r3=0;r3<m;r3++)for(var c3=0;c3<m;c3++){
+      dF+=Math.abs(base.out[r3][c3]-shf.out[r3][c3]); sF+=base.out[r3][c3]; }
+    for(var i4=0;i4<P;i4++)for(var j4=0;j4<P;j4++){
+      dP+=Math.abs(pb[i4][j4]-pa[i4][j4]); sP+=pb[i4][j4]; }
+    var relF=sF?Math.round(dF/sF*100):0, relP=sP?Math.round(dP/sP*100):0;
+    document.getElementById("poolOut").textContent=
+      "セル数 "+(m*m)+" → "+(P*P)+"（計算量 1/4）。それでも絵の配置は右の縮図に残っている。"
+      +"絵を右へ 1 マスずらすと、反応の変化は全体の "+relF+"% 分 → プーリング後は "+relP+"% 分に縮む"
+      +"（窓の中の移動は最大値に吸収されるため）。";
+  }
+  document.getElementById("shiftBtn").addEventListener("click",function(){
+    poolShifted=!poolShifted;
+    this.textContent=poolShifted?"◀ ずらす前に戻す":"▶ 入力を右へ 1 マスずらす";
+    drawPool();
+  });
+  drawAll();
+})();
+</script>
+
+<script>
+(function(){
+  var m = /[?&]from=(figlink\d+)/.exec(location.search);
+  if (!m) return;
+  document.querySelectorAll('.fp-comm').forEach(function(a){
+    a.href = 'commentary.html#' + m[1];
+    a.dataset.t = '巻末解説の読んでいた場所にもどる';
+  });
+})();
+</script>
+<footer class="epoch-legal-footer"><p>本作は史実に基づくフィクションです（based on historical events）。実在の人物・団体の描写には創作を含み、内面や未公開の発言は作者の解釈です。出典は「参考文献」に記載しています。</p><p>本作の画像は生成 AI（Google Gemini）で作成し、ナレーション・構成・編集は作者によるものです。</p><nav><a href="references.html">参考文献</a><a href="legal.html#privacy">プライバシーポリシー</a><a href="legal.html#contact">お問い合わせ</a><a href="legal.html#tokushoho">特定商取引法に基づく表記</a></nav></footer>
+</body>
+</html>
