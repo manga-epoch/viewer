@@ -195,7 +195,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 <p>画像は一度に全体を見られるが、言葉は<strong>順序</strong>でできている。
 RNN (再帰型ニューラルネット) は、前の時刻の <strong>隠れ状態 $h$</strong> を次の時刻へ渡しながら 1 語ずつ処理する ―― 「記憶を持つ NN」。
 しかし長い系列では、誤差逆伝播のたびに勾配が掛け算され、遠い過去の情報が消えてしまう (勾配消失)。
-1997 年 Hochreiter &amp; Schmidhuber の <strong>LSTM</strong> は、情報をほぼそのまま運ぶ <strong>セル状態 (記憶のハイウェイ)</strong> と、
+1997 年 Hochreiter &amp; Schmidhuber の <strong>LSTM</strong> は、情報をほぼそのまま運ぶ <strong>セル状態 $C$</strong> と、
 出入りを制御する <strong>3 つのゲート</strong>を導入してこれを解いた。下で時間展開とゲートの働きを見よう。</p>
 </div>
 
@@ -203,93 +203,35 @@ RNN (再帰型ニューラルネット) は、前の時刻の <strong>隠れ状�
 /* ※ このページ限定。共通 CSS へ足すと他ページのレイアウトを壊す */
 .rnfig svg{width:100%;max-width:470px;height:auto;display:block;margin:8px auto}
 </style>
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">RNN の全体像</a></li><li><a href="#sec2">h には何がたまるのか</a></li><li><a href="#sec3">A の中身は、ふつうのニューラルネット</a></li><li><a href="#sec4">時間展開</a></li><li><a href="#sec5">LSTM の 3 つのゲート</a></li><li><a href="#sec6">seq2seq</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">RNN の全体像</a></li><li><a href="#sec2">LSTM の 3 つのゲート</a></li><li><a href="#sec3">seq2seq</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
-<h2>RNN の全体像 — メモを取りながら、順番に読む</h2>
+<h2>RNN の全体像 — 1 語ずつ読み、h を次へ渡す</h2>
 <details class="foldbox" open><summary>説明</summary>
 <div class="lead">画像は一度に全体を見られるが、言葉は<b>順番</b>に来る。
-RNN は 1 語ずつ読み、そのつど<b>メモ</b>を更新して次へ渡す。このメモが <b>$h$（隠れ状態）</b>だ。
-下の <b>A</b> が、そのメモを更新する部品 ―― <b>A は毎回まったく同じもの</b>で、
-語の数だけ繰り返し通す（重み共有）。</div>
+RNN は 1 語ずつ読み、そのつど <b>$h$（隠れ状態）</b>を更新して次へ渡す。
+$h$ は<b>ここまでに読んだ分の要約</b>で、中身は数のベクトル。
+下の <b>A</b> がその更新をする部分 ―― <b>A の中身はニューラルネット</b>で、
+図の中に描いてある。<b>A は毎回まったく同じもの</b>を使い回す（重み共有）。</div>
 </details>
 <details class="foldbox" open><summary>構成図</summary>
-<div class="rnfig"><svg id="ovSvg" viewBox="0 0 380 236"></svg></div>
+<div class="rnfig"><svg id="ovSvg" viewBox="0 0 380 300"></svg></div>
 </details>
 <div class="ctrls">
   <button class="btn" id="ovStep">▶ 1 語すすむ</button>
   <button class="btn ghost" id="ovReset">最初へ</button>
 </div>
 <div class="readout" id="ovOut"></div>
-</div>
-
-<div class="fig-stage" id="sec2">
-<h2>h には何がたまるのか</h2>
-<details class="foldbox" open><summary>説明</summary>
-<div class="lead">$h$ は「ここまでに読んだ文の要約」。語を読むたびに書き換わり、
-最後の $h$ には文全体の情報が入る。読み進めると、その $h$ が表しているものが増えていく。</div>
-</details>
 <details class="foldbox" open><summary>構成図</summary>
-<div class="rnfig"><svg id="memSvg" viewBox="0 0 380 210"></svg></div>
+<div class="rnfig"><svg id="memSvg" viewBox="0 0 380 176"></svg></div>
 </details>
 <div class="readout" id="memOut"></div>
-<details class="foldbox" open><summary>補足</summary>
-<p class="note">$h$ は本当は<b>数の並び</b>で、「The cat」という文字が入っているわけではない。
-ここに書いた言葉は<b>その数が何を表しているか</b>の説明で、実際の数は次の節で見る。</p>
-</details>
-</div>
-
-<div class="fig-stage" id="sec3">
-<h2>A の中身は、ふつうのニューラルネット</h2>
-<details class="foldbox" open><summary>説明</summary>
-<div class="lead">では A の中身は何か ―― <b>1 層のニューラルネット</b>だ。
-<b>いまの語</b>と<b>前のメモ $h$</b> を並べて受け取り、重みを掛けて足し、tanh に通す。
-出てきた数が新しい $h$。<b>$h$ が数で出るのは、$h$ がこの層のニューロンの出力そのものだから</b>。</div>
-</details>
-<div class="chips" id="hpick" style="justify-content:center">
-  <span class="chip on" data-hn="0">上の丸 h¹ の計算</span>
-  <span class="chip" data-hn="1">下の丸 h² の計算</span>
-</div>
-<details class="foldbox" open><summary>構成図</summary>
-<div class="rnfig"><svg id="cellSvg" viewBox="0 0 380 268"></svg></div>
-</details>
-<div class="ctrls">
-  <div class="ctrl" style="flex:1;min-width:170px">
-    <label>前のメモ h¹ を動かす <span class="val" id="hp1V">0.00</span></label>
-    <input type="range" id="hp1" min="-100" max="100" value="0">
-  </div>
-  <div class="ctrl" style="flex:1;min-width:170px">
-    <label>前のメモ h² を動かす <span class="val" id="hp2V">0.00</span></label>
-    <input type="range" id="hp2" min="-100" max="100" value="0">
-  </div>
-  <button class="btn ghost" id="hpReset">実際の値に戻す</button>
-</div>
-<div class="readout" id="cellOut"></div>
-<details class="foldbox" open><summary>補足</summary>
-<p class="note"><b>前のメモを動かすと、新しい h が動く</b> ―― これが「前の情報が次に効く」ということ。
-語の側を止めたまま h だけ変えても出力が変わるので、$h$ が答えに寄与しているのが確かめられる。<br>
-$h$ は 2 次元、重みと語のベクトルは<b>固定の例</b>で、本物は数百次元・重みは学習で決まる。
-図に出ている数はすべて、この重みで<b>実際に計算した値</b>。</p>
-</details>
-</div>
-
-<div class="fig-stage" id="sec4">
-<h2>時間展開 — 同じ 1 層を、語の数だけ通す</h2>
-<details class="foldbox" open><summary>説明</summary>
-<div class="lead">③の 1 層を、語ごとに<b>同じ重みのまま</b>繰り返す。丸の濃さが値の大きさ、下の数がその値。</div>
-</details>
-<details class="foldbox" open><summary>構成図</summary>
-<div class="rnfig"><svg id="unrollSvg" viewBox="0 0 380 216"></svg></div>
-</details>
-<div class="readout" id="rout">まだ 1 語も読んでいない。「▶ 1 語すすむ」で読み進める。</div>
-<div class="ctrls">
-  <button class="btn" id="stepBtn">▶ 1 語すすむ</button>
-  <button class="btn ghost" id="resetBtn">最初へ</button>
-</div>
 <details class="foldbox"><summary>式と計算</summary>
 <div class="formula">
 $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
-<div class="note" style="margin-top:8px">$W_h, W_x, b$ は<b>全時刻で同じもの</b>を使い回す（CNN が場所方向に重みを共有するのと同じ発想を、時間方向にやっている）。
-だから語が何個でも重みは増えない。そのかわり $h_{t-1}$ に同じ $W_h$ が何度も掛かる。</div>
+<div class="note" style="margin-top:8px">$W_h, W_x, b$ は<b>全時刻で同じもの</b>を使う（CNN が場所方向に重みを共有するのと同じことを、時間方向にやっている）。
+だから語が何個でも重みは増えない。そのかわり $h_{t-1}$ に同じ $W_h$ が何度も掛かる。<br>
+$h$ は 2 次元、重みと語のベクトルは<b>固定の例</b>で、本物は数百次元・重みは学習で決まる。
+図に出ている数はすべて、この重みで<b>実際に計算した値</b>。</div>
 </div>
 </details>
 
@@ -306,10 +248,10 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
 
 </div>
 
-<div class="fig-stage" id="sec5">
+<div class="fig-stage" id="sec2">
 <h2>LSTM の 3 つのゲート</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">セル状態 $C$ (上の太い線 = 記憶のハイウェイ) に、ゲートが情報を出し入れする。ゲートを設定してから「1 ステップ進める」を繰り返し押し、$C_t$ が前のステップの $C_{t-1}$ を受け継ぎながらどう積み上がる/落ち着くかを見よう。候補値 $\tilde{C}$ は $0.80$ に固定する。</div>
+<div class="lead">セル状態 $C$（上の太い線）に、ゲートが情報を出し入れする。ゲートを設定してから「1 ステップ進める」を繰り返し押し、$C_t$ が前のステップの $C_{t-1}$ を受け継ぎながらどう積み上がる/落ち着くかを見よう。候補値 $\tilde{C}$ は $0.80$ に固定する。</div>
 </details>
 <div class="ctrls">
   <div class="ctrl"><label>忘却ゲート $f$ <span class="val" id="fV">0.9</span></label><input type="range" id="fg" min="0" max="100" value="90"></div>
@@ -346,7 +288,7 @@ $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$
 </details>
 </div>
 
-<div class="fig-stage" id="sec6">
+<div class="fig-stage" id="sec3">
 <h2>seq2seq — 固定長ベクトルへの圧縮と、そこからの復元</h2>
 <details class="foldbox" open><summary>説明</summary>
 <div class="lead">翻訳では、入力の語数と出力の語数が合わない。そこで <strong>seq2seq</strong> (2014) は、
@@ -389,6 +331,8 @@ $c = h_T$
   var SEQ=["The","cat","sat","on"], step=0, ovStep=0;
   /* h が「ここまでに読んだぶん」を表していることを、言葉でも示す */
   var MEANS=["The","The cat","The cat sat","The cat sat on"];
+  /* y_t は「次に来る語」の予測。t=4 まで読んだら "the"（The cat sat on the ...） */
+  var NEXTW=["cat","sat","on","the"];
   /* 読者から「その時の h_t を表示した方がよい」と指摘。式を書くだけでなく、
      実際に h_t = tanh(W_h h_{t-1} + W_x x_t + b) を計算して数を出す。
      h は 2 次元、重みと x_t は固定の例（本物は数百次元・重みは学習で決まる）。 */
@@ -411,25 +355,43 @@ $c = h_T$
   function fmt(v){ return (v>=0?'+':'−')+Math.abs(v).toFixed(2) }
   // ── (1) 全体像。定番の時間展開図（A が並び、h が横に渡る）。
   //    この定番図を飛ばすと、読者は他の資料と接続できない。
+  function el2(t,a,txt){var e=document.createElementNS(SVGNS,t);
+    for(var k in a)e.setAttribute(k,a[k]); if(txt!=null)e.textContent=txt; return e;}
   function drawOverview(){
     var sv=document.getElementById('ovSvg'); sv.innerHTML='';
-    var n=SEQ.length, x0=32, gap=(380-x0-38)/(n-1), BW=44, BH=40, cy=116;
+    var n=SEQ.length, x0=34, gap=(380-x0-40)/(n-1), BW=52, BH=52, cy=136;
     sv.appendChild(el2('text',{x:190,y:14,'font-size':10.5,'text-anchor':'middle',fill:'#1A1A1A',
-      'font-weight':700},'RNN の時間展開 ―― メモを取りながら順番に読む'));
+      'font-weight':700},'RNN の時間展開 ―― 1 語ずつ読み、h を次へ渡す'));
     for(var t=0;t<n;t++){
       var on=t<ovStep, cx=x0+t*gap;
-      sv.appendChild(el2('text',{x:cx,y:40,'font-size':9.5,'text-anchor':'middle',
-        fill:on?'#1A1A1A':'#9A9488'},'t='+(t+1)));
-      sv.appendChild(el2('text',{x:cx,y:56,'font-size':10.5,'text-anchor':'middle',
-        fill:on?'#1A1A1A':'#9A9488','font-weight':on?700:400},SEQ[t]));
-      sv.appendChild(el2('line',{x1:cx,y1:62,x2:cx,y2:cy-BH/2-6,
+      // 入力（上から）
+      sv.appendChild(el2('text',{x:cx,y:36,'font-size':9,'text-anchor':'middle',
+        fill:on?'#9A9488':'#CFCBBE'},'t='+(t+1)));
+      sv.appendChild(el2('text',{x:cx,y:52,'font-size':10.5,'text-anchor':'middle',
+        fill:on?'#1A1A1A':'#CFCBBE','font-weight':on?700:400},SEQ[t]));
+      sv.appendChild(el2('line',{x1:cx,y1:58,x2:cx,y2:cy-BH/2-6,
         stroke:on?'#1a1a1a':'#d8d4cb','stroke-width':1.4}));
       sv.appendChild(el2('path',{d:'M'+(cx-3)+' '+(cy-BH/2-11)+' L'+cx+' '+(cy-BH/2-4)+
         ' L'+(cx+3)+' '+(cy-BH/2-11)+' Z',fill:on?'#1a1a1a':'#d8d4cb'}));
+      // A の箱。中に多層ニューラルネットを描く（A が NN であることを図で示す）
       sv.appendChild(el2('rect',{x:cx-BW/2,y:cy-BH/2,width:BW,height:BH,rx:7,
-        fill:on?'rgba(110,123,168,0.18)':'#EDEBE4',stroke:on?ARC:'#1a1a1a','stroke-width':on?2:1.4}));
-      sv.appendChild(el2('text',{x:cx,y:cy+5,'font-size':13,'text-anchor':'middle',
+        fill:'#fff',stroke:on?ARC:'#b9b9b2','stroke-width':on?2:1.2}));
+      var LC=[cx-16,cx,cx+16], NC=[3,3,2];
+      var pts=[];
+      for(var c2=0;c2<3;c2++){
+        var col=[];
+        for(var r2=0;r2<NC[c2];r2++) col.push(cy-BH/2+16+r2*11);
+        pts.push(col);
+      }
+      for(var c3=0;c3<2;c3++) for(var p1=0;p1<pts[c3].length;p1++) for(var p2=0;p2<pts[c3+1].length;p2++)
+        sv.appendChild(el2('line',{x1:LC[c3]+2.6,y1:pts[c3][p1],x2:LC[c3+1]-2.6,y2:pts[c3+1][p2],
+          stroke:on?'rgba(110,123,168,0.55)':'#e4e1d8','stroke-width':0.5}));
+      for(var c4=0;c4<3;c4++) for(var r4=0;r4<pts[c4].length;r4++)
+        sv.appendChild(el2('circle',{cx:LC[c4],cy:pts[c4][r4],r:2.6,
+          fill:on?ARC:'#d8d4cb',stroke:'none'}));
+      sv.appendChild(el2('text',{x:cx,y:cy+BH/2-5,'font-size':10,'text-anchor':'middle',
         fill:'#1A1A1A','font-weight':700},'A'));
+      // h（横へ）。実際のベクトルの数を出す
       var hx1=cx+BW/2, hx2=cx+gap-BW/2;
       if(t<n-1){
         var live=(t<ovStep-1);
@@ -437,31 +399,37 @@ $c = h_T$
           stroke:live?ARC:'#d8d4cb','stroke-width':live?2:1.2}));
         sv.appendChild(el2('path',{d:'M'+(hx2-6)+' '+(cy-3.5)+' L'+hx2+' '+cy+' L'+(hx2-6)+' '+(cy+3.5)+' Z',
           fill:live?ARC:'#d8d4cb'}));
-        sv.appendChild(el2('text',{x:(hx1+hx2)/2,y:cy-7,'font-size':10,'text-anchor':'middle',
+        sv.appendChild(el2('text',{x:(hx1+hx2)/2,y:cy-16,'font-size':9.5,'text-anchor':'middle',
           fill:live?ARC:'#9A9488','font-weight':700},'h'+(t+1)));
+        if(live) sv.appendChild(el2('text',{x:(hx1+hx2)/2,y:cy-4,'font-size':8,'text-anchor':'middle',
+          fill:'#565248'},fmt(HS[t][0])));
       } else {
         sv.appendChild(el2('line',{x1:hx1,y1:cy,x2:hx1+20,y2:cy,
           stroke:(ovStep>=n)?ARC:'#d8d4cb','stroke-width':(ovStep>=n)?2:1.2}));
       }
+      // 出力 y（下へ）。次の語の予測
       sv.appendChild(el2('line',{x1:cx,y1:cy+BH/2,x2:cx,y2:cy+BH/2+16,
         stroke:on?'#1a1a1a':'#d8d4cb','stroke-width':1.4}));
       sv.appendChild(el2('path',{d:'M'+(cx-3)+' '+(cy+BH/2+11)+' L'+cx+' '+(cy+BH/2+18)+
         ' L'+(cx+3)+' '+(cy+BH/2+11)+' Z',fill:on?'#1a1a1a':'#d8d4cb'}));
-      sv.appendChild(el2('text',{x:cx,y:cy+BH/2+32,'font-size':9.5,'text-anchor':'middle',
-        fill:on?'#1A1A1A':'#9A9488'},'y'+(t+1)));
+      sv.appendChild(el2('text',{x:cx,y:cy+BH/2+32,'font-size':9,'text-anchor':'middle',
+        fill:on?'#9A9488':'#CFCBBE'},'y'+(t+1)));
+      sv.appendChild(el2('text',{x:cx,y:cy+BH/2+46,'font-size':10,'text-anchor':'middle',
+        fill:on?'#1A1A1A':'#CFCBBE','font-weight':on?700:400}, on? NEXTW[t] : '?'));
     }
-    sv.appendChild(el2('text',{x:10,y:206,'font-size':9.5,fill:'#565248'},
-      'h ＝ メモ（隠れ状態）。前の時刻の情報を次へ渡す'));
-    sv.appendChild(el2('text',{x:10,y:224,'font-size':9.5,fill:'#565248'},
-      'A は毎回まったく同じネットワーク（重み共有）'));
+    sv.appendChild(el2('text',{x:10,y:266,'font-size':9.5,fill:'#565248'},
+      'A の中身は 1 層のニューラルネット。丸と線がその重み'));
+    sv.appendChild(el2('text',{x:10,y:282,'font-size':9.5,fill:'#565248'},
+      'y は「次に来る語」の予測。h はここまでの要約を次へ渡す'));
     document.getElementById('ovOut').innerHTML = ovStep===0
-      ? 'まだ 1 語も読んでいない。「1 語すすむ」を押すと、左から順に A を通っていく。'
-      : (ovStep<SEQ.length
-        ? '<b>'+ovStep+' 語目「'+SEQ[ovStep-1]+'」</b>まで読んだ。'+
-          'A が更新したメモ <b>h'+ovStep+'</b> が、そのまま次の A へ渡る。'+
-          '<b>A は同じもの</b>で、語ごとに新しく作られるわけではない。'
-        : '最後まで読んだ。<b>A を '+SEQ.length+' 回通しただけ</b>で、ネットワークは 1 つ。'+
-          'だから語が何個でも重みは増えない。');
+      ? 'まだ 1 語も読んでいない。「1 語すすむ」を押すと、左から順に A を通る。'
+      : '<b>' + ovStep + ' 個の token</b>（' + SEQ.slice(0,ovStep).join(' / ') + '）を読んだ。'
+        + 'いま渡されている <b>h' + ovStep + ' = ( ' + fmt(HS[ovStep-1][0]) + ', ' + fmt(HS[ovStep-1][1])
+        + ' )</b> ―― <b>2 個の数</b>で、読んだ語の数が増えても<b>この長さは変わらない</b>。'
+        + '出力 y' + ovStep + ' は次の語の予測で「' + NEXTW[ovStep-1] + '」。'
+        + (ovStep>=SEQ.length
+            ? ' A を ' + SEQ.length + ' 回通しただけで、ネットワークは 1 つ。'
+            : '');
   }
   document.getElementById('ovStep').addEventListener('click',function(){
     ovStep=Math.min(SEQ.length,ovStep+1); drawOverview(); drawMem(); });
@@ -471,194 +439,49 @@ $c = h_T$
   // ── (2) h に何がたまるか。読んだ語が h の中で積み上がるのを言葉で見せる
   function drawMem(){
     var sv=document.getElementById('memSvg'); sv.innerHTML='';
-    var n=SEQ.length, x0=20, gap=(380-x0-26)/n;
-    sv.appendChild(el2('text',{x:10,y:16,'font-size':10,fill:'#565248','font-weight':600},
-      '入力:  '+SEQ.join(' → ')+' → ？'));
+    var n=SEQ.length, x0=76, gap=(380-x0-14)/n;
+    var rows=[['token 数',34],['h が表す',56],['h の中身',86]];
+    rows.forEach(function(r){
+      sv.appendChild(el2('text',{x:10,y:r[1],'font-size':9,fill:'#9A9488'},r[0]));
+    });
+    sv.appendChild(el2('line',{x1:10,y1:17,x2:370,y2:17,stroke:'#E4E1D8'}));
     for(var t=0;t<n;t++){
       var on=t<ovStep, cx=x0+t*gap+gap/2;
-      sv.appendChild(el2('text',{x:cx,y:42,'font-size':10.5,'text-anchor':'middle',
+      sv.appendChild(el2('text',{x:cx,y:11,'font-size':10,'text-anchor':'middle',
         fill:on?ARC:'#CFCBBE','font-weight':700},'h'+(t+1)));
+      sv.appendChild(el2('text',{x:cx,y:34,'font-size':11,'text-anchor':'middle',
+        fill:on?'#1A1A1A':'#CFCBBE','font-weight':700}, on? String(t+1) : '—'));
       var ws=MEANS[t].split(' ');
-      for(var k=0;k<ws.length;k++){
-        sv.appendChild(el2('rect',{x:cx-gap/2+3,y:52+k*17,width:gap-6,height:15,rx:3,
-          fill:on?'rgba(110,123,168,0.16)':'#F4F2EC',stroke:on?ARC:'#E4E1D8','stroke-width':0.8}));
-        sv.appendChild(el2('text',{x:cx,y:63+k*17,'font-size':9,'text-anchor':'middle',
-          fill:on?'#1A1A1A':'#CFCBBE'},ws[k]));
-      }
+      sv.appendChild(el2('text',{x:cx,y:56,'font-size':8.5,'text-anchor':'middle',
+        fill:on?'#1A1A1A':'#CFCBBE'}, on? ws.slice(0,2).join(' ') : '—'));
+      if(on && ws.length>2)
+        sv.appendChild(el2('text',{x:cx,y:68,'font-size':8.5,'text-anchor':'middle',
+          fill:'#1A1A1A'}, ws.slice(2).join(' ')));
+      sv.appendChild(el2('text',{x:cx,y:86,'font-size':8.5,'text-anchor':'middle',
+        fill:on?'#565248':'#CFCBBE'}, on? fmt(HS[t][0]) : '—'));
+      if(on) sv.appendChild(el2('text',{x:cx,y:98,'font-size':8.5,'text-anchor':'middle',
+        fill:'#565248'}, fmt(HS[t][1])));
     }
-    sv.appendChild(el2('text',{x:10,y:142,'font-size':9.5,fill:'#9A9488'},
-      '読むたびに、h が表すものが 1 語ぶん増えていく'));
+    sv.appendChild(el2('line',{x1:10,y1:110,x2:370,y2:110,stroke:'#E4E1D8'}));
+    sv.appendChild(el2('text',{x:10,y:126,'font-size':9.5,fill:'#9A9488'},
+      '読んだ語は増えるが、h は 2 個の数のまま ―― ここに全部を詰め込む'));
     var done=(ovStep>=n);
-    sv.appendChild(el2('text',{x:10,y:168,'font-size':10,fill:done?'#1A1A1A':'#CFCBBE',
-      'font-weight':done?700:400},'予測:  最後の h'+n+' から次の語を出す'));
-    sv.appendChild(el2('text',{x:10,y:188,'font-size':11,fill:done?ARC:'#CFCBBE','font-weight':700},
-      done? '→ the （次の 1 語）' : '→ ？（最後まで読むと出る）'));
+    sv.appendChild(el2('text',{x:10,y:150,'font-size':10,fill:done?'#1A1A1A':'#CFCBBE',
+      'font-weight':done?700:400},'最後の h'+n+' から次の語を出す'));
+    sv.appendChild(el2('text',{x:10,y:168,'font-size':11,fill:done?ARC:'#CFCBBE','font-weight':700},
+      done? '→ the' : '→ ?（最後まで読むと出る）'));
     document.getElementById('memOut').innerHTML = ovStep===0
-      ? '「1 語すすむ」で読み進めると、h が表すものが増えていく。'
-      : '<b>h'+ovStep+'</b> はいま「'+MEANS[ovStep-1]+'」までを表している。'+
-        (done? '最後の h には文全体が入っているので、ここから次の語を予測できる。'
-             : '次の語を読むと、この上にもう 1 語ぶんが積まれる。');
+      ? '「1 語すすむ」で読み進めると、この表が左から埋まっていく。'
+      : '<b>token を ' + ovStep + ' 個</b>読んだ時点で、h が表しているのは「' + MEANS[ovStep-1] + '」。'
+        + 'ただし h の中身は <b>' + fmt(HS[ovStep-1][0]) + ', ' + fmt(HS[ovStep-1][1])
+        + ' の 2 個の数だけ</b>で、語が増えてもこの個数は変わらない。'
+        + (done
+            ? ' 文全体をこの 2 個に詰め込んでいる ―― 長い文で行き詰まる理由がここにある。'
+            : ' 次の語を読むと、この 2 個の数が書き換わる。');
   }
 
-  // ── ① セルの中身を、丸と線のニューラルネットとして描く（スマホ幅 380 で読める寸法）
-  //    ※ 旧版は「RNNセル」という箱に h の数だけ入れていたので、どこに NN があるのか、
-  //       なぜ h が数なのかが読者に伝わらなかった。1 層を実際に描き、丸の計算を式で出す。
-  var HN=0, CELLT=1, HOVR=null;                     // 見せる出力ニューロン / 何語目を見せるか（0 始まり）
-  function nodeAt(sv,x,y,r,val,name,hl,side){
-    var a=Math.min(1,Math.abs(val)/1.1);
-    sv.appendChild(el2('circle',{cx:x,cy:y,r:r,
-      fill: val>=0? 'rgba(110,123,168,'+(0.10+0.55*a).toFixed(2)+')'
-                  : 'rgba(180,73,63,'+(0.10+0.55*a).toFixed(2)+')',
-      stroke: hl? ARC : '#1a1a1a','stroke-width': hl?2.4:1.3}));
-    sv.appendChild(el2('text',{x:x,y:y+4,'font-size':10.5,'text-anchor':'middle',fill:'#1A1A1A'},fmt(val)));
-    if(name){
-      var right = (side==='r');
-      sv.appendChild(el2('text',{x: right? x+r+5 : x-r-5, y:y+4,'font-size':9.5,
-        'text-anchor': right?'start':'end', fill:'#9A9488'},name));
-    }
-  }
-  function el2(t,a,txt){var e=document.createElementNS(SVGNS,t);
-    for(var k in a)e.setAttribute(k,a[k]); if(txt!=null)e.textContent=txt; return e;}
-  function drawCell(){
-    var sv=document.getElementById('cellSvg'); sv.innerHTML='';
-    var word=SEQ[CELLT], x=XV[word];
-    var hprev = HOVR ? HOVR.slice() : (CELLT===0 ? [0,0] : HS[CELLT-1]);
-    var hnow;
-    (function(){ var r=[0,0];
-      for(var q=0;q<2;q++){ var z=Bb[q];
-        for(var w2=0;w2<2;w2++) z+=Wh[q][w2]*hprev[w2]+Wx[q][w2]*x[w2];
-        r[q]=Math.tanh(z); }
-      hnow=r; })();
-    var LX=96, RX=300, R=15;
-    var ly=[44,84,152,192], ry=[124,172];
-    var Wall=[[Wx[0][0],Wx[0][1],Wh[0][0],Wh[0][1]],
-              [Wx[1][0],Wx[1][1],Wh[1][0],Wh[1][1]]];
-    for(var o=0;o<2;o++) for(var k2=0;k2<4;k2++){
-      var on=(o===HN);
-      sv.appendChild(el2('line',{x1:LX+R,y1:ly[k2],x2:RX-R,y2:ry[o],
-        stroke:on?ARC:'#d8d4cb','stroke-width':on?1.6:0.7,opacity:on?0.85:0.45}));
-    }
-    for(var k3=0;k3<4;k3++){
-      var t=0.30, px=LX+R+(RX-R-LX-R)*t, py=ly[k3]+(ry[HN]-ly[k3])*t;
-      sv.appendChild(el2('rect',{x:px-16,y:py-8,width:32,height:14,rx:3,fill:'#fff',opacity:0.94}));
-      sv.appendChild(el2('text',{x:px,y:py+3,'font-size':9.5,'text-anchor':'middle',fill:ARC},
-        fmt(Wall[HN][k3])));
-    }
-    nodeAt(sv,LX,ly[0],R,x[0],'x¹',false,'l');
-    nodeAt(sv,LX,ly[1],R,x[1],'x²',false,'l');
-    nodeAt(sv,LX,ly[2],R,hprev[0],'前 h¹',false,'l');
-    nodeAt(sv,LX,ly[3],R,hprev[1],'前 h²',false,'l');
-    nodeAt(sv,RX,ry[0],R,hnow[0],'h¹',HN===0,'r');
-    nodeAt(sv,RX,ry[1],R,hnow[1],'h²',HN===1,'r');
-    sv.appendChild(el2('text',{x:10,y:16,'font-size':10.5,fill:'#565248','font-weight':600},
-      'いまの語「'+word+'」を 2 つの数で表したもの'));
-    sv.appendChild(el2('text',{x:10,y:30,'font-size':9,fill:'#9A9488'},
-      '（語をベクトルで表す。この対応は固定の例）'));
-    sv.appendChild(el2('text',{x:10,y:124,'font-size':10.5,fill:'#565248','font-weight':600},
-      '前の時刻の h'));
-    sv.appendChild(el2('text',{x:RX,y:96,'font-size':10.5,'text-anchor':'middle',fill:'#565248',
-      'font-weight':600},'新しい h（tanh）'));
-    sv.appendChild(el2('text',{x:10,y:236,'font-size':9.5,fill:'#9A9488'},
-      '線 = 重み。数字は、選んだ丸へ入る 4 本ぶん'));
-    sv.appendChild(el2('text',{x:10,y:254,'font-size':9.5,fill:'#9A9488'},
-      'この 2 つの数が、そのまま次の時刻の「前の h」になる'));
-    var w=Wall[HN], terms=[[w[0],x[0]],[w[1],x[1]],[w[2],hprev[0]],[w[3],hprev[1]]];
-    var z=Bb[HN], parts=[];
-    terms.forEach(function(q){ z+=q[0]*q[1]; parts.push(fmt(q[0])+'×'+fmt(q[1])); });
-    document.getElementById('cellOut').innerHTML =
-      '<b>h'+(HN===0?'¹':'²')+' の計算</b>（'+(CELLT+1)+' 語目「'+word+'」を読むとき'+
-      (HOVR?'・前のメモは手で動かした値':'')+'）<br>'+
-      'z = ' + parts.join(' ＋ ') + ' ＋ ' + fmt(Bb[HN]) + ' = <b>' + fmt(z) + '</b><br>'+
-      'h'+(HN===0?'¹':'²')+' = tanh(z) = <b>'+fmt(Math.tanh(z))+'</b>　'+
-      '―― 掛けて足して tanh、それだけ。<b>この数がそのまま次の時刻の「前のメモ」になる</b>。';
-  }
+  drawOverview(); drawMem();
 
-  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-hn]'),function(c){
-    c.addEventListener('click',function(){
-      HN=+c.getAttribute('data-hn');
-      Array.prototype.forEach.call(document.querySelectorAll('.chip[data-hn]'),function(d){
-        d.classList.toggle('on', d===c); });
-      drawCell();
-    });
-  });
-  document.getElementById('cellSvg').addEventListener('click',function(e){
-    // 出力の丸をタップしても切り替わる
-    var b=this.getBoundingClientRect(), sx=(e.clientX-b.left)/b.width*380, sy=(e.clientY-b.top)/b.height*268;
-    if(sx>268){ HN = sy<148?0:1;
-      Array.prototype.forEach.call(document.querySelectorAll('.chip[data-hn]'),function(d){
-        d.classList.toggle('on', +d.getAttribute('data-hn')===HN); });
-      drawCell(); }
-  });
-
-  // ── ② 時間展開。同じ 1 層を語の数だけ通す
-  function drawUnroll(){
-    var sv=document.getElementById('unrollSvg'); sv.innerHTML='';
-    var n=SEQ.length, x0=34, gap=(380-x0-24)/(n-1), R=13;
-    sv.appendChild(el2('text',{x:10,y:14,'font-size':10,fill:'#565248','font-weight':600},
-      '同じ重みの 1 層を、語ごとに通す'));
-    for(var t=0;t<n;t++){
-      var on=t<step, cx=x0+t*gap;
-      if(t<n-1){
-        sv.appendChild(el2('line',{x1:cx+R+3,y1:60,x2:cx+gap-R-6,y2:60,
-          stroke:(t+1<=step-1)?ARC:'#d8d4cb','stroke-width':(t+1<=step-1)?2:1}));
-        sv.appendChild(el2('line',{x1:cx+R+3,y1:96,x2:cx+gap-R-6,y2:96,
-          stroke:(t+1<=step-1)?ARC:'#d8d4cb','stroke-width':(t+1<=step-1)?2:1}));
-      }
-      var hv = on? HS[t] : [0,0];
-      nodeAt(sv,cx,60,R,hv[0],null,false);
-      nodeAt(sv,cx,96,R,hv[1],null,false);
-      if(!on){
-        sv.appendChild(el2('rect',{x:cx-R,y:46,width:2*R,height:64,fill:'#FAFAF7',opacity:0.72}));
-        sv.appendChild(el2('text',{x:cx,y:82,'font-size':9,'text-anchor':'middle',fill:'#CFCBBE'},'未読'));
-      }
-      sv.appendChild(el2('text',{x:cx,y:36,'font-size':9,'text-anchor':'middle',fill:'#9A9488'},'h'+(t+1)));
-      sv.appendChild(el2('line',{x1:cx,y1:150,x2:cx,y2:116,stroke:on?ARC:'#d8d4cb','stroke-width':1.4}));
-      sv.appendChild(el2('path',{d:'M'+(cx-3)+' 122 L'+cx+' 114 L'+(cx+3)+' 122 Z',fill:on?ARC:'#d8d4cb'}));
-      sv.appendChild(el2('text',{x:cx,y:168,'font-size':13,'text-anchor':'middle',
-        fill:on?'#1A1A1A':'#9A9488','font-weight':on?700:400},SEQ[t]));
-      sv.appendChild(el2('text',{x:cx,y:184,'font-size':9.5,'text-anchor':'middle',fill:'#9A9488'},
-        'x'+(t+1)));
-    }
-    sv.appendChild(el2('text',{x:10,y:206,'font-size':9.5,fill:'#9A9488'},
-      'h は右へ渡され、読んだところまでの情報がたまっていく'));
-    var rout=document.getElementById('rout');
-    if(step===0){
-      rout.textContent='まだ 1 語も読んでいない。h はどちらも 0。「▶ 1 語すすむ」で読み進める。';
-    } else {
-      var hv=HS[step-1];
-      rout.innerHTML='「'+SEQ.slice(0,step).join('')+'」まで読んだ。'+
-        'いまの h = ( '+fmt(hv[0])+', '+fmt(hv[1])+' )。'+
-        (step<SEQ.length
-          ? 'この 2 つの数が、次の語を読むときの「前の h」として使われる。'
-          : '<b>最後の h には、文全体を通した情報が入っている</b>。'+
-            'seq2seq はこの 1 本を翻訳の手がかりにした ―― だから長い文で詰まる。');
-    }
-  }
-  document.getElementById('stepBtn').addEventListener('click',function(){
-    step=Math.min(SEQ.length,step+1); drawUnroll(); });
-  document.getElementById('resetBtn').addEventListener('click',function(){
-    step=0; drawUnroll(); });
-  function syncHp(){
-    var base = CELLT===0 ? [0,0] : HS[CELLT-1];
-    var v = HOVR || base;
-    document.getElementById('hp1').value = Math.round(v[0]*100);
-    document.getElementById('hp2').value = Math.round(v[1]*100);
-    document.getElementById('hp1V').textContent = v[0].toFixed(2);
-    document.getElementById('hp2V').textContent = v[1].toFixed(2);
-  }
-  ['hp1','hp2'].forEach(function(id){
-    document.getElementById(id).addEventListener('input',function(){
-      var base = CELLT===0 ? [0,0] : HS[CELLT-1];
-      HOVR = HOVR || base.slice();
-      HOVR[id==='hp1'?0:1] = +this.value/100;
-      document.getElementById(id+'V').textContent = (+this.value/100).toFixed(2);
-      drawCell();
-    });
-  });
-  document.getElementById('hpReset').addEventListener('click',function(){
-    HOVR=null; syncHp(); drawCell(); });
-  syncHp();
-  drawOverview(); drawMem(); drawCell(); drawUnroll();
 
   function drawDecayBars(svgId,base,label){
     var svg=document.getElementById(svgId);svg.innerHTML='';
