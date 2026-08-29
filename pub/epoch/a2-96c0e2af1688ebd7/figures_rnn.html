@@ -268,10 +268,14 @@ $h$ は 2 次元、重みと語のベクトルは<b>固定の例</b>で、本物
 <div class="fig-stage" id="sec2">
 <h2>LSTM — 渡す線が 2 本になり、A の中にゲートが入る</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">形は①の RNN とまったく同じ。違いは 2 つだけだ。
-<b>横に渡る線が $h$ の 1 本から、$C$ と $h$ の 2 本になった</b>こと。
-そして <b>A の中に 3 つのゲート $f, i, o$ が入った</b>こと。
-$C$ は掛け算を重ねずに<b>足し算で更新される</b>ので、$f$ が 1 に近ければ古い値が長く残る。</div>
+<div class="lead">形は①の RNN とまったく同じで、違いは 2 つだけ。
+<b>$C$（セル状態）という 2 本目の線が増えた</b>ことと、<b>A の中に 3 つのゲート $f, i, o$ が入った</b>ことだ。<br>
+<b>$C$ が何かというと、$h$ と同じ「数のベクトル」</b>。中身が違うのではなく、<b>作り方が違う</b>。
+RNN の $h$ は毎時刻 $\tanh$ を通して<b>作り直す</b>ので、前の値は毎回押し潰される。
+$C$ は前の値に<b>足すだけ</b>（$C_t = f\,C_{t-1} + i\,\tilde{C}_t$）で $\tanh$ を通さないから、
+$f$ を 1 に近くすれば前の値がそのまま残る。
+外へ出す $h$ は、その $C$ から $o$ を掛けて取り出す（$h_t = o\,\tanh C_t$）。
+<b>「消えない置き場所を $C$ として別に持ち、そこから必要な分だけ $h$ に出す」</b>のが LSTM。</div>
 </details>
 <details class="foldbox" open><summary>構成図</summary>
 <div class="rnfig"><svg id="lovSvg" viewBox="0 0 380 306"></svg></div>
@@ -319,17 +323,19 @@ $f$ を大きくすると古い $C$ が残り、$i$ を大きくすると新し�
 </div>
 
 <div class="fig-stage" id="sec3">
-<h2>seq2seq — 固定長ベクトルへの圧縮と、そこからの復元</h2>
+<h2>seq2seq — 読む A の列と、書く A の列に分ける</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">翻訳では、入力の語数と出力の語数が合わない。そこで <strong>seq2seq</strong> (2014) は、
-読む側と書く側を分けた。<strong>エンコーダ</strong>が入力文を最後まで読み、その時点の内部状態を
-<strong>1 本の固定長ベクトル（文脈ベクトル）</strong>として渡す。<strong>デコーダ</strong>はそれだけを
-頼りに、出力を 1 語ずつ生む。文を長くすると、この 1 本がどうなるか見てほしい。</div>
+<div class="lead">翻訳では、入力の語数と出力の語数が合わない。そこで <b>seq2seq</b>（2014）は、
+①と同じ A の列を<b>2 組</b>用意した。<b>エンコーダ</b>が原文を最後まで読み、
+<b>その時点の $h$ だけ</b>を <b>デコーダ</b>へ渡す。デコーダはそれを受け取って 1 語ずつ書く。<br>
+言いたいことは 1 つ ―― <b>デコーダが原文について知っているのは、渡された 1 本のベクトルだけ</b>。
+原文の語を直接見に行くことはできない。文を長くして、その 1 本が変わらないことを確かめてほしい。</div>
 </details>
 <details class="foldbox"><summary>式と計算</summary>
-<div class="formula">
-$c = h_T$
-<div class="note" style="margin-top:8px">エンコーダの最後の隠れ状態 $h_T$ をそのまま文脈ベクトル $c$ とする。デコーダは $p(y_t \mid y_{&lt;t}, c)$ ——つまり<b>自分がここまでに書いた語 $y_{&lt;t}$</b> と<b>この 1 本の $c$</b> だけから、次の語 $y_t$ の確率を計算する。原文の他の語は直接には見えない。</div>
+<div class="formula">$c = h_T$
+<div class="note" style="margin-top:8px">エンコーダの最後の隠れ状態 $h_T$ をそのまま $c$ とする。
+デコーダは $p(y_t \mid y_{&lt;t}, c)$ ―― <b>自分がここまでに書いた語</b>と<b>この 1 本の $c$</b> だけから
+次の語を決める。原文の他の語は式に出てこない。</div>
 </div>
 </details>
 <div class="ctrls">
@@ -337,17 +343,19 @@ $c = h_T$
   <button class="btn ghost" id="s2sAuto">最後まで</button>
   <button class="btn ghost" id="s2sReset">最初へ</button>
   <label>入力文 <input type="range" id="s2sLen" min="0" max="3" value="1"></label>
-  <span class="pill" id="s2sLenV">4 語</span>
+  <span class="tag" id="s2sLenV">4 語</span>
 </div>
 <details class="foldbox" open><summary>構成図</summary>
-<div class="rnfig"><svg id="s2sSvg" viewBox="0 0 380 216"></svg></div>
+<div class="rnfig"><svg id="s2sSvg" viewBox="0 0 380 254"></svg></div>
 </details>
 <details class="foldbox" open><summary>補足</summary>
 <p class="note" id="s2sOut"></p>
-<p class="note">中央のバーが<strong>文脈ベクトル</strong>で、その幅は<strong>文の長さによらず一定</strong>だ。
-入力文が伸びると、1 語あたりの取り分（区切りの幅）はその分だけ細くなる。
-長い文ほど頭のほうが押し出される——これが seq2seq の<strong>ボトルネック</strong>で、
-次の一手を呼び込むことになる。（区切りの幅は仕組みを示すための模式で、実測値ではない。）</p>
+<p class="note">上下どちらも①と同じ <b>A の列</b>で、読む側と書く側で別々の重みを持つ。
+つないでいるのは <b>$c$ の 1 本だけ</b> ―― 入力文を 3 語から 8 語に伸ばしても、
+この 1 本の長さは変わらない。<b>入れ物は同じで、詰める量だけが増える</b>。
+これが seq2seq の<strong>ボトルネック</strong>で、次に attention を呼び込むことになる。<br>
+なお実際の seq2seq は、この $c$ を数百〜数千次元のベクトルとして持つ（図では 1 本の帯で描いている）。
+デコーダの各ステップに $c$ を毎回入れる作り方もあり、Cho ほか (2014) はそちらを採っている。</p>
 </details>
 </div>
 
@@ -762,65 +770,90 @@ $c = h_T$
     var src=PAIRS[pi][0], dst=PAIRS[pi][1];
     var read=Math.min(step,src.length), wrote=Math.max(0,step-src.length);
     var g='', W=380, L=10;
-    function fitFs(words,bw2){          // 一番長い語が箱に収まる文字サイズを選ぶ
-      var mx=1; words.forEach(function(w){ 
-        var n=0; for(var q=0;q<w.length;q++) n += w.charCodeAt(q)>255 ? 1 : 0.56;
-        mx=Math.max(mx,n); });
-      return Math.max(6.5, Math.min(10.5, (bw2-5)/mx));
+    function fitFs(words,bw2){
+      var mx=1; words.forEach(function(w){
+        var n2=0; for(var q=0;q<w.length;q++) n2 += w.charCodeAt(q)>255 ? 1 : 0.56;
+        mx=Math.max(mx,n2); });
+      return Math.max(6.5, Math.min(9.5, (bw2-4)/mx));
     }
-    /* --- エンコーダ（上段） --- */
-    var ew=Math.max(24,(W-L*2)/src.length-4), efs=fitFs(src,ew);
-    var ex0=L+((W-L*2)-(src.length*(ew+4)-4))/2;
-    g+='<text x="'+L+'" y="13" style="font:600 10px sans-serif;fill:#8c8880">エンコーダ（読む）</text>';
+    function ablock(x,y,bw,bh,on){
+      var r='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="5" fill="#fff" stroke="'+
+        (on?'#6E7BA8':'#b9b9b2')+'" stroke-width="'+(on?1.8:1)+'"/>';
+      // A の中に小さな NN（①と同じ描き方）
+      var cx=x+bw/2, cy=y+bh/2-3;
+      for(var c2=0;c2<3;c2++){
+        var xx=cx-7+c2*7;
+        for(var r2=0;r2<2;r2++)
+          r+='<circle cx="'+xx+'" cy="'+(cy-4+r2*8)+'" r="1.6" fill="'+(on?'#6E7BA8':'#d8d4cb')+'"/>';
+      }
+      r+='<text x="'+cx+'" y="'+(y+bh-3)+'" text-anchor="middle" style="font:700 8px sans-serif;fill:#1a1a1a">A</text>';
+      return r;
+    }
+    function harrow(x1,x2,y,on){
+      return '<line x1="'+x1+'" y1="'+y+'" x2="'+(x2-4)+'" y2="'+y+'" stroke="'+
+        (on?'#6E7BA8':'#d8d4cb')+'" stroke-width="'+(on?1.8:1)+'"/>'+
+        '<path d="M'+(x2-5)+' '+(y-3)+' L'+x2+' '+y+' L'+(x2-5)+' '+(y+3)+' Z" fill="'+
+        (on?'#6E7BA8':'#d8d4cb')+'"/>';
+    }
+    /* --- エンコーダ: ①と同じ A の列 --- */
+    var BH=26;
+    var ew=Math.max(22,(W-L*2)/src.length-6), efs=fitFs(src,ew);
+    var ex0=L+((W-L*2)-(src.length*(ew+6)-6))/2;
+    g+='<text x="'+L+'" y="12" style="font:600 9.5px sans-serif;fill:#8c8880">エンコーダ（原文を読む）</text>';
     for(var i=0;i<src.length;i++){
-      var on=i<read, x=ex0+i*(ew+4);
-      g+=box(x,20,ew,28,on?'#1a1a1a':'#fff','#1a1a1a');
-      g+='<text x="'+(x+ew/2)+'" y="39" text-anchor="middle" style="font:600 '+efs.toFixed(1)+'px sans-serif;fill:'+
-         (on?'#fff':'#1a1a1a')+'">'+esc(src[i])+'</text>';
+      var on=i<read, x=ex0+i*(ew+6);
+      g+='<text x="'+(x+ew/2)+'" y="30" text-anchor="middle" style="font:'+(on?600:400)+' '+
+         efs.toFixed(1)+'px sans-serif;fill:'+(on?'#1a1a1a':'#cfccc4')+'">'+esc(src[i])+'</text>';
+      g+='<line x1="'+(x+ew/2)+'" y1="34" x2="'+(x+ew/2)+'" y2="'+(40-4)+'" stroke="'+
+         (on?'#1a1a1a':'#d8d4cb')+'" stroke-width="1.2"/>';
+      g+=ablock(x,40,ew,BH,on);
+      if(i<src.length-1) g+=harrow(x+ew,x+ew+6,40+BH/2,i<read-1);
     }
-    g+='<path d="M190 52 L190 64" stroke="#6E7BA8" stroke-width="2.2" fill="none"/>';
-    g+='<path d="M185 60 L190 68 L195 60 Z" fill="#6E7BA8"/>';
-    /* --- 文脈ベクトル（中央）: 幅は常に一定。語数で分割する --- */
-    var bw=250, bx=(W-bw)/2, by=90, seg=bw/src.length;
-    g+='<text x="'+L+'" y="82" style="font:600 10px sans-serif;fill:#8c8880">文脈ベクトル（固定長 — どの文でも同じ幅）</text>';
-    for(var i2=0;i2<src.length;i2++){
-      g+='<rect x="'+(bx+i2*seg)+'" y="'+by+'" width="'+seg+'" height="28" fill="'+
-         (i2<read?'#6E7BA8':'#fff')+'" stroke="#fff" stroke-width="1"/>';
-    }
-    g+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="28" rx="5" fill="none" stroke="#6E7BA8" stroke-width="2.2"/>';
-    g+='<text x="'+L+'" y="132" style="font:600 10px sans-serif;fill:#565248">'+
-       '1 語あたり '+(bw/src.length).toFixed(0)+'px 分（全体の幅は変わらない）</text>';
-    if(step>=src.length){
-      g+='<path d="M190 140 L190 152" stroke="#6E7BA8" stroke-width="2.2" fill="none"/>';
-      g+='<path d="M185 148 L190 156 L195 148 Z" fill="#6E7BA8"/>';
-    }
-    /* --- デコーダ（下段） --- */
-    var dw=Math.max(24,(W-L*2)/dst.length-4), dfs=fitFs(dst,dw);
-    var dx0=L+((W-L*2)-(dst.length*(dw+4)-4))/2;
-    g+='<text x="'+L+'" y="170" style="font:600 10px sans-serif;fill:#8c8880">デコーダ（書く）</text>';
+    /* --- 渡るのは 1 本だけ --- */
+    var lastx=ex0+(src.length-1)*(ew+6)+ew/2;
+    var done=step>=src.length;
+    g+='<path d="M'+lastx+' '+(40+BH)+' L'+lastx+' 84 L190 84 L190 96" stroke="'+
+       (done?'#6E7BA8':'#d8d4cb')+'" stroke-width="2.4" fill="none"/>';
+    g+='<path d="M185 92 L190 100 L195 92 Z" fill="'+(done?'#6E7BA8':'#d8d4cb')+'"/>';
+    g+='<rect x="120" y="102" width="140" height="24" rx="5" fill="'+(done?'rgba(110,123,168,0.16)':'#fff')+
+       '" stroke="'+(done?'#6E7BA8':'#d8d4cb')+'" stroke-width="2"/>';
+    g+='<text x="190" y="118" text-anchor="middle" style="font:700 10px sans-serif;fill:#1a1a1a">'+
+       'c（1 本のベクトル）</text>';
+    g+='<text x="'+(L)+'" y="140" style="font:600 9.5px sans-serif;fill:#565248">'+
+       '原文 '+src.length+' 語 → デコーダが見られるのは、この 1 本だけ</text>';
+    g+='<path d="M190 126 L190 150" stroke="'+(done?'#6E7BA8':'#d8d4cb')+'" stroke-width="2.4" fill="none"/>';
+    g+='<path d="M185 146 L190 154 L195 146 Z" fill="'+(done?'#6E7BA8':'#d8d4cb')+'"/>';
+    /* --- デコーダ: 同じ A の列 --- */
+    var dw=Math.max(22,(W-L*2)/dst.length-6), dfs=fitFs(dst,dw);
+    var dx0=L+((W-L*2)-(dst.length*(dw+6)-6))/2;
+    g+='<text x="'+L+'" y="170" style="font:600 9.5px sans-serif;fill:#8c8880">デコーダ（1 語ずつ書く）</text>';
     for(var j=0;j<dst.length;j++){
-      var on2=j<wrote, x2=dx0+j*(dw+4);
-      g+=box(x2,178,dw,28,on2?'#6E7BA8':'#fff',on2?'#6E7BA8':'#d8d5cd');
-      g+='<text x="'+(x2+dw/2)+'" y="197" text-anchor="middle" style="font:600 '+dfs.toFixed(1)+'px sans-serif;fill:'+
-         (on2?'#fff':'#cfccc4')+'">'+esc(dst[j])+'</text>';
+      var on2=j<wrote, x2=dx0+j*(dw+6);
+      g+=ablock(x2,178,dw,BH,on2);
+      if(j<dst.length-1) g+=harrow(x2+dw,x2+dw+6,178+BH/2,j<wrote-1);
+      g+='<line x1="'+(x2+dw/2)+'" y1="'+(178+BH)+'" x2="'+(x2+dw/2)+'" y2="212" stroke="'+
+         (on2?'#1a1a1a':'#d8d4cb')+'" stroke-width="1.2"/>';
+      g+='<text x="'+(x2+dw/2)+'" y="226" text-anchor="middle" style="font:'+(on2?600:400)+' '+
+         dfs.toFixed(1)+'px sans-serif;fill:'+(on2?'#1a1a1a':'#cfccc4')+'">'+esc(dst[j])+'</text>';
     }
+    g+='<text x="'+L+'" y="246" style="font:9px sans-serif;fill:#9A9488">'+
+       'A の中身は①と同じ 1 層。読む側と書く側で、別々の重みを持つ</text>';
     $('s2sSvg').innerHTML=g;
     var msg;
-    if(step===0) msg='まだ何も読んでいない。「▶ 1 語進める」で 1 語ずつ読み込む。';
-    else if(step<src.length) msg='<b>'+read+' / '+src.length+' 語</b>を読み込んだ。'+
-      '読むたびに、文脈ベクトルの区画が 1 つずつ埋まっていく。';
-    else if(step===src.length) msg='入力を読み終えた。ここで<b>入力文はもう見られない</b>——'+
-      'デコーダが使えるのは、この 1 本のベクトルだけだ。';
-    else if(wrote<dst.length) msg='出力を <b>'+wrote+' / '+dst.length+' 語</b>まで生成した。'+
-      '1 語書くごとに、次に何を書くかを同じ 1 本から決めていく。';
+    if(step===0) msg='まだ何も読んでいない。「1 語進める」でエンコーダの A を左から通していく。';
+    else if(step<src.length) msg='原文を <b>'+read+' / '+src.length+' 語</b>読んだ。'+
+      'ここまでは①の RNN とまったく同じで、h を右へ渡しているだけ。';
+    else if(step===src.length) msg='原文を読み終えた。<b>この時点の h が c としてデコーダへ渡る</b>。'+
+      'これ以降、<b>デコーダは原文の語を直接見られない</b> —— 手がかりは c の 1 本だけ。';
+    else if(wrote<dst.length) msg='出力を <b>'+wrote+' / '+dst.length+' 語</b>書いた。'+
+      '書く側も同じ A の列で、c と「自分がここまでに書いた語」から次の 1 語を決めていく。';
     else {
-      var shortest=PAIRS[0][0].length, segNow=Math.round(250/src.length), segMin=Math.round(250/shortest);
-      msg='訳し終えた。入力 '+src.length+' 語 → 出力 '+dst.length+' 語。'+
-        (src.length!==dst.length
-          ? '<b>語数が違っても訳せる</b>のが seq2seq の要点だ。'
-          : 'ここでは偶然そろったが、語数がそろう必要はない。')+
-        ' このとき 1 語あたりの区画は <b>'+segNow+'px</b>——'+shortest+' 語の文なら '+segMin+
-        'px だった。<b>バー全体の幅は一度も変わっていない</b>。';
+      var shortest=PAIRS[0][0].length;
+      msg='訳し終えた。原文 '+src.length+' 語 → 出力 '+dst.length+' 語。'+
+        '<b>語数が違っても訳せる</b>のが seq2seq の要点だ。<br>'+
+        'ただし c は <b>'+shortest+' 語の文でも '+src.length+' 語の文でも同じ 1 本</b>。'+
+        '入力文を長くすると、<b>同じ入れ物に詰める量だけが増えていく</b> —— '+
+        'これが次に attention を呼び込むことになる。';
     }
     $('s2sOut').innerHTML=msg;
   }
