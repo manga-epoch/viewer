@@ -384,7 +384,7 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
 
 <script>
 (function(){
-  var D={"tokens":["Data"," visualization"," em","powers"," users"," to"],"candidates":[{"token":" visualize","logit":-135.913},{"token":" create","logit":-136.684},{"token":" see","logit":-137.12},{"token":" make","logit":-137.647},{"token":" easily","logit":-137.666},{"token":" quickly","logit":-137.724},{"token":" explore","logit":-137.784},{"token":" find","logit":-138.048},{"token":" understand","logit":-138.293},{"token":" build","logit":-138.41},{"token":" better","logit":-138.453},{"token":" identify","logit":-138.487}],"prompt":"Data visualization empowers users to","attnLast":[0.2317,0.0026,0.04,0.0539,0.0216,0.6502],"dim":768,"heads":12,"headDim":64,"ffn":3072,"vocab":50257,"blocks":12,"embParams":"38,597,376"};
+  var D={"tokens":["Data"," visualization"," em","powers"," users"," to"],"candidates":[{"token":" visualize","logit":-135.913},{"token":" create","logit":-136.684},{"token":" see","logit":-137.12},{"token":" make","logit":-137.647},{"token":" easily","logit":-137.666},{"token":" quickly","logit":-137.724},{"token":" explore","logit":-137.784},{"token":" find","logit":-138.048},{"token":" understand","logit":-138.293},{"token":" build","logit":-138.41},{"token":" better","logit":-138.453},{"token":" identify","logit":-138.487}],"prompt":"Data visualization empowers users to","attnLast":[0.2317,0.0026,0.04,0.0539,0.0216,0.6502],"attnAll":[[0.7748,0.2128,0.0071,0.0025,0.0026,0.0001],[0.7187,0.253,0.0001,0.0002,0.0096,0.0185],[0.5131,0.0162,0.3652,0.0007,0.0095,0.0952],[0.4439,0.0418,0.0955,0.3111,0.004,0.1036],[0.4562,0.076,0.0019,0.1388,0.3161,0.0109],[0.2317,0.0026,0.04,0.0539,0.0216,0.6502]],"dim":768,"heads":12,"headDim":64,"ffn":3072,"vocab":50257,"blocks":12,"embParams":"38,597,376"};
   var STEPS1=[["input", "入力テキスト", "この例の文は 6 語。語数はいくつでもよく、以降の形の「6」がその数に変わるだけ。まだ数にはなっていない。", "6 語の文（この例）"], ["embed", "Input Embedding", "各語を、意味と位置を表す768個の数に変える。中身は次の節「Embedding」で追う。", "6 × 768"], ["attn", "Masked Multi-Head Self-Attention", "各語が他のどの語を参照するかを自分で決め、情報を混ぜ合わせる。自分より後ろの語は見えない（Masked）。12組を並列に走らせる（12ヘッド、1組64次元）。中身は「この中身を見る →」のリンクで開ける。", "6 × 768"], ["add1", "Add & Norm", "Attention の出力を、その手前の値に足し戻す（残差）。そのあと各語のベクトルの目盛りを揃える（層正規化）。捨てて作り直すのではなく、足し込む。", "6 × 768"], ["mlp", "MLP（Feed Forward）", "語ごとに独立して、いったん3072次元へ広げ、また768次元へ戻す。Attention で集めた情報を、ここで捏ねる。", "6 × 768"], ["add2", "Add & Norm", "MLP の出力を、その手前の値に足し戻し、また目盛りを揃える。", "6 × 768"], ["out", "出力（次の1語の確率）", "最後の語の768次元を、語彙50,257個ぶんの点数（logit）に変換し、softmax で確率にする。いちばん確からしい語が次の1語。中身は節「出力」で見る。", "50,257 語の確率"]];
   var $=function(s){return document.querySelector(s)};
   var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
@@ -448,110 +448,164 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
     $('#rdata').innerHTML=h;
   }
   function stepIdx(k){ for(var i=0;i<STEPS1.length;i++) if(STEPS1[i][0]===k) return i; return -1; }
-  function mkBox(key,x,y,w,h,lines,onSel,fs){
-    var g='<g style="cursor:pointer" onclick="__selStep1(&#39;'+key+'&#39;)">';
-    g+='<rect class="bx'+(onSel?' on':'')+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="8"/>';
-    lines.forEach(function(t,i){
-      var ly = lines.length===1 ? (y+h/2+4) : (y+h/2+(i===0?-2:16));
-      g+='<text class="lbl'+(onSel?' on':'')+'" x="'+(x+w/2)+'" y="'+ly+'" style="font-size:'+
-         (fs||12.5)+'px">'+esc(t)+'</text>';
-    });
-    g+='</g>';
-    return g;
+  function reachedIdx(k){ return stepIdx(k)<=cur; }
+  function tclip(t,n){ t=t.trim(); return t.length>n? t.slice(0,n-1)+'…' : t; }
+  function drawBig(){
+    var W=380, g='', dimC='#d8d4cb', ink='#1a1a1a', arc='#6E7BA8', mut='#9A9488';
+    function on(k){ return reachedIdx(k); }
+    function selMark(k,x,y,w,h){
+      if(sel(k)) g+='<rect x="'+(x-3)+'" y="'+(y-3)+'" width="'+(w+6)+'" height="'+(h+6)+
+        '" rx="7" fill="none" stroke="#C9A227" stroke-width="2"/>';
+    }
+    function hit(k,x,y,w,h){
+      g+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+
+        '" fill="transparent" style="cursor:pointer" onclick="__selStep1(&#39;'+k+'&#39;)"/>';
+    }
+    function vArr(x,y1,y2,onn){
+      g+='<line x1="'+x+'" y1="'+y1+'" x2="'+x+'" y2="'+(y2-4)+'" stroke="'+(onn?arc:dimC)+
+         '" stroke-width="'+(onn?2:1.2)+'"/>'+
+         '<path d="M'+(x-3.5)+' '+(y2-8)+' L'+x+' '+(y2-1)+' L'+(x+3.5)+' '+(y2-8)+' Z" fill="'+(onn?arc:dimC)+'"/>';
+    }
+
+    /* ── 段1: 入力文をトークンに割る ── */
+    var o1=on('input');
+    g+='<text x="10" y="14" style="font:600 10px sans-serif" fill="'+(o1?'#565248':dimC)+'">① 入力の文を、トークンに割る</text>';
+    g+='<text x="10" y="30" style="font:11px ui-monospace,Consolas,monospace" fill="'+(o1?ink:dimC)+'">"'+esc(D.prompt)+'"</text>';
+    var tw=(W-20-5*3)/N;
+    for(var i=0;i<N;i++){
+      var tx0=10+i*(tw+3);
+      g+='<rect x="'+tx0+'" y="40" width="'+tw+'" height="18" rx="4" fill="'+(o1?'rgba(110,123,168,0.14)':'#F4F2EC')+
+         '" stroke="'+(o1?arc:dimC)+'" stroke-width="1"/>';
+      g+='<text x="'+(tx0+tw/2)+'" y="52" text-anchor="middle" style="font:600 8px sans-serif" fill="'+
+         (o1?ink:dimC)+'">'+esc(tclip(D.tokens[i],7))+'</text>';
+    }
+    selMark('input',10,6,W-20,54); hit('input',10,6,W-20,54);
+    vArr(190,62,74,on('embed'));
+
+    /* ── 段2: Embedding。各トークンが 768 個の数の帯になる ── */
+    var o2=on('embed');
+    g+='<text x="10" y="84" style="font:600 10px sans-serif" fill="'+(o2?'#565248':dimC)+'">② Embedding ―― 1 トークン → '+DIM+' 個の数</text>';
+    for(var i=0;i<N;i++){
+      var ey=92+i*13;
+      g+='<text x="64" y="'+(ey+8)+'" text-anchor="end" style="font:8px sans-serif" fill="'+(o2?'#565248':dimC)+'">'+esc(tclip(D.tokens[i],8))+'</text>';
+      for(var c2=0;c2<24;c2++){
+        var op=o2? (0.18+0.5*Math.abs(Math.sin((i*7+c2)*1.7))) : 0.12;
+        g+='<rect x="'+(70+c2*11)+'" y="'+ey+'" width="10" height="9" fill="rgba(110,123,168,'+op.toFixed(2)+')"/>';
+      }
+    }
+    g+='<text x="334" y="'+(92+2*13+8)+'" style="font:8.5px sans-serif" fill="'+(o2?mut:dimC)+'">…'+DIM+'</text>';
+    g+='<text x="70" y="'+(92+6*13+10)+'" style="font:8.5px sans-serif" fill="'+(o2?mut:dimC)+'">帯は形のイメージ（'+N+' × '+DIM+'）。分割は実測、帯の中身の実数値は含まれない</text>';
+    selMark('embed',10,72,W-20,114); hit('embed',10,72,W-20,114);
+    vArr(190,190,202,on('attn'));
+
+    /* ── ×12 の囲み（attention 〜 add2）── */
+    var blockTop=206, blockBottom=646;
+    g+='<rect x="4" y="'+(blockTop+7)+'" width="'+(W-8)+'" height="'+(blockBottom-blockTop)+
+       '" rx="12" fill="none" stroke="'+arc+'" stroke-width="1" opacity="0.35" transform="translate(4,0)"/>';
+    g+='<rect x="4" y="'+blockTop+'" width="'+(W-8)+'" height="'+(blockBottom-blockTop)+
+       '" rx="12" fill="none" stroke="'+arc+'" stroke-width="1.4"/>';
+    g+='<text x="'+(W-12)+'" y="'+(blockTop+14)+'" text-anchor="end" style="font:700 10px sans-serif" fill="'+arc+'">× 12</text>';
+
+    /* ── 段3: Self-Attention を行列で ── */
+    var o3=on('attn');
+    var my0=262, cs=27, mx0=104;
+    g+='<text x="12" y="'+(blockTop+16)+'" style="font:600 10px sans-serif" fill="'+(o3?'#565248':dimC)+'">③ Self-Attention ―― Q と K で行列を作り、V を混ぜる</text>';
+    // 列ラベル（K 側）
+    g+='<text x="'+(mx0+cs*N/2)+'" y="'+(my0-24)+'" text-anchor="middle" style="font:700 9px sans-serif" fill="'+(o3?'#3f8062':dimC)+'">K（照らされる側）</text>';
+    for(var j=0;j<N;j++){
+      g+='<text x="'+(mx0+j*cs+cs/2)+'" y="'+(my0-11)+'" text-anchor="middle" style="font:7px sans-serif" fill="'+(o3?'#565248':dimC)+'" transform="rotate(-38 '+(mx0+j*cs+cs/2)+' '+(my0-11)+')">'+esc(tclip(D.tokens[j],6))+'</text>';
+    }
+    // 行ラベル（Q 側）
+    g+='<text x="22" y="'+(my0+cs*N/2)+'" text-anchor="middle" style="font:700 9px sans-serif" fill="'+(o3?arc:dimC)+'" transform="rotate(-90 22 '+(my0+cs*N/2)+')">Q（照らす側）</text>';
+    for(var qi=0;qi<N;qi++){
+      g+='<text x="'+(mx0-6)+'" y="'+(my0+qi*cs+cs/2+3)+'" text-anchor="end" style="font:7.5px sans-serif" fill="'+(o3?'#565248':dimC)+'">'+esc(tclip(D.tokens[qi],6))+'</text>';
+      for(var kj=0;kj<N;kj++){
+        var x2=mx0+kj*cs, y2=my0+qi*cs;
+        if(kj>qi){   // マスク: 未来は見ない
+          g+='<rect x="'+x2+'" y="'+y2+'" width="'+(cs-2)+'" height="'+(cs-2)+'" fill="#F4F2EC"/>'+
+             '<line x1="'+(x2+4)+'" y1="'+(y2+cs-6)+'" x2="'+(x2+cs-6)+'" y2="'+(y2+4)+'" stroke="#d8d4cb" stroke-width="1"/>';
+          continue;
+        }
+        var v=D.attnAll[qi][kj];
+        g+='<rect x="'+x2+'" y="'+y2+'" width="'+(cs-2)+'" height="'+(cs-2)+'" fill="rgba(110,123,168,'+
+           (o3?(0.06+0.8*v).toFixed(3):'0.05')+'"/>';
+        g+='<text x="'+(x2+(cs-2)/2)+'" y="'+(y2+cs/2+2.5)+'" text-anchor="middle" style="font:7px sans-serif" fill="'+
+           (o3? (v>0.45?'#fff':'#3d465e') : dimC)+'">'+Math.round(v*100)+'</text>';
+      }
+    }
+    g+='<text x="'+mx0+'" y="'+(my0+N*cs+12)+'" style="font:8.5px sans-serif" fill="'+(o3?mut:dimC)+'">数字＝実測の注意の重み（%）</text>';
+    // V
+    var vx=mx0+N*cs+10;
+    g+='<text x="'+(vx+14)+'" y="'+(my0-11)+'" text-anchor="middle" style="font:700 9px sans-serif" fill="'+(o3?'#8a6b4f':dimC)+'">V</text>';
+    for(var qi2=0;qi2<N;qi2++){
+      g+='<rect x="'+vx+'" y="'+(my0+qi2*cs)+'" width="28" height="'+(cs-2)+'" rx="2" fill="rgba(180,140,80,'+(o3?'0.35':'0.10')+'")/>';
+    }
+    g+='<text x="'+(vx+14)+'" y="'+(my0+N*cs+10)+'" text-anchor="middle" style="font:7.5px sans-serif" fill="'+(o3?mut:dimC)+'">加重和</text>';
+    g+='<text x="'+mx0+'" y="'+(my0+N*cs+25)+'" style="font:8.5px sans-serif" fill="'+(o3?mut:dimC)+'">ブロック1・12ヘッド平均。斜線＝マスク（未来の語は見ない）</text>';
+    g+='<a href="figures_attention.html"><text x="'+mx0+'" y="'+(my0+N*cs+41)+'" style="font:700 9px sans-serif;text-decoration:underline" fill="#3f6178">Q・K・V の計算を開く →</text></a>';
+    selMark('attn',8,blockTop+22,W-16,N*cs+96); hit('attn',8,blockTop+22,W-16,N*cs+96);
+
+    /* ── 段4: ⊕ 残差 ── */
+    var ay=my0+N*cs+56;
+    vArr(190,ay-6,ay+6,on('add1'));
+    g+='<circle cx="190" cy="'+(ay+14)+'" r="8" fill="#fff" stroke="'+(on('add1')?arc:dimC)+'" stroke-width="1.8"/>'+
+       '<path d="M186 '+(ay+14)+' h8 M190 '+(ay+10)+' v8" stroke="'+(on('add1')?arc:dimC)+'" stroke-width="1.5"/>';
+    g+='<text x="204" y="'+(ay+18)+'" style="font:700 9px sans-serif" fill="'+(on('add1')?arc:dimC)+'">Add &amp; Norm（元の値に足し戻す）</text>';
+    hit('add1',150,ay,220,26);
+
+    /* ── 段5: MLP をいつもの NN の絵で ── */
+    var o5=on('mlp'), ny0=ay+38;
+    g+='<text x="12" y="'+ny0+'" style="font:600 10px sans-serif" fill="'+(o5?'#565248':dimC)+'">④ MLP ―― いつものニューラルネット（語ごとに独立）</text>';
+    var LX=[120,190,260], NC=[4,6,4], nyc=ny0+46;
+    for(var c3=0;c3<2;c3++){
+      for(var p1=0;p1<NC[c3];p1++) for(var p2=0;p2<NC[c3+1];p2++){
+        var yA=nyc+( p1-(NC[c3]-1)/2 )*16, yB=nyc+( p2-(NC[c3+1]-1)/2 )*16;
+        g+='<line x1="'+(LX[c3]+5)+'" y1="'+yA+'" x2="'+(LX[c3+1]-5)+'" y2="'+yB+'" stroke="'+
+           (o5?'rgba(110,123,168,0.5)':'#EDEBE4')+'" stroke-width="0.7"/>';
+      }
+    }
+    for(var c4=0;c4<3;c4++) for(var p3=0;p3<NC[c4];p3++){
+      g+='<circle cx="'+LX[c4]+'" cy="'+(nyc+(p3-(NC[c4]-1)/2)*16)+'" r="4.5" fill="#fff" stroke="'+
+         (o5?ink:dimC)+'" stroke-width="1.2"/>';
+    }
+    g+='<text x="120" y="'+(nyc+52)+'" text-anchor="middle" style="font:8.5px sans-serif" fill="'+(o5?mut:dimC)+'">'+DIM+'</text>';
+    g+='<text x="190" y="'+(nyc+52)+'" text-anchor="middle" style="font:8.5px sans-serif" fill="'+(o5?mut:dimC)+'">'+FFN+'</text>';
+    g+='<text x="260" y="'+(nyc+52)+'" text-anchor="middle" style="font:8.5px sans-serif" fill="'+(o5?mut:dimC)+'">'+DIM+'</text>';
+    selMark('mlp',100,ny0+6,180,96); hit('mlp',100,ny0+6,180,96);
+
+    /* ── 段6: ⊕ 残差 2 ── */
+    var a2y=nyc+62;
+    vArr(190,a2y,a2y+8,on('add2'));
+    g+='<circle cx="190" cy="'+(a2y+16)+'" r="8" fill="#fff" stroke="'+(on('add2')?arc:dimC)+'" stroke-width="1.8"/>'+
+       '<path d="M186 '+(a2y+16)+' h8 M190 '+(a2y+12)+' v8" stroke="'+(on('add2')?arc:dimC)+'" stroke-width="1.5"/>';
+    g+='<text x="204" y="'+(a2y+20)+'" style="font:700 9px sans-serif" fill="'+(on('add2')?arc:dimC)+'">Add &amp; Norm</text>';
+    hit('add2',150,a2y+2,220,26);
+
+    /* ── 段7: 出力（実測確率）── */
+    var o7=on('out'), oy0=blockBottom+18;
+    vArr(190,blockBottom,oy0-4,o7);
+    g+='<text x="12" y="'+(oy0+10)+'" style="font:600 10px sans-serif" fill="'+(o7?'#565248':dimC)+'">⑤ 出力 ―― 次の 1 語の確率（実測 logit から計算）</text>';
+    var mxL=-1e9; D.candidates.forEach(function(c){ mxL=Math.max(mxL,c.logit); });
+    var exps=D.candidates.map(function(c){ return Math.exp(c.logit-mxL); });
+    var tot=0; exps.forEach(function(e){ tot+=e; });
+    for(var ci=0;ci<5;ci++){
+      var pv=exps[ci]/tot, by=oy0+20+ci*17;
+      g+='<text x="96" y="'+(by+9)+'" text-anchor="end" style="font:600 9px sans-serif" fill="'+(o7?ink:dimC)+'">'+esc(D.candidates[ci].token)+'</text>';
+      g+='<rect x="102" y="'+by+'" width="180" height="11" rx="2" fill="#F4F2EC"/>';
+      g+='<rect x="102" y="'+by+'" width="'+(180*pv/(exps[0]/tot)).toFixed(1)+'" height="11" rx="2" fill="'+(o7?(ci===0?arc:'rgba(110,123,168,0.45)'):dimC)+'"/>';
+      g+='<text x="288" y="'+(by+9)+'" style="font:9px sans-serif;font-variant-numeric:tabular-nums" fill="'+(o7?ink:dimC)+'">'+(pv*100).toFixed(1)+'%</text>';
+    }
+    g+='<text x="12" y="'+(oy0+20+5*17+12)+'" style="font:8.5px sans-serif" fill="'+(o7?mut:dimC)+'">上位 12 語内の比率。1 位の「'+esc(D.candidates[0].token.trim())+'」が次の語になる</text>';
+    selMark('out',8,oy0-2,W-16,5*17+40); hit('out',8,oy0-2,W-16,5*17+40);
+
+    var H=oy0+20+5*17+24;
+    return {svg:svg(W,H,g)};
   }
-  function mkArrow(xC,y1,y2,onSel){
-    var g='<path class="flow'+(onSel?' on':'')+'" d="M'+xC+' '+y1+' L'+xC+' '+y2+'"/>';
-    g+='<path class="flow'+(onSel?' on':'')+'" d="M'+(xC-5)+' '+(y2-8)+' L'+xC+' '+y2+
-       ' L'+(xC+5)+' '+(y2-8)+'"/>';
-    return g;
-  }
-  function mkAddNorm(key,xC,y,onSel){
-    var g='<g style="cursor:pointer" onclick="__selStep1(&#39;'+key+'&#39;)">';
-    g+='<circle cx="'+xC+'" cy="'+y+'" r="8" fill="#fff" stroke="#6E7BA8" stroke-width="1.8"/>';
-    g+='<path d="M'+(xC-4)+' '+y+' h8 M'+xC+' '+(y-4)+' v8" stroke="#6E7BA8" stroke-width="1.5"/>';
-    g+='<text class="addn'+(onSel?' on':'')+'" x="'+(xC+16)+'" y="'+(y+4)+'">Add &amp; Norm</text>';
-    g+='</g>';
-    return g;
-  }
-  /* 残差＝その部品を迂回して、出た先の ⊕ に足し戻す配線。
-     ※ 3 つ直した:
-       (1) 終端を横から水平に差すと ⊕ の丸に重なって「どこへ入ったか」が読めない
-           （読者指摘）→ ⊕ の**真上から垂直に**入れる。
-       (2) 迂回線を箱の辺と同じ高さで折り返すと辺に潜る → 箱の**外側**を上下に通す。
-       (3) 起点を箱の上辺と同じ高さに置くと、横へ伸ばす区間が箱に覆われて起点が消え、
-           線が途中から生えて見える → 起点は箱の**手前の矢印の途中**にとり、
-           そこに小さな分岐点を打つ。 */
-  /* 残差＝その部品を迂回して ⊕ に足し戻す配線。
-     ※ 読者の指摘で 3 つ直した:
-       (1) 点線だと「補足」に見える。フローの一部なので**実線**にする
-       (2) 上下 2 本の迂回線で縦の位置が違い、揃っていなかった → 同じ x に固定
-       (3) ⊕ の真上から入れると本流と重なる → **⊕ の左側へ水平に**入れる */
-  function residual(xC,yFrom,yTo,x){
-    var r=13;                           // ⊕ の半径ぶん手前で止める
-    return '<circle cx="'+xC+'" cy="'+yFrom+'" r="2.8" fill="#6E7BA8"/>'+
-           '<path class="res" d="M'+xC+' '+yFrom+' L'+x+' '+yFrom+' L'+x+' '+yTo+
-           ' L'+(xC-r-10)+' '+yTo+'"/>'+
-           '<path d="M'+(xC-r-15)+' '+(yTo-4.5)+' L'+(xC-r-8)+' '+yTo+
-           ' L'+(xC-r-15)+' '+(yTo+4.5)+'" fill="none" stroke="#6E7BA8" stroke-width="1.8"/>';
-  }
+
   function draw1(){
-    var W=380, BW=230, BX=76, xC=BX+BW/2;    // スマホ幅。左は残差の迂回線ぶんの余白
-    var RX=BX-34;                            // 迂回線の縦位置。上下で同じにする
-    var yInput=20, hBox=42;
-    var yEmbed=88;
-    var yAttn=176, hAttn=58;
-    var yAdd1=yAttn+hAttn+23;
-    var yMlp=yAdd1+35, hMlp=42;        // ⊕ と MLP の間は残差の分岐点が入るぶん空ける
-    var yAdd2=yMlp+hMlp+23;
-    var blockTop=yAttn-26, blockBottom=yAdd2+30;   // 上辺と箱の間も同じ理由で空ける
-    var yOut=blockBottom+40, hOut=52;
-    var H=yOut+hOut+30;
-    var g='';
+    var R=drawBig();
+    $('#v1').innerHTML=R.svg;
 
-    /* 12回くり返すことを「重なったカード」で示す */
-    [[9,9],[5,5]].forEach(function(off){
-      g+='<rect class="bx ghost" x="'+(BX-16+off[0])+'" y="'+(blockTop+off[1])+
-         '" width="'+(BW+32)+'" height="'+(blockBottom-blockTop)+'" rx="14"/>';
-    });
-    g+='<rect class="bx blk" x="'+(BX-16)+'" y="'+blockTop+'" width="'+(BW+32)+
-       '" height="'+(blockBottom-blockTop)+'" rx="14"/>';
-
-    g+=mkBox('input',BX,yInput,BW,hBox,['入力テキスト'],sel('input'));
-    g+=mkArrow(xC,yInput+hBox,yEmbed,sel('input')||sel('embed'));
-    g+=mkBox('embed',BX,yEmbed,BW,hBox,['Input Embedding'],sel('embed'));
-    g+=mkArrow(xC,yEmbed+hBox,yAttn,sel('embed')||sel('attn'));
-
-    g+=mkBox('attn',BX,yAttn,BW,hAttn,['Masked Multi-Head Self-Attention'],sel('attn'),10.3);
-    g+='<a href="figures_attention.html"><text class="lbl2" x="'+xC+'" y="'+(yAttn+hAttn-8)+
-       '">この中身を見る →</text></a>';
-    g+=mkArrow(xC,yAttn+hAttn,yAdd1-8,sel('attn')||sel('add1'));
-    g+=residual(xC,yAttn-13,yAdd1,RX);
-    g+=mkAddNorm('add1',xC,yAdd1,sel('add1'));
-    g+=mkArrow(xC,yAdd1+8,yMlp,sel('add1')||sel('mlp'));
-
-    g+=mkBox('mlp',BX,yMlp,BW,hMlp,['MLP（Feed Forward）'],sel('mlp'));
-    g+=mkArrow(xC,yMlp+hMlp,yAdd2-8,sel('mlp')||sel('add2'));
-    g+=residual(xC,yMlp-13,yAdd2,RX);
-    g+=mkAddNorm('add2',xC,yAdd2,sel('add2'));
-    g+=mkArrow(xC,yAdd2+8,yOut,sel('add2')||sel('out'));
-
-    g+=mkBox('out',BX,yOut,BW,hOut,['出力（次の1語の確率）','Linear & Softmax'],sel('out'),11.5);
-
-    var shapeY={input:yInput,embed:yEmbed,attn:yAttn,mlp:yMlp,out:yOut};
-    var shapeH={input:hBox,embed:hBox,attn:hAttn,mlp:hMlp,out:hOut};
-    ['input','embed','attn','mlp','out'].forEach(function(k){
-      var st=STEPS1[stepIdx(k)];
-      g+='<text class="shape" x="'+(BX+BW+34)+'" y="'+(shapeY[k]+shapeH[k]/2+4)+
-         '" style="text-anchor:start">'+esc(st[3])+'</text>';
-    });
-
-    var tagX=BX+BW+150, tagY=blockTop+(blockBottom-blockTop)/2;
-    g+='<text class="lbl" x="'+tagX+'" y="'+(tagY-4)+
-       '" style="text-anchor:start;font-size:16px">× 12</text>';
-    g+='<a href="#sec3"><text class="lbl2" x="'+tagX+'" y="'+(tagY+16)+
-       '" style="text-anchor:start">なぜ12回か →</text></a>';
-
-    $('#v1').innerHTML=svg(W,H,g);
     var st=STEPS1[cur];
     $('#r1').innerHTML='<b>'+esc(st[1])+'</b>（'+esc(st[3])+'）：'+st[2];
     $('#s1now').textContent=(cur+1)+' / '+STEPS1.length+'　'+st[1];
