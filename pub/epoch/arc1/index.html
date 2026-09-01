@@ -507,7 +507,7 @@ $('export').onclick = () => {
 // → 長すぎる場合はクリップボードに本文をコピー + 空の Issue 作成ページを開く運用に切替。
 async function submitAsIssue(md, title, label) {
   const titleEnc = encodeURIComponent(title);
-  const baseUrl = `https://github.com/yhdk0307-ai/life/issues/new?title=${titleEnc}&labels=${label}`;
+  const baseUrl = `about:blank?title=${titleEnc}&labels=${label}`;
   const fullUrl = `${baseUrl}&body=${encodeURIComponent(md)}`;
   // GitHub の URL 制限は ~8200。マージンを取って 7500 (URL 全体長) で判定。
   if (fullUrl.length <= 7500) {
