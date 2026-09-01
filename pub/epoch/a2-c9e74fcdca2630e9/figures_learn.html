@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -327,6 +329,26 @@ $F_1=\dfrac{2\cdot\text{適合率}\cdot\text{再現率}}{\text{適合率}+\text{
   function loss(x){ return 0.9*Math.pow(x-0.55,2)+0.06*Math.sin(x*11)+0.05; }
   function grad(x){ return 1.8*(x-0.55)+0.66*Math.cos(x*11); }
   var pos=0.06, trail=[]; // trail = 直近の位置の残像（静止画でも「跳ね回り」を読めるように）
+  // 坂のいちばん低い所。さざ波があるので解析では出さず走査で決める
+  var BOTTOM=(function(){var b=0.02,bv=1e9,t;
+    for(t=0.02;t<=0.98;t+=0.002){var v=loss(t); if(v<bv){bv=v;b=t;}} return b;})();
+  /* ※ 「誤差が減った＝着実に底へ」と決め打ちしないこと。学習率 0.01 では
+     減ってはいても歩幅が小さすぎて進まず、1.00 では底を通り越しながら
+     たまたま下がる歩もある。どちらも「着実に底へ」と出て主張と食い違っていた。 */
+  var lastUp=null;               // 直前の 1 歩で誤差が増えたか（往復の検出に使う）
+  function verdict(p0,pv,live){
+    var up=pv.after>pv.before;
+    if(live) { var prevUp=lastUp; lastUp=up;
+      /* 上って下りて…を繰り返しているなら、下りの歩も「着実」ではない */
+      if(!up && prevUp===true) return '谷を挟んで行ったり来たりしている ―― 歩幅が大きすぎる。'; }
+    if(up) return '谷を飛び越えて跳ね回っている。';
+    if((p0-BOTTOM)*(pv.next-BOTTOM)<0) return 'ただし底を通り越して反対側へ出た ―― 歩幅が大きすぎる。';
+    var moved=Math.abs(pv.next-p0), left=Math.abs(p0-BOTTOM);
+    if(moved>0 && moved<left/60)
+      return 'ただし歩幅が小さすぎて、ほとんど進んでいない（このままだと底まで約 '
+        +Math.round(left/moved)+' 歩）。';
+    return '着実に底へ向かっている。';
+  }
   function previewStep(lr){
     var next=Math.max(0.02,Math.min(0.98, pos-lr*grad(pos)));   // 減衰なし。lr が大きいと本当に飛び越える
     return {next:next, before:loss(pos), after:loss(next)};
@@ -349,7 +371,7 @@ $F_1=\dfrac{2\cdot\text{適合率}\cdot\text{再現率}}{\text{適合率}+\text{
     if(msgOverride){ $('#r1').innerHTML='学習率 '+lr.toFixed(2)+' — '+msgOverride; return; }
     var pv=previewStep(lr), up=pv.after>pv.before;
     var msg = 'いま「1 歩すすむ」を押すと、この学習率では誤差が <b>'+pv.before.toFixed(3)+' → '+pv.after.toFixed(3)+
-      (up ? ' と増える</b>見込み。谷を飛び越えて跳ね回っている。' : ' と減る</b>見込み。着実に底へ向かっている。');
+      (up ? ' と増える</b>見込み。' : ' と減る</b>見込み。')+verdict(pos,pv,false);
     $('#r1').innerHTML='学習率 '+lr.toFixed(2)+' — '+msg+'　いまの誤差 <b>'+loss(pos).toFixed(3)+'</b>';
   }
   $('#lr').oninput=function(){ s1(); };
@@ -357,11 +379,12 @@ $F_1=\dfrac{2\cdot\text{適合率}\cdot\text{再現率}}{\text{適合率}+\text{
     var lr=+$('#lr').value/100, pv=previewStep(lr), up=pv.after>pv.before;
     trail.push(pos); if(trail.length>6) trail.shift();
     pos=pv.next;
+    var p0=pos;
     var msg = 'この 1 歩で誤差は <b>'+pv.before.toFixed(3)+' → '+pv.after.toFixed(3)+'</b> と'+(up?'増えた':'減った')+'。'+
-      (up ? '谷を飛び越えて跳ね回っている。' : '着実に底へ向かっている。');
+      verdict(p0,pv,true);
     s1(msg);
   };
-  $('#reset').onclick=function(){ pos=0.06; trail=[]; s1(); };
+  $('#reset').onclick=function(){ pos=0.06; trail=[]; lastUp=null; s1(); };
 
   // ② 過学習と未学習
   function s2(){

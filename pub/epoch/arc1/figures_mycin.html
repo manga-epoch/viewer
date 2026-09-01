@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#5B7C99;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -347,15 +349,19 @@ RULE037 以外は説明のために構成したもの。実物の 450〜600 本�
     var pts=[],i,j,r=function(){return (Math.random()-0.5)*0.20;};
     // AND: 両方 1 のときだけ 1。XOR と同じ四隅を使うので、直線 1 本で
     // 分けられる／分けられないの対比がそのまま出る。
-    var spec = (kind==='xor')
-      ? [[0,0,0],[0,1,1],[1,0,1],[1,1,0]]
-      : [[0,0,0],[0,1,0],[1,0,0],[1,1,1]];
+    // ※ OR を必ず持つこと。無かったころは「OR を教える」で AND でも XOR でもなく
+    //   **XOR のラベル**で描かれ、(1,1) が「0 と答えてほしい」白丸のまま青領域に残り、
+    //   読み上げの「4 通りとも正解」と図が正面から矛盾していた。
+    var spec = (kind==='xor') ? [[0,0,0],[0,1,1],[1,0,1],[1,1,0]]
+             : (kind==='or')  ? [[0,0,0],[0,1,1],[1,0,1],[1,1,1]]
+             :                  [[0,0,0],[0,1,0],[1,0,0],[1,1,1]];
     for(i=0;i<spec.length;i++) for(j=0;j<9;j++)
       pts.push({x:Math.min(1,Math.max(0,spec[i][0]+r())),
                 y:Math.min(1,Math.max(0,spec[i][1]+r())),l:spec[i][2]});
     return pts;
   }
-  var DS={easy:mk('easy'), xor:mk('xor')}, curDs='easy';
+  var DS={easy:mk('easy'), or:mk('or'), xor:mk('xor')}, curDs='easy';
+  DS.and=DS.easy;                 // 'easy' は AND そのもの。論理名でも引けるようにする
   function plot(svg,pts,decide,pad){
     pad=pad||26; svg.innerHTML='';
     var S=300, W=S-pad*2;
@@ -409,6 +415,12 @@ RULE037 以外は説明のために構成したもの。実物の 450〜600 本�
   function renderNet(svg,gg,o){
     svg.innerHTML='';
     var i,j,k,n=gg.shape.length;
+    // 光彩（いま直した値を囲う）。辺のラベルとノードの添え字の両方から使う。
+    var _halo=function(x,y,size,txt){
+      svg.appendChild(el('text',{x:x,y:y,'font-size':size,'text-anchor':'middle',
+        fill:'none',stroke:'#F6D9A8','stroke-width':5,'stroke-linejoin':'round',
+        style:'paint-order:stroke;pointer-events:none'},txt));
+    };
     for(i=0;i<n-1;i++){
       var st=o.edgeState?o.edgeState(i):2;
       for(j=0;j<gg.shape[i];j++) for(k=0;k<gg.shape[i+1];k++){
@@ -442,11 +454,7 @@ RULE037 以外は説明のために構成したもの。実物の 450〜600 本�
         // いまダイヤルで触っている重みは、名前も数値も光彩で囲って目立たせる
         // （どこが変わっているのか分からない、という読者の指摘）。
         var lit=o.hl?o.hl(i,j,k):false;
-        var halo=function(x,y,size,txt){
-          svg.appendChild(el('text',{x:x,y:y,'font-size':size,'text-anchor':'middle',
-            fill:'none',stroke:'#F6D9A8','stroke-width':5,'stroke-linejoin':'round',
-            style:'paint-order:stroke;pointer-events:none'},txt));
-        };
+        var halo=_halo;
         if(two){
           if(lit) halo(px.toFixed(1),(py-fs*0.52).toFixed(1),(fs*0.86).toFixed(1),nmS);
           svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
@@ -474,8 +482,31 @@ RULE037 以外は説明のために構成したもの。実物の 450〜600 本�
         'font-size':o.nfs||14.5,'text-anchor':'middle',fill:INK,
         opacity:(lit?1:0.25).toFixed(2)},tv));
       var sb=o.nodeSub?o.nodeSub(i,j):null;
-      if(sb) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy+gg.r+15).toFixed(1),'font-size':11.5,
-        'text-anchor':'middle',fill:o.subInk||MUTED,opacity:(lit?1:0.3).toFixed(2)},sb));
+      // ※ nodeSub（下駄 w₀ など）にも光彩の口を持たせる。無かったころは
+      //   「直した重みは図の中で光る」と書きながら、w₀ だけを直した回（実際に起きる）で
+      //   図の中の何も光らなかった。
+      var sbLit=sb!=null && o.subHl ? o.subHl(i,j) : false;
+      if(sb){
+        var sy=(cy+gg.r+15).toFixed(1);
+        var st=el('text',{x:cx.toFixed(1),y:sy,'font-size':11.5,
+          'text-anchor':'middle',fill:sbLit?INK:(o.subInk||MUTED),
+          'font-weight':sbLit?'700':'400',opacity:(lit?1:0.3).toFixed(2)},sb);
+        svg.appendChild(st);
+        // ※ 出力ノードは枠の右寄りにあるので、長い添え字を中央寄せで置くと枠からはみ出て
+        //    端が切れる（neuron で「合計が 2 以上なら 1」が 6px、閾値の説明が 56px 切れていた）。
+        //    入れてから実測して、はみ出した分だけ内側へ寄せる。
+        var vb=svg.viewBox && svg.viewBox.baseVal, sx=cx;
+        if(vb && vb.width){ try{ var bb=st.getBBox(), dx=0;
+          if(bb.x+bb.width > vb.x+vb.width-2) dx=(vb.x+vb.width-2)-(bb.x+bb.width);
+          if(bb.x+dx < vb.x+2) dx=(vb.x+2)-bb.x;
+          if(dx){ sx=cx+dx; st.setAttribute('x',sx.toFixed(1)); }
+        }catch(e){} }
+        // 光彩は文字の**後ろ**に置きたいので、位置が決まってから前に差し込む
+        if(sbLit){ var hl=el('text',{x:sx.toFixed(1),y:sy,'font-size':11.5,'text-anchor':'middle',
+          fill:'none',stroke:'#F6D9A8','stroke-width':5,'stroke-linejoin':'round',
+          style:'paint-order:stroke;pointer-events:none'},sb);
+          svg.insertBefore(hl, st); }
+      }
     }
     if(o.deco) o.deco(svg);
   }

@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -309,7 +311,7 @@ $\displaystyle y_{ij} = \sum_{u=0}^{2}\sum_{v=0}^{2} w_{uv}\, x_{i+u,\,j+v}$
 <div class="fig-stage" id="sec2">
 <h2>プーリング — 窓ごとの代表値で縮める</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">プーリングの目的は<strong>要約</strong>: 2×2 の窓ごとに最大値だけを残して面積を 1/4 にする。細部は捨てるが「どこに何があるか」の配置は残る ―― 右下の縮図でまだ絵が分かることがその証拠。<strong>有無の違いは「ずらす」で見る</strong>: 左＝プーリング無しの世界（特徴マップのまま）、右下＝有りの世界。絵を右へ 1 マスずらすと、値が変わったセルに<strong>琥珀の枠</strong>が付く。琥珀の数も、変化の量（下の %）も、縮図側の方が小さい ―― これがプーリングの効果。実物の CNN の並びどおり、負の反応を 0 にする ReLU を通してから縮めている。</div>
+<div class="lead">プーリングの目的は<strong>要約</strong>: 2×2 の窓ごとに最大値だけを残して面積を 1/4 にする。細部は捨てるが「どこに何があるか」の配置は残る ―― 縮めた側でまだ絵が分かることがその証拠。<strong>有無の違いは「ずらす」で見る</strong>: 片方はプーリング無しの世界（特徴マップのまま）、もう片方が有りの世界。絵を右へ 1 マスずらすと、値が変わったセルに<strong>琥珀の枠</strong>が付く。琥珀の数も、変化の量（下の %）も、縮図側の方が小さい ―― これがプーリングの効果。実物の CNN の並びどおり、負の反応を 0 にする ReLU を通してから縮めている。</div>
 </details>
 
 <div class="ctrls">
@@ -461,7 +463,7 @@ $\displaystyle p_{ij}=\max_{(u,v)\in 2\times 2} x_{2i+u,\,2j+v}$
         fill:gray(v/9), stroke:"#EDEAE2","stroke-width":0.5});
       rect.style.cursor="pointer";
       (function(rr,cc){rect.addEventListener("click",function(){
-        img[rr][cc]=(img[rr][cc]+3)%12; drawAll();});})(r,c);
+        img[rr][cc]=(img[rr][cc]+3>9)?0:img[rr][cc]+3; drawAll();});})(r,c);
       s.appendChild(rect);
       var t=el("text",{x:c*cell+cell/2+0.5,y:r*cell+cell/2+3,"text-anchor":"middle",
         "font-size":6.5,fill:v>=6?"#fff":"#8a857b"});

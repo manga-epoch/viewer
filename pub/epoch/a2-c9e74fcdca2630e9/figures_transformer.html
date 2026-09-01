@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -363,6 +365,7 @@ $\mathrm{LN}$ は層正規化（各語のベクトルの目盛りを揃える）
 <div class="note" style="margin-top:8px">$T$ が<b>温度</b>。$T<1$ で分布が尖り（堅実）、
 $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそのまま使った状態。</div>
 </div>
+</details>
 <div class="ctrls">
   <label>温度 T <input type="range" id="temp" min="0.1" max="2.0" step="0.1" value="1.0"></label>
   <span class="tag" id="tempv">T = 1.0</span>
@@ -370,17 +373,18 @@ $T>1$ で平らになる（多様）。$T=1$ はモデルが出した値をそ�
   <button class="btn ghost" id="tPre1">T=1.0（素のまま）</button>
   <button class="btn ghost" id="tPre15">T=1.5（多様）</button>
 </div>
+<details class="foldbox" open><summary>構成図</summary>
 <div id="v4"></div>
+</details>
 <div class="readout" id="r4"></div>
+<details class="foldbox" open><summary>補足</summary>
 <p class="note">実運用では50,257語すべてを出さず、上位 k 個だけに絞る（<b>top-k</b>）か、
 確率の高い順に足し合わせて合計が p を超えたところで打ち切る（<b>top-p / nucleus</b>）ことが多い。
 ここに並ぶ12語は、確率が高い順に並べた top-12 にあたる。
 なお、このグラフの％は実測した上位12語だけで計算した比率であり、全50,257語に対する
 絶対確率ではない。</p>
-</div>
-</details><details class="foldbox" open><summary>説明</summary>
-<p class="src-note">トークン列・次語候補の logit は <b>GPT-2 small</b>（12層 × 12ヘッド）の実測値。Transformer Explainer（Polo Club of Data Science, Georgia Tech / MIT License）が公開している事前計算データから取り出している。トークン埋め込み・位置エンコーディングの中身の可視化（節「Embedding」）は模式であり、実測値ではない。</p>
 </details>
+</div><p class="src-note">トークン列・次語候補の logit は <b>GPT-2 small</b>（12層 × 12ヘッド）の実測値。Transformer Explainer（Polo Club of Data Science, Georgia Tech / MIT License）が公開している事前計算データから取り出している。トークン埋め込み・位置エンコーディングの中身の可視化（節「Embedding」）は模式であり、実測値ではない。</p>
 <div class="back-link"><nav class="fig-pager"><a class="fp-ico fp-comm" href="commentary.html#scene8" data-t="巻末解説に戻る（Scene 8「注意こそ、すべて」）" aria-label="巻末解説に戻る">&#8617;</a><a class="fp-ico" href="figures_alphago.html" data-t="一つ前の図解へ（AlphaGo・MCTS）" aria-label="一つ前の図解へ（AlphaGo・MCTS）">&#9665;</a><a class="fp-ico" href="figures.html" data-t="図解一覧" aria-label="図解一覧">&#9723;</a><a class="fp-ico" href="figures_attention.html" data-t="一つ後の図解へ（Self-Attention）" aria-label="一つ後の図解へ（Self-Attention）">&#9655;</a></nav></div>
 
 <script>

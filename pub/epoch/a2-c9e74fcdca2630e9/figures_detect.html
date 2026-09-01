@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -270,7 +272,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 <div class="readout" id="r2"></div>
 <details class="foldbox" open><summary>補足</summary>
 <p class="note">U-Net と同じくセグメンテーションにも前史がある：<b>FCN</b>（2014）は分類 CNN の最後の全結合層を畳み込みに置き換え、
-どんな大きさの画像にも同じネットワークを適用できるようにした先駆け。詳しくは④で。</p>
+どんな大きさの画像にも同じネットワークを適用できるようにした先駆け。詳しくは「U-Net」の節で。</p>
 </details>
 </div>
 <div class="fig-stage" id="sec3">
@@ -394,15 +396,18 @@ $\displaystyle \mathrm{IoU} = \frac{\text{重なり}}{\text{合併}}$
   // ③ IoU と NMS —— 8 候補中、右の 2 匹（.88 と .83）はもとから枠が重なっている別々の物体
   // lx,ly はラベルの手置き座標。密集する候補ほど、箱の直上でなく余白列へ縦に並べて重なりを避ける
   // （実測: SVG text の見た目の高さは約 24px なので、同じ列内は最低 30px 以上離す）
+  // o = その候補が指している本当の物体の番号（null = 物体がいない場所＝背景の誤検出）。
+  // ※ これが無かったころは残った**個数**だけで原因を書いていたので、確信度で落ちた回にも
+  //   「IoU を下げすぎ」と表示し、背景の空枠が残った回にも「同じ物体に複数の枠」と表示していた。
   var CAND=[
-    {x:150,y:82, w:118,h:96, s:.95, lx:40, ly:84},
-    {x:162,y:92, w:104,h:84, s:.78, lx:40, ly:118},
-    {x:138,y:74, w:132,h:108,s:.62, lx:40, ly:152},
-    {x:176,y:100,w:92, h:74, s:.45, lx:40, ly:186},
-    {x:410,y:112,w:92, h:76, s:.88, lx:340,ly:120},
-    {x:420,y:120,w:80, h:64, s:.55, lx:340,ly:154},
-    {x:465,y:118,w:88, h:74, s:.83, lx:560,ly:104},
-    {x:300,y:60, w:70, h:60, s:.31, lx:300,ly:48}
+    {x:150,y:82, w:118,h:96, s:.95, lx:40, ly:84,  o:0},
+    {x:162,y:92, w:104,h:84, s:.78, lx:40, ly:118, o:0},
+    {x:138,y:74, w:132,h:108,s:.62, lx:40, ly:152, o:0},
+    {x:176,y:100,w:92, h:74, s:.45, lx:40, ly:186, o:0},
+    {x:410,y:112,w:92, h:76, s:.88, lx:340,ly:120, o:1},
+    {x:420,y:120,w:80, h:64, s:.55, lx:340,ly:154, o:1},
+    {x:465,y:118,w:88, h:74, s:.83, lx:560,ly:104, o:2},
+    {x:300,y:60, w:70, h:60, s:.31, lx:300,ly:48,  o:null}
   ];
   var TRUE_OBJECTS=3;   // この配置に写っている本当の物体数（猫 3 匹）
   function iou(a,b){var x=Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x)),
@@ -420,10 +425,30 @@ $\displaystyle \mathrm{IoU} = \frac{\text{重なり}}{\text{合併}}$
       g.appendChild(el('rect',{class:'box'+(alive?'':' dim'),x:b.x,y:b.y,width:b.w,height:b.h}));
       var tx=el('text',{class:'lbl',x:b.lx,y:b.ly}); tx.textContent=b.s.toFixed(2); g.appendChild(tx);
     });
+    /* 残った枠の**中身**を見て原因を言う（件数だけでは原因が決まらない）。 */
+    var seen={}, dup=0, ghost=[];
+    keep.forEach(function(b){
+      if(b.o==null){ ghost.push(b.s); return; }
+      if(seen[b.o]) dup++; else seen[b.o]=1;
+    });
+    var missedByConf=0, missedByNms=0, oi;
+    for(oi=0; oi<TRUE_OBJECTS; oi++){
+      if(seen[oi]) continue;
+      /* 確信度で全部落ちたのか、確信度は通ったのに NMS で消されたのか */
+      if(CAND.some(function(b){ return b.o===oi && b.s>=c; })) missedByNms++; else missedByConf++;
+    }
+    var why=[];
+    if(missedByConf) why.push('<b>確信度のしきい値が高すぎて</b>、'+missedByConf+
+      ' 匹ぶんの枠が重なりを削る前に消えた。');
+    if(missedByNms) why.push('<b>IoU のしきい値を下げすぎて</b>、隣にいる別の物体まで'+
+      '同じ物体とみなして消してしまった（'+missedByNms+' 匹ぶん）。');
+    if(dup) why.push('<b>IoU のしきい値が緩く</b>、同じ物体に枠が '+(dup+1)+' 個残っている。');
+    if(ghost.length) why.push('物体がいない場所の枠（確信度 '+
+      Math.min.apply(null,ghost).toFixed(2)+'）が '+ghost.length+
+      ' 個残っている。<b>確信度のしきい値が低い</b>。');
     $('#r3').innerHTML='候補 '+CAND.length+' 個 → 確信度で '+pass.length+' 個 → 重なりを削って <b>'+keep.length+' 個</b>。'+
-      (keep.length>TRUE_OBJECTS ? ' しきい値が緩く、同じ物体に複数の枠が残っている。' :
-       keep.length<TRUE_OBJECTS ? ' <b>IoU のしきい値を下げすぎて</b>、隣にいる別の物体まで同じ物体とみなして消してしまった。' :
-       ' 実際の物体の数（'+TRUE_OBJECTS+' 匹）と一致した。');
+      (why.length ? ' '+why.join(' ')
+                  : ' 実際の物体（'+TRUE_OBJECTS+' 匹）を 1 匹に 1 枠ずつ、過不足なく取れた。');
   }
   ['conf','iou'].forEach(function(id){ $('#'+id).oninput=nms; });
 

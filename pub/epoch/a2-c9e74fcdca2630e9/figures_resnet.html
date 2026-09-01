@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -198,7 +200,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 <strong>残差接続</strong>を入れた。ブロックの重みが学ぶ対象を<strong>入力との差だけ</strong>に変える一手で、
 152 層でも学習が進み、
 ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。</p>
-<p>下では、<a href="figures_nn.html">ニューラルネットの図解</a>⑤で勾配消失を見たときと
+<p>下では、<a href="figures_nn.html">ニューラルネットの図解</a>の「勾配消失」の節で見たときと
 <strong>まったく同じネット・同じ重み</strong>（入力 2 → 中間 3 が n 層 → 出力 2）に残差接続を足して、
 <strong>実際に逆伝播した勾配</strong>を測って比べる。掛け算の模式ではない。</p>
 </div>
@@ -235,7 +237,7 @@ ImageNet で人間（top-5 誤り 5.1%）を初めて下回った（3.57%）。<
 <div class="note" style="margin-top:8px">$\mathbf{x}$ をそのまま足したので、$\mathbf{x}$ で微分すると
 $\partial\mathbf{y}/\partial\mathbf{x} = \mathcal{F}'(\cdot) + 1$ となり <strong>+1</strong> が残る。
 この項があるおかげで、$\mathcal{F}'$ がどれだけ小さくても層をまたぐ掛け算の積がゼロへ潰れない。
-逆に言えば<strong>潰れるのを防ぐだけで、増えすぎる方は防がない</strong>。②で実測する。</div>
+逆に言えば<strong>潰れるのを防ぐだけで、増えすぎる方は防がない</strong>。次の「実演」の節で実測する。</div>
 </div>
 </details>
 </div>
@@ -256,7 +258,7 @@ $\partial\mathbf{y}/\partial\mathbf{x} = \mathcal{F}'(\cdot) + 1$ となり <str
 </div>
 <div class="ctrls" style="justify-content:center">
   <button class="btn ghost" id="rPrev">◁ 中間層を減らす</button>
-  <span class="tag" id="rNow">中間層 8 つ</span>
+  <span class="tag" id="rNow">中間層 8 個</span>
   <button class="btn ghost" id="rNext">中間層を増やす ▷</button>
 </div>
 <details class="foldbox" open><summary>構成図</summary>
@@ -331,7 +333,7 @@ $\mathbf{x}$ をそのまま足した分（式の +1）が層ごとに重なる�
     tx(sv,190,134,'何も変えないのが正解なら F(x) = 0 でよい',{anchor:'middle',fs:9.5});
   })();
 
-  // ── ② 実演。figures_nn ⑤ と同じネット・同じ重み。残差接続を足して実測する
+  // ── ② 実演。figures_nn の勾配消失の節と同じネット・同じ重み。残差接続を足して実測する
   //    数値は Python で事前検証済み（シグモイド・中間 8 層で
   //    なし 入口 7.4e-06（8.0e-06 倍）／あり 1.193（0.277 倍））
   var XIN=[-0.4,0.8], TGT=[1,0];
@@ -395,9 +397,23 @@ $\mathbf{x}$ をそのまま足した分（式の +1）が層ごとに重なる�
     if(v>=1e-3 && v<1e4) return v.toFixed(v<1?3:2);
     return v.toExponential(1).replace('e','e');
   }
-  // 勾配消失の図解（figures_nn ⑤）と同じ形の構成図を、なし／あり の 2 段で描く。
+  // 勾配消失の図解（figures_nn の勾配消失の節）と同じ形の構成図を、なし／あり の 2 段で描く。
   // ※ 中間層は最大 12（＝14 列）まで伸びるので、丸の中に数を入れると読めない。
   //    数はグラフ側に任せ、この図は「構造」と「どこまで濃さが残るか」を担当する。
+  /* 入口／出口の実測比から注釈を作る。ズレ（勾配）は出口から入口へ配られるので、
+     入口 ÷ 出口 が小さいほど「途中で消えた」、大きいほど「膨れ上がった」。 */
+  function ratioTxt(r){
+    if(r>=1) return (r>=100?Math.round(r):r.toFixed(r>=10?0:1))+' 倍';
+    var v=1/r; return '1/'+(v>=100?Math.round(v):v.toFixed(v>=10?0:1));
+  }
+  function gradNote(rms){
+    var a=rms[0], b=rms[rms.length-1];
+    if(!(b>0) || !isFinite(a)) return ['', MUT];
+    var r=a/b;
+    if(r<0.1)  return ['  ← 出口の '+ratioTxt(r)+'。ほとんど消えている', BAD];
+    if(r>10)   return ['  ← 出口の '+ratioTxt(r)+'。膨れ上がっている', BAD];
+    return ['  ← 出口の '+ratioTxt(r)+'。濃さが残ったまま届く', ARC];
+  }
   function drawNet(A,B,lo,hi){
     var sv=clear('rNet'), nh=RHID, shape=[2], q;
     for(q=0;q<nh;q++) shape.push(3);
@@ -443,10 +459,14 @@ $\mathbf{x}$ をそのまま足した分（式の +1）が層ごとに重なる�
     row(96,A.rms,false,'なし');
     row(232,B.rms,true,'あり');
     // 実測値は行の下（左＝入口・右＝出口）。丸には触れない
-    tx(sv,10,150,'入口 '+fmt(A.rms[0])+'  ← ほぼ消える',{fs:9.5,fill:BAD});
+    // ※ この注釈は固定文にしないこと。以前は「← ほぼ消える」「← 濃さが残ったまま届く」を
+    //   決め打ちしており、恒等（入口 370）でも「ほぼ消える」、ReLU 12 層の爆発
+    //   （入口 3.2e+6）でも「濃さが残ったまま届く」と、実測値と正面から矛盾していた。
+    tx(sv,10,150,'入口 '+fmt(A.rms[0])+gradNote(A.rms)[0],{fs:9.5,fill:gradNote(A.rms)[1]});
     tx(sv,x1+2,150,'出口 '+fmt(A.rms[n-1]),{anchor:'end',fs:9.5,fill:INK});
-    tx(sv,10,286,'入口 '+fmt(B.rms[0])+(B.nskip?'  ← 濃さが残ったまま届く':'  （中間層 1 つでは skip なし）'),
-       {fs:9.5,fill:B.nskip?ARC:MUT});
+    tx(sv,10,286,'入口 '+fmt(B.rms[0])+
+       (B.nskip?gradNote(B.rms)[0]:'  （中間層 1 つでは skip なし）'),
+       {fs:9.5,fill:B.nskip?gradNote(B.rms)[1]:MUT});
     tx(sv,x1+2,286,'出口 '+fmt(B.rms[n-1]),{anchor:'end',fs:9.5,fill:INK});
   }
   function drawChart(){
@@ -490,7 +510,7 @@ $\mathbf{x}$ をそのまま足した分（式の +1）が層ごとに重なる�
     tx(sv,x0+30,y0+37,'残差接続なし',{fs:9.5,fill:INK});
     sv.appendChild(el('line',{x1:x0+112,y1:y0+34,x2:x0+136,y2:y0+34,stroke:INK,'stroke-width':2.2}));
     tx(sv,x0+140,y0+37,'あり（skip '+B.nskip+' 本）',{fs:9.5,fill:INK});
-    document.getElementById('rNow').textContent='中間層 '+RHID+' つ';
+    document.getElementById('rNow').textContent='中間層 '+RHID+' 個';
     Array.prototype.forEach.call(document.querySelectorAll('.chip[data-ra]'),function(c){
       c.classList.toggle('on', c.getAttribute('data-ra')===RK); });
     var rA=A.rms[n-1]>0?A.rms[0]/A.rms[n-1]:0, rB=B.rms[n-1]>0?B.rms[0]/B.rms[n-1]:0;
@@ -508,12 +528,20 @@ $\mathbf{x}$ をそのまま足した分（式の +1）が層ごとに重なる�
           '残差接続は<b>潰れるのを防ぐ仕組みであって、増えすぎる方は防がない</b>。'+
           '本物の ResNet が各ブロックに Batch Normalization を挟むのは、ここを抑えるため。';
     } else {
+      /* ※ ここを「まだ大きな差にならない」と決め打ちしないこと。tanh では
+         なし 0.056 / あり 10.75（約 190 倍差）でもこの枝に入り、
+         読み上げがグラフと正面から食い違っていた。差は実測して言う。 */
+      var gap=(rA>0? rB/rA : Infinity);
       msg='なし: 入口 <b>'+fmt(A.rms[0])+'</b>（'+fmt(rA)+' 倍）／あり: 入口 <b>'+fmt(B.rms[0])+'</b>（'+fmt(rB)+' 倍）。'+
-          'この $h$ と深さでは、まだ大きな差にならない。'+
+          (!isFinite(gap) ? '<b>なし</b>の側は入口まで届いていない。'
+           : gap>=10 ? '<b>あり</b>の側が入口で <b>'+fmt(gap)+' 倍</b>濃く届いている。'
+           : gap>=2  ? '<b>あり</b>の側が '+fmt(gap)+' 倍ほど濃く届く。'
+           :           'この $h$ と深さでは、両者の差は '+fmt(gap)+' 倍にとどまる。')+
           '<b>シグモイド</b>にして層を増やすと、差がはっきり出る。';
     }
-    document.getElementById('rOut').innerHTML=
-      'h = '+ACTS[RK].nm+'　中間層 '+RHID+' つ（全 '+(n-1)+' 段）<br>'+msg;
+    var rOut=document.getElementById('rOut');
+    rOut.innerHTML='h = '+ACTS[RK].nm+'　中間層 '+RHID+' 個（全 '+(n-1)+' 段）<br>'+msg;
+    if(window.renderAllMath) renderAllMath(rOut);   // 書き換えた $…$ を組み直す
   }
   document.getElementById('rPrev').addEventListener('click',function(){
     RHID=Math.max(1,RHID-1); drawChart(); });

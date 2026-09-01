@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -382,9 +384,9 @@ $w^{(m)}_{ij}$ と書く（前の添字が送り元、後ろが行き先）。
 
 
 <h3>では、この多層パーセプトロンは「分けられる」か</h3>
-<div class="lead">① とまったく同じ問いを、同じデータで解かせてみる。
+<div class="lead">「おさらい」の節とまったく同じ問いを、同じデータで解かせてみる。
 ここでは、<strong>青 = $y_1 > y_2$、赤 = $y_1 < y_2$</strong> で境界を分ける。
-上の 4 つのつまみ（重み）を動かして、点を正しく分けられるか試してほしい。</div>
+上の 3 つのつまみ（重み）を動かして、点を正しく分けられるか試してほしい。</div>
 <div class="outrow">
 <div style="text-align:center">
 <svg id="mlpSvg" width="300" height="300" viewBox="0 0 300 300"></svg>
@@ -552,7 +554,7 @@ $$m_j = \textstyle\sum_i w^{(1)}_{ij}x_i + b^{(1)}_j \qquad n_j = h(m_j)$$
   <span class="chip" data-h="relu">ReLU</span>
 </div>
 
-<p class="note">つまみは $n_1$ に入る 3 本の重み。$m_1$ が動き、$h$ の形に沿って $n_1$ が決まる。
+<p class="note">つまみは $m_1$ に入る 2 本の重み。$m_1$ が動き、$h$ の形に沿って $n_1$ が決まる。
 $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイドなら大きく振っても $0 \sim 1$ に押し込まれる。</p>
 <div class="outrow">
 <div style="text-align:center">
@@ -617,19 +619,19 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
 <div class="fig-stage" id="sec5">
 <h2>勾配消失 — 層が深いほど手前へ届かなくなる</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">④ の「5. ズレを上流へ配る」と<strong>同じ図</strong>を、中間層を増やしながら見る。
+<div class="lead">「誤差逆伝播法」の節の「5. ズレを上流へ配る」と<strong>同じ図</strong>を、中間層を増やしながら見る。
 丸の中の数が、その計算点に届いたズレ $\partial L/\partial n$。</div>
 </details>
 
 <div class="chips" id="dacts" style="justify-content:center">
-  <span class="chip on" data-dh="none">なし（恒等）</span>
-  <span class="chip" data-dh="sigmoid">シグモイド</span>
+  <span class="chip" data-dh="none">なし（恒等）</span>
+  <span class="chip on" data-dh="sigmoid">シグモイド</span>
   <span class="chip" data-dh="tanh">tanh</span>
   <span class="chip" data-dh="relu">ReLU</span>
 </div>
 <div class="stepnav">
   <button class="ico" id="dpPrev" aria-label="中間層を減らす" data-t="中間層を 1 つ減らす">◁</button>
-  <span class="now" id="dpNow">中間層 1 つ</span>
+  <span class="now" id="dpNow">中間層 4 個</span>
   <button class="ico" id="dpNext" aria-label="中間層を増やす" data-t="中間層を 1 つ増やす">▷</button>
 </div>
 <details class="foldbox figfold" open><summary>構成図</summary>
@@ -673,15 +675,19 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
     var pts=[],i,j,r=function(){return (Math.random()-0.5)*0.20;};
     // AND: 両方 1 のときだけ 1。XOR と同じ四隅を使うので、直線 1 本で
     // 分けられる／分けられないの対比がそのまま出る。
-    var spec = (kind==='xor')
-      ? [[0,0,0],[0,1,1],[1,0,1],[1,1,0]]
-      : [[0,0,0],[0,1,0],[1,0,0],[1,1,1]];
+    // ※ OR を必ず持つこと。無かったころは「OR を教える」で AND でも XOR でもなく
+    //   **XOR のラベル**で描かれ、(1,1) が「0 と答えてほしい」白丸のまま青領域に残り、
+    //   読み上げの「4 通りとも正解」と図が正面から矛盾していた。
+    var spec = (kind==='xor') ? [[0,0,0],[0,1,1],[1,0,1],[1,1,0]]
+             : (kind==='or')  ? [[0,0,0],[0,1,1],[1,0,1],[1,1,1]]
+             :                  [[0,0,0],[0,1,0],[1,0,0],[1,1,1]];
     for(i=0;i<spec.length;i++) for(j=0;j<9;j++)
       pts.push({x:Math.min(1,Math.max(0,spec[i][0]+r())),
                 y:Math.min(1,Math.max(0,spec[i][1]+r())),l:spec[i][2]});
     return pts;
   }
-  var DS={easy:mk('easy'), xor:mk('xor')}, curDs='easy';
+  var DS={easy:mk('easy'), or:mk('or'), xor:mk('xor')}, curDs='easy';
+  DS.and=DS.easy;                 // 'easy' は AND そのもの。論理名でも引けるようにする
   function plot(svg,pts,decide,pad){
     pad=pad||26; svg.innerHTML='';
     var S=300, W=S-pad*2;
@@ -735,6 +741,12 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
   function renderNet(svg,gg,o){
     svg.innerHTML='';
     var i,j,k,n=gg.shape.length;
+    // 光彩（いま直した値を囲う）。辺のラベルとノードの添え字の両方から使う。
+    var _halo=function(x,y,size,txt){
+      svg.appendChild(el('text',{x:x,y:y,'font-size':size,'text-anchor':'middle',
+        fill:'none',stroke:'#F6D9A8','stroke-width':5,'stroke-linejoin':'round',
+        style:'paint-order:stroke;pointer-events:none'},txt));
+    };
     for(i=0;i<n-1;i++){
       var st=o.edgeState?o.edgeState(i):2;
       for(j=0;j<gg.shape[i];j++) for(k=0;k<gg.shape[i+1];k++){
@@ -768,11 +780,7 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
         // いまダイヤルで触っている重みは、名前も数値も光彩で囲って目立たせる
         // （どこが変わっているのか分からない、という読者の指摘）。
         var lit=o.hl?o.hl(i,j,k):false;
-        var halo=function(x,y,size,txt){
-          svg.appendChild(el('text',{x:x,y:y,'font-size':size,'text-anchor':'middle',
-            fill:'none',stroke:'#F6D9A8','stroke-width':5,'stroke-linejoin':'round',
-            style:'paint-order:stroke;pointer-events:none'},txt));
-        };
+        var halo=_halo;
         if(two){
           if(lit) halo(px.toFixed(1),(py-fs*0.52).toFixed(1),(fs*0.86).toFixed(1),nmS);
           svg.appendChild(el('text',{x:px.toFixed(1),y:(py-fs*0.52).toFixed(1),
@@ -800,8 +808,31 @@ $h$ が「なし」なら $m_1$ と $n_1$ は同じ数のまま。シグモイ�
         'font-size':o.nfs||14.5,'text-anchor':'middle',fill:INK,
         opacity:(lit?1:0.25).toFixed(2)},tv));
       var sb=o.nodeSub?o.nodeSub(i,j):null;
-      if(sb) svg.appendChild(el('text',{x:cx.toFixed(1),y:(cy+gg.r+15).toFixed(1),'font-size':11.5,
-        'text-anchor':'middle',fill:o.subInk||MUTED,opacity:(lit?1:0.3).toFixed(2)},sb));
+      // ※ nodeSub（下駄 w₀ など）にも光彩の口を持たせる。無かったころは
+      //   「直した重みは図の中で光る」と書きながら、w₀ だけを直した回（実際に起きる）で
+      //   図の中の何も光らなかった。
+      var sbLit=sb!=null && o.subHl ? o.subHl(i,j) : false;
+      if(sb){
+        var sy=(cy+gg.r+15).toFixed(1);
+        var st=el('text',{x:cx.toFixed(1),y:sy,'font-size':11.5,
+          'text-anchor':'middle',fill:sbLit?INK:(o.subInk||MUTED),
+          'font-weight':sbLit?'700':'400',opacity:(lit?1:0.3).toFixed(2)},sb);
+        svg.appendChild(st);
+        // ※ 出力ノードは枠の右寄りにあるので、長い添え字を中央寄せで置くと枠からはみ出て
+        //    端が切れる（neuron で「合計が 2 以上なら 1」が 6px、閾値の説明が 56px 切れていた）。
+        //    入れてから実測して、はみ出した分だけ内側へ寄せる。
+        var vb=svg.viewBox && svg.viewBox.baseVal, sx=cx;
+        if(vb && vb.width){ try{ var bb=st.getBBox(), dx=0;
+          if(bb.x+bb.width > vb.x+vb.width-2) dx=(vb.x+vb.width-2)-(bb.x+bb.width);
+          if(bb.x+dx < vb.x+2) dx=(vb.x+2)-bb.x;
+          if(dx){ sx=cx+dx; st.setAttribute('x',sx.toFixed(1)); }
+        }catch(e){} }
+        // 光彩は文字の**後ろ**に置きたいので、位置が決まってから前に差し込む
+        if(sbLit){ var hl=el('text',{x:sx.toFixed(1),y:sy,'font-size':11.5,'text-anchor':'middle',
+          fill:'none',stroke:'#F6D9A8','stroke-width':5,'stroke-linejoin':'round',
+          style:'paint-order:stroke;pointer-events:none'},sb);
+          svg.insertBefore(hl, st); }
+      }
     }
     if(o.deco) o.deco(svg);
   }
@@ -915,8 +946,10 @@ function sg(z){return 1/(1+Math.exp(-z));}
       // 手前の重み付き和 z を出して、連続的に動くところを見せる（読者の指摘）。
       nodeSub:function(i,j){ return i===1?('z = '+zP().toFixed(2)):null; },
       deco:function(svg){
-        svg.appendChild(el('text',{x:160,y:252,'font-size':12,'text-anchor':'middle',fill:MUTED},
-          '右のダイヤルで重みを回すと z が動き、0 を跨ぐと y が変わる'));
+        svg.appendChild(el('text',{x:150,y:250,'font-size':11,'text-anchor':'middle',fill:MUTED},
+          '右のダイヤルで重みを回すと z が動き、'));
+        svg.appendChild(el('text',{x:150,y:264,'font-size':11,'text-anchor':'middle',fill:MUTED},
+          '0 を跨ぐと y が変わる'));
       }
     });
   }
@@ -1137,7 +1170,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
       '境界の式  y₁ − y₂ = '+da.toFixed(2)+'·x₁'+sgn(db)+'·x₂'+sgn(dc)+'  = 0'
       +'\n正解率 '+Math.round(acc*100)+'%'
       +(curDs2==='xor'
-        ? '\nXOR は、4 つのつまみをどう動かしても 75% を超えられない。境界が直線 1 本だから。'
+        ? '\nXOR は、つまみをどう動かしても 75% を超えられない。境界が直線 1 本だから。'
         : '\n直線 1 本で分けられる配置なら、つまみを合わせれば 100% にできる。');
   }
   Array.prototype.forEach.call(document.querySelectorAll('.chip[data-ds2]'),function(c){
@@ -1285,7 +1318,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
     o.textContent = (HK==='none')
       ? 'h なし ・ 正解率 '+Math.round(acc*100)+'%  →  合成すると 1 次式に戻る。'
         + 'この重みでは全域が同じ答えになり、境界すら引けない。\n'
-        + '何層積んでも、引けるのは直線 1 本だけ ―― ① で XOR を試したときと同じ壁。'
+        + '何層積んでも、引けるのは直線 1 本だけ ―― 「おさらい」で XOR を試したときと同じ壁。'
       : 'h = '+ACTS[HK].nm+' ・ 正解率 '+Math.round(acc*100)+'%  →  曲がった境界が引けるので XOR を分けられる。';
   }
 
@@ -1401,6 +1434,8 @@ function sg(z){return 1/(1+Math.exp(-z));}
   // 回すたびの L を憶えて折れ線にする。「繰り返すと誤差が減り、答えが正解に届く」を
   // 言葉でなく形で見せるため（読者の指摘: そこが分からない）。
   var LH=[fwd().L];
+  // 「回し始めの L」は LH と別に持つ（LH は 400 件で頭を捨てるので基準がずれる）
+  var LSTART=LH[0];
   function drawLoss(){
     var svg=g('lossSvg'); if(!svg) return;
     svg.innerHTML='';
@@ -1429,7 +1464,15 @@ function sg(z){return 1/(1+Math.exp(-z));}
       +'w⁽¹⁾ = '+vec(W1[0].concat(W1[1]).concat(W1[2]),f2)+'\n'
       +'w⁽²⁾ = '+vec(W2[0].concat(W2[1]),f2)
       +(near?'\n※ y が ŷ とほぼ一致した。これが「学習が済んだ」状態。':'')
-      +(epoch&&!near?'\n※ 回すほど L が小さくなり、y が ŷ に寄っていく。②③ の図の辺の数字も同じだけ動いている。':'')
+      /* ※ 「回すほど L が小さくなり」を epoch だけで出さないこと。η を上限まで上げると
+         実測で L=5.49→6.60（増加）なのに、発散の警告と同時にこの文が出て矛盾していた。
+         いま本当に下がっているかを LH の先頭と比べてから言う。 */
+      +(epoch&&!near&&!diverged&&f.L<LSTART
+        ?'\n※ 回すほど L が小さくなり、y が ŷ に寄っていく。'
+         +'「多層パーセプトロン」「活性化関数」の図の辺の数字も同じだけ動いている。':'')
+      +(epoch&&!near&&!diverged&&!(f.L<LSTART)
+        ?'\n※ L はまだ下がっていない（回し始め '+nf(LSTART)+' → いま '+nf(f.L)+'）。'
+         +'η が大きいと、坂を行き過ぎて上りに変わる。η を小さくして試す。':'')
       +(diverged?'\n※ 発散したのでここで止めた。η が大きすぎると L は減らずに増え続ける。η を小さくして試す。':'');
     drawLoss();
   }
@@ -1446,11 +1489,13 @@ function sg(z){return 1/(1+Math.exp(-z));}
     if(LH.length>400) LH=LH.slice(LH.length-400);
     redraw();
   });
-  g('trReset').addEventListener('click',function(){ resetW(); LH=[fwd().L]; redraw(); });
+  g('trReset').addEventListener('click',function(){ resetW(); LH=[fwd().L]; LSTART=LH[0]; redraw(); });
 
-  // ---- ⑤ 勾配消失。④ の「5. ズレを上流へ配る」と同じ絵を、中間層の数を
+  // ---- 勾配消失の節。誤差逆伝播の節の「5. ズレを上流へ配る」と同じ絵を、中間層の数を
   //   増やしながら見せる。解析式ではなく、実際に逆伝播した数を出す（読者の指摘）。
-  var DHID=1, DHK='none';                      // 中間層の数 / この節で選んだ h
+  // ※ 既定は sigmoid。恒等(none)を既定にすると初期表示が勾配**爆発**になり、
+  //   節の主張（勾配消失）と逆の現象を最初に見せてしまう（実測 2.77 倍）。
+  var DHID=4, DHK='sigmoid';                   // 中間層の数 / この節で選んだ h
   function dnet(nh){
     var shape=[2]; for(var q=0;q<nh;q++) shape.push(3); shape.push(2);
     var s2=20260808, r=function(){s2=(s2*16807)%2147483647; return s2/2147483647;};
@@ -1494,7 +1539,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
     var d=drun(DHID), shape=d.shape, n=shape.length;
     var DG2=geom(shape,560,190,72,20,46);
     var gmax=Math.max.apply(null,d.rms.concat([1e-9]));
-    g('dpNow').textContent='中間層 '+DHID+' つ';
+    g('dpNow').textContent='中間層 '+DHID+' 個';
     Array.prototype.forEach.call(document.querySelectorAll('.chip[data-dh]'),function(c){
       c.classList.toggle('on', c.getAttribute('data-dh')===DHK);
     });
@@ -1534,7 +1579,7 @@ function sg(z){return 1/(1+Math.exp(-z));}
       : ratio>0.5 ? ' ← ほぼ保たれている' : ratio>0.05 ? ' ← 減ってはいるが、まだ届いている'
       : ' ← 入口にはほとんど届いていない ＝ 勾配消失';
     g('dpOut').textContent =
-      'h = '+ACTS[DHK].nm+'    中間層 '+DHID+' つ（全 '+(n-1)+' 段）' + '\n'
+      'h = '+ACTS[DHK].nm+'    中間層 '+DHID+' 個（全 '+(n-1)+' 段）' + '\n'
       +'層の大きさ: 出口 '+nf(d.rms[n-1])+'   →   入口 '+nf(d.rms[0])
       +'   （'+nf(ratio)+' 倍）'+verdict + '\n'
       +'▷ で中間層を増やすと、同じ 1 段あたりの倍率が何度も掛かる。';
@@ -1558,7 +1603,9 @@ function sg(z){return 1/(1+Math.exp(-z));}
     ['hb2'].forEach(function(id){var e=g(id); if(e) e.textContent=A.nm;});
     drawFw(); fwSync(); drawAc(); drawX(); drawBw(); drawTr(); drawDeep();
     curve('sgSvg', A.f, A.yr[0], A.yr[1], null);
-    g('sgCap').textContent='いま選んでいる h(x) ・ '+A.nm;
+    var cap=g('sgCap');
+    cap.innerHTML='いま選んでいる '+A.nm+' ・ $'+A.tex+'$';
+    if(window.renderAllMath) renderAllMath(cap);
   }
 
   drawP();

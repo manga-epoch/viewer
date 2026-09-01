@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -185,6 +187,10 @@ table{display:block;overflow-x:auto;max-width:100%}
 <p><strong>2010〜2017 年、同じ問題（写真 1 枚に写る物の名前を当てる）を
 世界中のチームが競った。誤り率のグラフの裏で、優勝 AI の中身が
 「人が設計した特徴 ＋ SVM」から「深いニューラルネット」へ入れ替わっていく。</strong></p>
+<p>競技（ILSVRC）の中身は、<b>1000 種類</b>の名前がついた<b>約 120 万枚</b>の訓練画像で学び、
+別に用意した 10 万枚で答え合わせをする、というもの。元になった ImageNet 本体は
+1400 万枚を超える。<b>「人が一枚ずつ名前を付けた画像がこれだけある」こと自体</b>が、
+このグラフの前提になっている。</p>
 <p>年をタップすると、その年の優勝 AI の中身が下に出る。
 層の帯はすべて同じ縮尺 ―― 8 層と 152 層を同じ物差しで見比べられる。</p>
 </div>
@@ -308,7 +314,9 @@ table{display:block;overflow-x:auto;max-width:100%}
   }
 
   /* ===== 層の帯（全年おなじ縮尺: 1 層 2.2px） ===== */
-  var LCOL={c:ARC,p:'#8d8880',f:'#c98a3d',i:'#7b5ea7',r:ARC,s:'#4e8f7a'};
+  /* ※ r（残差ブロック）を c（畳み込み）と同じ ARC にしないこと。2015 の凡例で
+     2 項目が同色になり、帯のどこが残差ブロックなのか凡例から引けなかった。 */
+  var LCOL={c:ARC,p:'#8d8880',f:'#c98a3d',i:'#7b5ea7',r:'#455189',s:'#4e8f7a'};
   var LNAME={c:'畳み込み',p:'プーリング',f:'全結合',i:'Inception',r:'残差ブロック',s:'SE つき残差'};
   function drawStrip(){
     var svg=g('strip'); svg.innerHTML='';
@@ -333,7 +341,17 @@ table{display:block;overflow-x:auto;max-width:100%}
     });
     var nlabel = deep ? (d.model==='SENet'?'154 層':'152 層')
                       : (sel===4?'22 層':'8 層');
-    svg.appendChild(el('text',{x:x+6,y:y+h/2+4,'font-size':12,fill:INK,'font-weight':'700'},nlabel));
+    /* ※ 帯の縮尺は全モデル共通（「8 層と 152 層を同じ物差しで」がこの節の主張なので
+       モデルごとに縮めてはいけない）。そのため深いモデルでは帯が右端まで伸び、
+       帯の右に置いた層数ラベルが viewBox(380) の外へ出て**丸ごと消えていた**
+       （152 層で x=383.5）。入らないときは帯の右肩の上へ逃がす。 */
+    var lw = nlabel.length*12*0.6 + 4;
+    if(x+6+lw <= 380){
+      svg.appendChild(el('text',{x:x+6,y:y+h/2+4,'font-size':12,fill:INK,'font-weight':'700'},nlabel));
+    } else {
+      svg.appendChild(el('text',{x:Math.min(x,378),y:y-4,'font-size':12,fill:INK,
+        'font-weight':'700','text-anchor':'end'},nlabel));
+    }
     /* 凡例（使われている種類だけ） */
     var used=[], seen={};
     Ls.forEach(function(t){ if(!seen[t]){seen[t]=1; used.push(t);} });
@@ -373,12 +391,20 @@ table{display:block;overflow-x:auto;max-width:100%}
       return;
     }
     if(sel===2||sel===3){                       /* AlexNet / ZFNet */
-      svg.setAttribute('viewBox','0 0 380 96');
+      /* ※ 脚注は 1 行に収まらない。パネル幅 110 に対し 8.5px の全角 21 字は約 174px あり、
+         1 行で置いたときは 3 本が互いに重なったうえ左右の端が viewBox の外へ切れて
+         **初期表示から判読不能**だった（実測: 重なり 49px / 34px、左端 -22・右端 387）。
+         2 行に割って、その分だけ viewBox を高くする。 */
+      svg.setAttribute('viewBox','0 0 380 110');
+      var cap2=function(cx,l1,l2){
+        svg.appendChild(el('text',{x:cx,y:92,'font-size':8.5,'text-anchor':'middle',fill:MUTED},l1));
+        svg.appendChild(el('text',{x:cx,y:103,'font-size':8.5,'text-anchor':'middle',fill:MUTED},l2));
+      };
       /* ReLU の折れ線 */
       box(svg,10,14,110,66,'','');
       svg.appendChild(el('text',{x:65,y:28,'font-size':10,'text-anchor':'middle',fill:INK,'font-weight':'700'},'ReLU'));
       svg.appendChild(el('polyline',{points:'24,66 65,66 106,36',fill:'none',stroke:ARC,'stroke-width':2.2}));
-      svg.appendChild(el('text',{x:65,y:92,'font-size':8.5,'text-anchor':'middle',fill:MUTED},'負は 0・正はそのまま（勾配が消えにくい）'));
+      cap2(65,'負は 0・正はそのまま','（勾配が消えにくい）');
       /* dropout */
       box(svg,136,14,110,66,'','');
       svg.appendChild(el('text',{x:191,y:28,'font-size':10,'text-anchor':'middle',fill:INK,'font-weight':'700'},'dropout'));
@@ -389,13 +415,13 @@ table{display:block;overflow-x:auto;max-width:100%}
           svg.appendChild(el('line',{x1:pxy[0]-4,y1:pxy[1]-4,x2:pxy[0]+4,y2:pxy[1]+4,stroke:BAD,'stroke-width':1.4}));
         }
       });
-      svg.appendChild(el('text',{x:191,y:92,'font-size':8.5,'text-anchor':'middle',fill:MUTED},'学習のたびに一部を眠らせ、頼りすぎを防ぐ'));
+      cap2(191,'学習のたびに一部を眠らせ','頼りすぎを防ぐ');
       /* GPU */
       box(svg,262,14,108,66,'','');
       svg.appendChild(el('text',{x:316,y:28,'font-size':10,'text-anchor':'middle',fill:INK,'font-weight':'700'},'GPU × 2'));
       box(svg,276,38,36,26,'GPU','', '#EAEDF7',ARC);
       box(svg,318,38,36,26,'GPU','', '#EAEDF7',ARC);
-      svg.appendChild(el('text',{x:316,y:92,'font-size':8.5,'text-anchor':'middle',fill:MUTED},'ゲーム用の並列計算機で 6 日間学習'));
+      cap2(316,'ゲーム用の並列計算機で','6 日間学習');
       return;
     }
     if(sel===4){                                 /* Inception */

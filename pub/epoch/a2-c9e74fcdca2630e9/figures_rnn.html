@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -268,7 +270,7 @@ $h$ は 2 次元、重みと語のベクトルは<b>固定の例</b>で、本物
 <div class="fig-stage" id="sec2">
 <h2>LSTM — 渡す線が 2 本になり、A の中にゲートが入る</h2>
 <details class="foldbox" open><summary>説明</summary>
-<div class="lead">形は①の RNN とまったく同じで、違いは 2 つだけ。
+<div class="lead">形は「RNN の全体像」とまったく同じで、違いは 2 つだけ。
 <b>$C$（セル状態）という 2 本目の線が増えた</b>ことと、<b>A の中に 3 つのゲート $f, i, o$ が入った</b>ことだ。<br>
 <b>$C$ が何かというと、$h$ と同じ「数のベクトル」</b>。中身が違うのではなく、<b>作り方が違う</b>。
 RNN の $h$ は毎時刻 $\tanh$ を通して<b>作り直す</b>ので、前の値は毎回押し潰される。
@@ -339,7 +341,7 @@ $f$ を大きくすると古い $C$ が残り、$i$ を大きくすると新し�
 語順の違う言語対でも<b>並べ替えの規則を人が書かなくてよい</b>こと。
 そして<b>翻訳以外にも同じ形が使える</b>こと（要約・対話・音声認識・画像キャプション）。
 Sutskever ほかは WMT'14 英仏で BLEU 34.81 を出し、当時の統計的機械翻訳のベースライン 33.30 に並んだ。<br>
-やり方は単純で、①と同じ A の列を<b>2 組</b>用意する。<b>エンコーダ</b>が原文を最後まで読み、
+やり方は単純で、RNN と同じ A の列を<b>2 組</b>用意する。<b>エンコーダ</b>が原文を最後まで読み、
 <b>その時点の $h$ だけ</b>を <b>デコーダ</b>へ渡す。デコーダはそれを受け取って 1 語ずつ書く。<br>
 言いたいことは 1 つ ―― <b>デコーダが原文について知っているのは、渡された 1 本のベクトルだけ</b>。
 原文の語を直接見に行くことはできない。文を長くして、その 1 本が変わらないことを確かめてほしい。</div>
@@ -363,7 +365,7 @@ Sutskever ほかは WMT'14 英仏で BLEU 34.81 を出し、当時の統計的�
 </details>
 <details class="foldbox" open><summary>補足</summary>
 <p class="note" id="s2sOut"></p>
-<p class="note">上下どちらも①と同じ <b>A の列</b>で、読む側と書く側で別々の重みを持つ。
+<p class="note">上下どちらも RNN と同じ <b>A の列</b>で、読む側と書く側で別々の重みを持つ。
 つないでいるのは <b>$c$ の 1 本だけ</b> ―― 入力文を 3 語から 8 語に伸ばしても、
 この 1 本の長さは変わらない。<b>入れ物は同じで、詰める量だけが増える</b>。
 これが seq2seq の<strong>ボトルネック</strong>だ。<br>
@@ -702,7 +704,7 @@ Sutskever ほかは WMT'14 英仏で BLEU 34.81 を出し、当時の統計的�
     sv.appendChild(el2('text',{x:10,y:292,'font-size':9.5,fill:'#565248'},
       'h ＝ RNN と同じ線。C から o を通して取り出したもの'));
     document.getElementById('lovOut').innerHTML = tstep===0
-      ? '①の RNN と同じ形だが、<b>渡る線が 2 本</b>で、A の中に <b>f, i, o</b> の 3 つのゲートがある。'+
+      ? 'RNN と同じ形だが、<b>渡る線が 2 本</b>で、A の中に <b>f, i, o</b> の 3 つのゲートがある。'+
         '下の「1 ステップ進める」で C と h の数が入る。'
       : '<b>' + Math.min(tstep,n) + ' 語目まで進んだ。</b>いまのゲート設定（f=' + f.toFixed(2) +
         '・i=' + ig.toFixed(2) + '・o=' + o.toFixed(2) + '）だと、'+
@@ -795,7 +797,7 @@ Sutskever ほかは WMT'14 英仏で BLEU 34.81 を出し、当時の統計的�
     function ablock(x,y,bw,bh,on){
       var r='<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="5" fill="#fff" stroke="'+
         (on?'#6E7BA8':'#b9b9b2')+'" stroke-width="'+(on?1.8:1)+'"/>';
-      // A の中に小さな NN（①と同じ描き方）
+      // A の中に小さな NN（RNN の節と同じ描き方）
       var cx=x+bw/2, cy=y+bh/2-3;
       for(var c2=0;c2<3;c2++){
         var xx=cx-7+c2*7;
@@ -811,7 +813,7 @@ Sutskever ほかは WMT'14 英仏で BLEU 34.81 を出し、当時の統計的�
         '<path d="M'+(x2-5)+' '+(y-3)+' L'+x2+' '+y+' L'+(x2-5)+' '+(y+3)+' Z" fill="'+
         (on?'#6E7BA8':'#d8d4cb')+'"/>';
     }
-    /* --- エンコーダ: ①と同じ A の列 --- */
+    /* --- エンコーダ: RNN の節と同じ A の列 --- */
     var BH=26;
     var ew=Math.max(22,(W-L*2)/src.length-6), efs=fitFs(src,ew);
     var ex0=L+((W-L*2)-(src.length*(ew+6)-6))/2;
@@ -853,12 +855,12 @@ Sutskever ほかは WMT'14 英仏で BLEU 34.81 を出し、当時の統計的�
          dfs.toFixed(1)+'px sans-serif;fill:'+(on2?'#1a1a1a':'#cfccc4')+'">'+esc(dst[j])+'</text>';
     }
     g+='<text x="'+L+'" y="246" style="font:9px sans-serif;fill:#9A9488">'+
-       'A の中身は①と同じ 1 層。読む側と書く側で、別々の重みを持つ</text>';
+       'A の中身は RNN と同じ 1 層。読む側と書く側で、別々の重みを持つ</text>';
     $('s2sSvg').innerHTML=g;
     var msg;
     if(step===0) msg='まだ何も読んでいない。「1 語進める」でエンコーダの A を左から通していく。';
     else if(step<src.length) msg='原文を <b>'+read+' / '+src.length+' 語</b>読んだ。'+
-      'ここまでは①の RNN とまったく同じで、h を右へ渡しているだけ。';
+      'ここまでは RNN とまったく同じで、h を右へ渡しているだけ。';
     else if(step===src.length) msg='原文を読み終えた。<b>この時点の h が c としてデコーダへ渡る</b>。'+
       'これ以降、<b>デコーダは原文の語を直接見られない</b> —— 手がかりは c の 1 本だけ。';
     else if(wrote<dst.length) msg='出力を <b>'+wrote+' / '+dst.length+' 語</b>書いた。'+

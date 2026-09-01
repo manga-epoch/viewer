@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -431,7 +433,7 @@ $W^Q,\,W^K,\,W^V$ は<b>学習で決まる</b>重み行列。同じ $X$ から�
 「この語について、何を知りたいか」。<b>Key</b> は検索結果に並ぶ各ページの見出し——
 「自分は何者か」と各語が掲げる看板。<b>Value</b> はページの中身——照合が済んだあとに
 実際に持ち帰る情報。つまり <b>Query と Key を照らし合わせてどれが関係あるかを決め、
-選んだ分だけ Value を持ってくる</b>。次の節「①重みができるまで」の内積・softmax は、
+選んだ分だけ Value を持ってくる</b>。次の節「注意の重みの計算」の内積・softmax は、
 まさにこの「照らし合わせ」の計算にあたる。</p>
 </details>
 
@@ -439,7 +441,7 @@ $W^Q,\,W^K,\,W^V$ は<b>学習で決まる</b>重み行列。同じ $X$ から�
 <details class="foldbox" open><summary>補足</summary>
 <p>768 次元をまるごと 1 回で使うのではなく、<b>12 に割って</b> 1 本あたり 64 次元ずつ扱う——
 768 = 12 × 64 の意味はこれだ。1 つの見方だけに絞らず、<b>12 通りの見方を同時に走らせる</b>
-（Multi-Head）。後の節「③12 のヘッド」では、ヘッドごとに実際に見ている場所が違うことを確かめる。</p>
+（Multi-Head）。後の節「マルチヘッド」では、ヘッドごとに実際に見ている場所が違うことを確かめる。</p>
 </details>
 <details class="foldbox" open><summary>構成図</summary>
 <div id="v0b"></div>
@@ -469,7 +471,9 @@ $W^Q,\,W^K,\,W^V$ は<b>学習で決まる</b>重み行列。同じ $X$ から�
 <div class="readout" id="r1"></div>
 <details class="foldbox" open><summary>補足</summary>
 <p class="note">行が<b>クエリ（見る側）</b>、列が<b>キー（見られる側）</b>。
-たとえば 4 行目 2 列目は「"powers" が " visualization" をどれだけ参照するか」。</p>
+たとえば 4 行目 2 列目は「"powers" が " visualization" をどれだけ参照するか」。
+ここに出るのは <b>第 1 ヘッドの実測値</b>——後の「マルチヘッド」の節で、
+ヘッドを変えると同じ語でも重みが変わることを確かめる。</p>
 </details>
 </div>
 <div class="fig-stage" id="sec3">
@@ -488,6 +492,9 @@ $W^Q,\,W^K,\,W^V$ は<b>学習で決まる</b>重み行列。同じ $X$ から�
 <div id="v2"></div>
 </details>
 <div class="readout" id="r2"></div>
+<details class="foldbox" open><summary>補足</summary>
+<p class="note">この行列も<b>第 1 ヘッドの実測値</b>（上の節と同じヘッド）。</p>
+</details>
 </div>
 <div class="fig-stage" id="sec4">
 <h2>マルチヘッド — 12 組が別々の場所を見る</h2>
@@ -505,21 +512,21 @@ $W^Q,\,W^K,\,W^V$ は<b>学習で決まる</b>重み行列。同じ $X$ から�
 <div class="fig-stage" id="sec5">
 <h2>出力の合成 — V の加重和と、12 ヘッドの連結</h2>
 <details class="foldbox" open><summary>説明</summary>
-<p>①〜③で作った重みは、それ自体が目的地ではない。<b>その重みで各語の Value を混ぜ合わせたもの</b>が、
+<p>①〜④で作った重みは、それ自体が目的地ではない。<b>その重みで各語の Value を混ぜ合わせたもの</b>が、
 その語の新しい表現になる。重みが 1 語にほぼ集中していれば、ほとんどその語の Value がそのまま出てくるし、
 重みが分散していれば、複数語の Value が混ざって出てくる。</p>
 </details>
 
 <details class="foldbox"><summary>式と計算</summary>
 <div class="formula">$$z_i = \sum_j \alpha_{ij}\,V_j$$
-<div class="note" style="margin-top:8px">$\alpha_{ij}$ は①〜③で作った、行 $i$ の softmax 後の重み
+<div class="note" style="margin-top:8px">$\alpha_{ij}$ は①〜④で作った、行 $i$ の softmax 後の重み
 （合計 1）。$V_j$ は語 $j$ の Value。<b>重みで Value を足し合わせたもの</b>が、語 $i$ の新しい表現
 $z_i$ になる。</div>
 </div>
 </details>
 
 <details class="foldbox" open><summary>説明</summary>
-<p class="note">下の図は「③12 のヘッド」で見たのと同じ例——第 5 ヘッドで "powers" が
+<p class="note">下の図は「マルチヘッド」の節で見たのと同じ例——第 5 ヘッドで "powers" が
 " em"（empowers の前半）へ 0.94 の重みを置く行——が、実際にどんな重みで各語の Value を
 混ぜ合わせるかを示す。<b>帯の幅（重み）は実測値</b>だが、<b>V の中身は模式</b>——実際の
 64 次元のベクトルではなく、「その語の Value」を表す帯として描いているだけで、

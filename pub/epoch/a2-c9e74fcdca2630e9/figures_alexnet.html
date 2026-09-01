@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -226,7 +228,7 @@ table{display:block;overflow-x:auto;max-width:100%}
 ここでは、その中身を動かして確かめる。</p>
 </div>
 
-<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">逐次処理と並列処理</a></li><li><a href="#sec2">CUDA</a></li><li><a href="#sec3">ドロップアウト</a></li></ol></nav>
+<nav class="fig-toc" aria-label="この図解の中身"><span class="ft-label">この図解の中身</span><ol><li><a href="#sec1">逐次処理と並列処理</a></li><li><a href="#sec2">CUDA</a></li><li><a href="#sec3">ReLU</a></li><li><a href="#sec4">ドロップアウト</a></li></ol></nav>
 <div class="fig-stage" id="sec1">
 <h2>逐次処理と並列処理 — CPU と GPU の違い</h2>
 <details class="foldbox" open><summary>説明</summary>
@@ -303,6 +305,40 @@ SM（Streaming Multiprocessor）は GPU の実行ユニットで、AlexNet の G
 </details>
 </div>
 <div class="fig-stage" id="sec3">
+<h2>ReLU — 「負は 0、正はそのまま」に替えた</h2>
+<details class="foldbox" open><summary>説明</summary>
+<p>それまでの活性化関数はシグモイドが定番だった。だが<b>シグモイドは傾きが最大でも 0.25</b> しかない。
+学習の合図（勾配）は層をさかのぼるたびにこの傾きを掛けられるので、
+8 層さかのぼると最良の場合でも $0.25^{8} \approx 0.000015$ ―― 手前の層はほとんど動かない。
+<b>ReLU の傾きは正の側で 1</b> なので、何層掛けても 1 のまま減らない。
+これが「深くしても学習が進む」の中身で、<b>構造ではなく学習の仕方が変わった</b>部分にあたる。</p>
+</details>
+<details class="foldbox" open><summary>構成図</summary>
+<div class="nnfig mynet"><svg viewBox="0 0 380 150">
+  <line x1="30" y1="114.1" x2="185" y2="114.1" stroke="#E4E1D8" stroke-width="1"/>
+  <line x1="105" y1="18" x2="105" y2="124" stroke="#E4E1D8" stroke-width="1"/>
+  <polyline points="30,114.1 105,114.1 180,20" fill="none" stroke="#6E7BA8" stroke-width="2.4"/>
+  <text x="105" y="12" font-size="10.5" text-anchor="middle" fill="#1A1A1A" font-weight="700">ReLU</text>
+  <text x="66" y="128" font-size="8.5" text-anchor="middle" fill="#9A9488">傾き 0</text>
+  <text x="146" y="128" font-size="8.5" text-anchor="middle" fill="#1A1A1A" font-weight="700">傾き 1</text>
+  <line x1="220" y1="120" x2="375" y2="120" stroke="#E4E1D8" stroke-width="1"/>
+  <line x1="295" y1="18" x2="295" y2="130" stroke="#E4E1D8" stroke-width="1"/>
+  <polyline points="220,115.3 245,108.1 270,93.1 295,70 320,46.9 345,31.9 370,24.7"
+            fill="none" stroke="#8d8880" stroke-width="2.4"/>
+  <text x="295" y="12" font-size="10.5" text-anchor="middle" fill="#1A1A1A" font-weight="700">シグモイド</text>
+  <text x="295" y="134" font-size="8.5" text-anchor="middle" fill="#9A9488">いちばん急な中央でも 傾き 0.25</text>
+  <text x="190" y="147" font-size="9" text-anchor="middle" fill="#9A9488">横軸 = 入力、縦軸 = 出力（縦の目盛りは 2 つで別）</text>
+</svg></div>
+</details>
+<details class="foldbox"><summary>式と計算</summary>
+<div class="formula">$\mathrm{ReLU}(x)=\max(0,x)$
+<div class="note" style="margin-top:8px">傾きは $x>0$ で 1、$x&lt;0$ で 0。
+0 になった側は学習が止まる（<b>死んだ ReLU</b>）が、正の側で 1 が保たれる効き目の方が大きかった。
+勾配が実際に入口まで届くかどうかは<a href="figures_resnet.html">残差接続の図解</a>で動かして確かめられる。</div>
+</div>
+</details>
+</div>
+<div class="fig-stage" id="sec4">
 <h2>ドロップアウト — 学習中にノードを一定割合で無効化する正則化</h2>
 <details class="foldbox" open><summary>説明</summary>
 <p>訓練のたびに、中間の計算点を半分眠らせる。特定の経路に頼れなくなるので、

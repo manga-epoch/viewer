@@ -19,7 +19,9 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderAllMath()"></script>
 <script>
-function renderAllMath(){ if(typeof renderMathInElement==='function'){ renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
+/* root を渡すとその要素だけ組み直す。JS で書き換えた読み上げの中の $…$ は
+   読み込み時の 1 回では組まれず、生のドル記号のまま読者に出る（resnet で実際に出た）。 */
+function renderAllMath(root){ if(typeof renderMathInElement==='function'){ renderMathInElement(root||document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false}); } }
 </script>
 <style>
 :root{--bg:#FAFAF7;--surface:#F4F2EC;--border:#E4E1D8;--ink:#1A1A1A;--ink-sub:#565248;--ink-muted:#9A9488;--arc:#6E7BA8;--arcrgba:110,123,168;--link:#3f6178;--ok:#15803d;--bad:#b4493f}
@@ -352,7 +354,15 @@ $\displaystyle \mu_j \leftarrow \frac{1}{|C_j|}\sum_{x_i\in C_j} x_i$ ―― 更
     $('#r1').innerHTML='両側の空き（マージン）は <b>'+margin.toFixed(0)+' px</b>。'+
       (margin>31 ? ' 余裕が最大に近い。<b>この線を選ぶのが SVM</b>。境界に接する数点（青い縁）だけが線を決めていて、これをサポートベクターと呼ぶ。'
                  : ' もっと余裕を取れる角度がある。余裕が狭いほど、新しい点が来たときに間違えやすい。')+
-      (SVM_DROPS.length ? ' 新しい点を <b>'+SVM_DROPS.length+' 個</b>落として、外したのは <b>'+missCount+' 個</b>（▲赤＝外した）。マージンが広い線ほど外さない。' : '');
+      /* ※ 外れ数は実測して言う。「マージンが広い線ほど外さない」と決め打ちすると、
+         外れ 0 個のまま同じ文が出続けて、図が主張を実証しない。 */
+      (SVM_DROPS.length
+        ? ' 新しい点を <b>'+SVM_DROPS.length+' 個</b>落として、外したのは <b>'+missCount+' 個</b>（▲赤＝外した）。'
+          +(missCount===0
+             ? (margin>31 ? '余裕を最大に取ったこの線は、まだ 1 つも外していない。角度を振って狭くすると外れが出る。'
+                          : 'この角度ではまだ外していない。さらに角度を振ると外れが出る。')
+             : '外した点は境界の近くに落ちたもの。<b>「余裕を残す」＝まだ見ていない点のための場所を空けておく</b>ということ。')
+        : '');
   }
   $('#ang').oninput=svm;
   $('#best').onclick=function(){ var best=0,bv=-1;
@@ -364,10 +374,17 @@ $\displaystyle \mu_j \leftarrow \frac{1}{|C_j|}\sum_{x_i\in C_j} x_i$ ―― 更
     $('#ang').value=best; svm(); };
   $('#drop').onclick=function(){
     var i=SVM_DROPS.length, isA=(i%2===0);
-    // 学習点と同じ生成分布から、別の乱数域（+2000）で新しく引く＝held-out データの模式
+    // ※ 学習点とまったく同じ狭い範囲から引いてはいけない。以前はそうしていたので
+    //   新しい点が境界から遠い所にしか落ちず、どの角度でも外れが 0 個のまま
+    //   「マージンが広い線ほど外さない」という主張を図が一度も実証できなかった（実測）。
+    //   本当のクラスは学習で見えた 12 点より広い ―― 境界寄りの裾まで引く。
+    //   （2 つのクラスは重ならないので、良い角度なら今でも全問正解にできる）
+    var near=(i%2===1);            // 半分は境界の際どい帯から引く
     var pt = isA
-      ? {x:90+rnd((i+2000)*1.7)*150, y:60+rnd((i+2000)*3.1)*110, cls:'a'}
-      : {x:320+rnd((i+2000)*2.3)*150, y:80+rnd((i+2000)*4.7)*110, cls:'b'};
+      ? {x:(near?258+rnd((i+2000)*1.7)*24 : 90+rnd((i+2000)*1.7)*150),
+         y:60+rnd((i+2000)*3.1)*110, cls:'a'}
+      : {x:(near?298+rnd((i+2000)*2.3)*24 : 320+rnd((i+2000)*2.3)*150),
+         y:60+rnd((i+2000)*4.7)*110, cls:'b'};
     SVM_DROPS.push(pt); svm();
   };
 
@@ -377,20 +394,37 @@ $\displaystyle \mu_j \leftarrow \frac{1}{|C_j|}\sum_{x_i\in C_j} x_i$ ―― 更
     RING.push({t:t,r:r,inner:inner}); } })();
   function kernel(){
     var L=+$('#lift').value/100; $('#lift-v').textContent=Math.round(L*100)+'%';
-    var cx=290, cy=150, top=26, g='<rect x="20" y="20" width="540" height="230" fill="#fff" stroke="#e4e1d8"/>';
-    RING.forEach(function(p){
-      var x=cx+Math.cos(p.t)*p.r, y=cy+Math.sin(p.t)*p.r*0.62;
-      y -= L*(p.r*p.r)/90;                                  // 距離の 2 乗ぶん持ち上げる
-      if(y<top) y=top;                                      // 100% 持ち上げてもプロット枠の外へ出ないよう clip
-      g+='<circle class="pt '+(p.inner?'a':'b')+'" cx="'+x+'" cy="'+y+'" r="6"/>';
+    var cx=290, cy=150, top=26;
+    /* 持ち上げると同時に、見る角度を「真上から」→「横から」へ倒していく。
+       真上から見たままだと、円を縦に潰した見かけの散らばりが持ち上げ量と同じくらい
+       大きく、100% 持ち上げても外側の点が線の下に残ってしまう（実測で 40 点中 9 点）。 */
+    var s = 0.62*(1-L) + 0.12*L;                            // 縦の潰し（1=真上, 小=横から）
+    var base = RING.map(function(p){
+      return {x:cx+Math.cos(p.t)*p.r, y0:cy+Math.sin(p.t)*p.r*s, q:p.r*p.r, inner:p.inner};
     });
-    if(L>0.45) g+='<line class="bd" x1="60" y1="'+(cy-52*L*1.3)+'" x2="520" y2="'+(cy-52*L*1.3)+'"/>';
+    /* ※ はみ出した点を上端で切り詰めない（順序が壊れて「水平な線で切れる」が
+       図の上で成り立たなくなる）。100% でいちばん高く上がる点が枠の上端に来るよう、
+       持ち上げの係数そのものを決める。高さは距離の 2 乗に比例したまま。 */
+    var kmax=Math.min.apply(null, base.map(function(p){ return (p.y0-top)/p.q; }));
+    base.forEach(function(p){ p.y=p.y0 - L*kmax*p.q; });
+    var g='<rect x="20" y="20" width="540" height="230" fill="#fff" stroke="#e4e1d8"/>';
+    base.forEach(function(p){
+      g+='<circle class="pt '+(p.inner?'a':'b')+'" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="6"/>';
+    });
+    /* 切れるかどうかは**測ってから**言う。外側がすべて内側より上にあるときだけ線を引く。 */
+    var loOuter=-1e9, hiInner=1e9;
+    base.forEach(function(p){ if(p.inner){ if(p.y<hiInner) hiInner=p.y; }
+                              else { if(p.y>loOuter) loOuter=p.y; } });
+    var sep=(loOuter+6 < hiInner-6), ly=(loOuter+hiInner)/2;
+    if(sep) g+='<line class="bd" x1="60" y1="'+ly.toFixed(1)+'" x2="520" y2="'+ly.toFixed(1)+'"/>';
     $('#v2').innerHTML=svg(580,270,g);
     $('#r2').innerHTML = L<0.15
       ? '平面のままでは、内側（●）と外側（○）を 1 本の直線で切れない。'
-      : (L<0.45 ? '持ち上げ中。外側ほど高く上がっていく（持ち上げる高さ＝原点からの距離の 2 乗）。'
-        : '外側が持ち上がり、<b>水平な 1 本の線で切れる</b>ようになった。'+
-          '実際に座標を作らず、内積だけで同じ効果を出す技を<b>カーネル法</b>と呼ぶ。');
+      : (sep
+         ? '外側がすべて内側より上に来た。<b>水平な 1 本の線で切れる</b>（線は実際に測って引いている）。'+
+           '実際に座標を作らず、内積だけで同じ効果を出す技を<b>カーネル法</b>と呼ぶ。'
+         : '持ち上げ中。外側ほど高く上がっていく（持ち上げる高さ＝原点からの距離の 2 乗）。'+
+           'まだ内側と外側が高さで重なっているので、水平な線では切れない。');
   }
   $('#lift').oninput=kernel;
 
