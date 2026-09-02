@@ -11,9 +11,9 @@
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="EPOCH — 時代の前夜">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:image" content="https://manga-epoch.github.io/viewer/og/lp.jpg">
+<meta property="og:image" content="https://manga-epoch.pages.dev/og/lp.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://manga-epoch.github.io/viewer/og/lp.jpg">
+<meta name="twitter:image" content="https://manga-epoch.pages.dev/og/lp.jpg">
 <!-- epoch-meta:end -->
 <title>アクセスコードで開く — EPOCH</title>
 <!--
@@ -71,45 +71,38 @@ button:disabled{opacity:.5;cursor:default}
 </div>
 
 <script>
-// コード → 解錠先パス。導出規則は tools/gate_path.py と**必ず一致**させること
-// （片方だけ変えるとリンク切れになる）。
-const PREFIX_LEN = 16;              // sha256 の先頭何桁を使うか
-const SALT = "epoch-gate-v1";       // 総当たり耐性のための固定ソルト
-
-async function pathFor(code) {
-  const norm = code.trim().toUpperCase().replace(/[\s　]/g, "");
-  if (!norm) return null;
-  const buf = new TextEncoder().encode(SALT + ":" + norm);
-  const hash = await crypto.subtle.digest("SHA-256", buf);
-  const hex = [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join("");
-  return "pub/epoch/a2-" + hex.slice(0, PREFIX_LEN) + "/";
-}
-
+// ⚠ コードの照合は**サーバ側**で行う（Cloudflare Pages の _worker.js）。
+// 以前はここでコードから解錠先パスを計算して飛ぶだけで、誰も何も確かめていなかった。
+// パスさえ知っていればコード無しで読めてしまい、実際に公開リポジトリがその
+// パスを一覧表示していたため到達できた（2026-09-02 実測）。
+// いまは /gate にコードを送り、合っていればサーバがクッキーを付け、解錠先を返す。
+// 解錠先パスはサーバが持つので、ここには書かない（＝ページを読んでも分からない）。
 const $ = id => document.getElementById(id);
 async function unlock() {
   const msg = $("msg"); msg.className = "msg"; msg.textContent = "確認しています…";
   $("go").disabled = true;
-  const p = await pathFor($("code").value);
-  if (!p) { msg.className = "msg err"; msg.textContent = "コードを入力してください。"; $("go").disabled = false; return; }
+  const code = ($("code").value || "").trim();
+  if (!code) { msg.className = "msg err"; msg.textContent = "コードを入力してください。"; $("go").disabled = false; return; }
   try {
-    // 実在確認してから遷移する（誤ったコードで 404 画面に飛ばさない）
-    const r = await fetch(p + "index.html", { method: "HEAD", cache: "no-store" });
-    if (r.ok) {
+    const r = await fetch("/gate?c=" + encodeURIComponent(code), { cache: "no-store" });
+    const d = await r.json();
+    if (d && d.ok && d.path) {
       // 体験版で第 1 話を読み終えている人が多い（読者指摘）。強制で頭から
       // 開かず、「続きから」を第一候補にした 2 択を出す。#s2 はシーン 2 の頭。
       msg.className = "msg";
       msg.innerHTML = 'コードを確認しました。'
         + '<span style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">'
-        + '<a class="go-btn" href="' + p + 'index.html#s2">第 2 話から続きを読む →</a>'
-        + '<a class="go-btn ghost" href="' + p + '">最初から読む</a></span>';
+        + '<a class="go-btn" href="' + d.path + 'index.html#s2">第 2 話から続きを読む →</a>'
+        + '<a class="go-btn ghost" href="' + d.path + '">最初から読む</a></span>';
       $("go").style.display = "none";
       return;
     }
-  } catch (e) { /* fetch 失敗は「見つからない」と同じ扱い */ }
+  } catch (e) { /* 通信できないときも「確認できなかった」と同じ扱い */ }
   msg.className = "msg err";
   msg.textContent = "コードが確認できませんでした。入力をお確かめください。";
   $("go").disabled = false;
 }
+
 $("go").addEventListener("click", unlock);
 $("code").addEventListener("keydown", e => { if (e.key === "Enter") unlock(); });
 

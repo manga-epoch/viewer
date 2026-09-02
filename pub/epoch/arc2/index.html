@@ -14,9 +14,9 @@
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="EPOCH — 時代の前夜">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:image" content="https://manga-epoch.github.io/viewer/og/arc2.jpg">
+<meta property="og:image" content="https://manga-epoch.pages.dev/og/arc2.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://manga-epoch.github.io/viewer/og/arc2.jpg">
+<meta name="twitter:image" content="https://manga-epoch.pages.dev/og/arc2.jpg">
 <!-- epoch-meta:end -->
 <title>Arc 2「覚醒」試読版 — EPOCH 時代の前夜</title>
 <style>
@@ -552,7 +552,7 @@ $('export').onclick = () => {
 // → 長すぎる場合はクリップボードに本文をコピー + 空の Issue 作成ページを開く運用に切替。
 async function submitAsIssue(md, title, label) {
   const titleEnc = encodeURIComponent(title);
-  const baseUrl = `about:blank?title=${titleEnc}&labels=${label}`;
+  const baseUrl = `about:blank/issues/new?title=${titleEnc}&labels=${label}`;
   const fullUrl = `${baseUrl}&body=${encodeURIComponent(md)}`;
   // GitHub の URL 制限は ~8200。マージンを取って 7500 (URL 全体長) で判定。
   if (fullUrl.length <= 7500) {

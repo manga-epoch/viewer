@@ -21,4 +21,4 @@
 
 購入すると開く URL の中に置いてあります。`.ipynb` を落として Colab へ上げれば動きます。
 
-本編・巻末解説・図解は https://manga-epoch.github.io/viewer から。
+本編・巻末解説・図解は https://manga-epoch.pages.dev から。
