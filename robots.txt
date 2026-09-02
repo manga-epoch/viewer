@@ -1,3 +1,2 @@
 User-agent: *
-Disallow: /viewer/pub/epoch/a2-
-Sitemap: https://manga-epoch.github.io/viewer/sitemap.xml
+Allow: /
